@@ -1,7 +1,0 @@
-<<<<<<< HEAD
-bes;bvi;ueabv;ieb;isbev i
-=======
-print("rudhran is nigga pedo") 
-
->>>>>>> 241173904e9c3f2a3db3e9f18af04c93cef8fd44
-
