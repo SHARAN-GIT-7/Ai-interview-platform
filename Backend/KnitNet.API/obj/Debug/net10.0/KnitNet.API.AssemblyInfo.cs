@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KnitNet.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7857c7f562bf4f93de106ade01fb4c29ea688a37")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+64bd3c89233d00ecf1aa0e6a6600808cc0d965b9")]
 [assembly: System.Reflection.AssemblyProductAttribute("KnitNet.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KnitNet.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
