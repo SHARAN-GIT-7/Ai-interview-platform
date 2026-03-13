@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import bgImage from "../../assets/images/login_register_BG.png";
 
 export default function UserLogin() {
   const [showPassword, setShowPassword] = useState(false);
@@ -9,27 +10,32 @@ export default function UserLogin() {
   return (
     <div className="flex min-h-screen h-[100dvh] w-full bg-white overflow-hidden">
         
-        {/* Left Side - Visual Gradient (40% Width) */}
-        <div className="hidden lg:flex w-[45%] relative p-12 flex-col justify-between overflow-hidden bg-brand-dark">
-          {/* Decorative Gradient Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-dark via-[#1a5a56] to-brand-secondary opacity-90 animate-gradient"></div>
-          
-          {/* Soft blur circles for mockup feel */}
-          <div className="absolute top-[-10%] left-[-10%] w-[120%] h-[120%] bg-[radial-gradient(circle_at_20%_20%,#E5FD5F33_0,transparent_40%),radial-gradient(circle_at_80%_80%,#ffffff11_0,transparent_50%)] "></div>
+        {/* Left Side - Image Background */}
+        <div className="hidden lg:flex w-[45%] p-4 bg-white">
+          <div className="w-full h-full relative rounded-[2rem] overflow-hidden flex flex-col justify-between p-8">
+            <img 
+              src={bgImage} 
+              alt="Login Background" 
+              className="absolute inset-0 w-full h-full object-cover z-0"
+            />
+            
+            {/* Dark gradient overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-0"></div>
 
-          <div className="relative z-10">
-            <Link to="/" className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white text-3xl font-bold hover:bg-white/30 transition-all">
-              <IoMdArrowRoundBack />
-            </Link>
-          </div>
+            <div className="relative z-10">
+              <Link to="/" className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white text-3xl font-bold hover:bg-white/30 transition-all">
+                <IoMdArrowRoundBack />
+              </Link>
+            </div>
 
-          <div className="relative z-10 text-white">
-            <p className="text-white/70 text-lg mb-4 font-regular italic">You can easily</p>
-            <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight">
-              Get access your personal <br />
-              hub for clarity and <br />
-              productivity
-            </h2>
+            <div className="relative z-10 text-white">
+              <p className="text-white/90 text-lg mb-4 font-regular italic">You can easily</p>
+              <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight drop-shadow-md">
+                Your personal space <br />
+                to attend evaluations, <br />
+                monitor progress
+              </h2>
+            </div>
           </div>
         </div>
 

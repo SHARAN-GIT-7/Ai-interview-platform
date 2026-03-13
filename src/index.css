@@ -6,7 +6,7 @@
 
   /* Custom Palette */
   --color-brand-dark: #144542;
-  --color-brand-secondary: #E5FD5F;
+  --color-brand-secondary: #DAFF0C;
   --color-brand-light: #EAF0F0;
   --color-brand-gray: #9B9B9B;
 
@@ -35,11 +35,11 @@ html {
   --popover-foreground: #144542;
   --primary: #144542;
   --primary-foreground: #ffffff;
-  --secondary: #E5FD5F;
+  --secondary: #DAFF0CE ;
   --secondary-foreground: #144542;
   --muted: #f4f7f7;
   --muted-foreground: #9B9B9B;
-  --accent: #E5FD5F;
+  --accent: #DAFF0C;
   --accent-foreground: #144542;
   --destructive: #ef4444;
   --destructive-foreground: #fafafa;

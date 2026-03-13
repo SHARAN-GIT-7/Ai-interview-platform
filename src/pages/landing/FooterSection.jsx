@@ -1,7 +1,15 @@
+import { motion } from "framer-motion";
+
 export default function FooterSection() {
   return (
     <footer className="bg-black text-white py-16 border-t border-white/10">
-      <div className="max-w-6xl mx-auto px-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.8 }}
+        className="max-w-6xl mx-auto px-6"
+      >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="md:col-span-1">
@@ -90,7 +98,7 @@ export default function FooterSection() {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
     </footer>
   );
 }

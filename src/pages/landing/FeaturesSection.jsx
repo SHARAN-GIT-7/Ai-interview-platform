@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 const features = [
   {
     title: "Identity Verification",
@@ -29,18 +31,28 @@ export default function FeaturesSection() {
   return (
     <section id="features" className="py-32 pt-20 bg-brand-light">
       <div className="container mx-auto px-6">
-        <div className="mb-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.6 }}
+          className="mb-20"
+        >
           <span className="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-[0.2em] uppercase text-brand-dark/60 bg-brand-dark/5 rounded-full">
             Features
           </span>
           <h2 className="text-4xl  md:text-5xl font-black text-brand-dark tracking-tight">
             Platform Features
           </h2>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((f, index) => (
-            <div 
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
               key={index} 
               className="p-8 bg-white border border-brand-dark/5 rounded-3xl transition-all duration-300 hover:shadow-2xl hover:shadow-brand-dark/5 hover:-translate-y-1 group"
             >
@@ -53,7 +65,7 @@ export default function FeaturesSection() {
               <p className="text-brand-gray leading-relaxed">
                 {f.desc}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

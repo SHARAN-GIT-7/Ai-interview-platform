@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 const steps = [
   "Identity Verification",
   "Resume Analysis",
@@ -13,18 +15,31 @@ export default function WorkflowSection() {
   return (
     <section id="workflow" className="py-32 bg-white">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-20"
+        >
           <span className="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-[0.2em] uppercase text-brand-dark/60 bg-brand-dark/5 rounded-full">
             The Process
           </span>
           <h2 className="text-4xl md:text-5xl font-black text-brand-dark tracking-tight">
             How the Platform Works
           </h2>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {steps.map((step, i) => (
-            <div key={i} className="relative group">
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="relative group"
+            >
               <div className="flex items-start gap-6">
                 <div className="flex-shrink-0 w-12 h-12 bg-brand-light border border-brand-dark/5 rounded-2xl flex items-center justify-center text-brand-dark font-black transition-all duration-300 group-hover:bg-brand-secondary group-hover:scale-110">
                   {i + 1}
@@ -38,7 +53,7 @@ export default function WorkflowSection() {
               {i < steps.length - 1 && (
                 <div className="hidden lg:block absolute top-6 left-[3rem] w-full h-[1px] bg-brand-dark/5 -z-10"></div>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

@@ -1,7 +1,15 @@
+import { motion } from "framer-motion";
+
 export default function SolutionSection() {
   return (
-    <section id="solution" className="py-26 bg-brand-dark text-white text-center rounded-[4rem] mx-6 md:mx-auto container my-15">
-      <div className="max-w-4xl mx-auto px-6">
+    <section id="solution" className="py-18 bg-brand-dark text-white text-center rounded-[4rem] mx-6 md:mx-auto container my-10 mt-20">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.8 }}
+        className="max-w-4xl mx-auto px-6"
+      >
         <span className="inline-block px-4 py-1.5 mb-6 text-xs font-bold tracking-[0.2em] uppercase text-brand-secondary/80 bg-brand-secondary/10 rounded-full">
           Our Solution
         </span>
@@ -18,7 +26,7 @@ export default function SolutionSection() {
           AI-Driven Precision
           <span className="w-12 h-[1px] bg-brand-secondary/30"></span>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

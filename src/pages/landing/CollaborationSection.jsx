@@ -1,7 +1,15 @@
+import { motion } from "framer-motion";
+
 export default function CollaborationSection() {
   return (
     <section id="collaboration" className="py-24 bg-brand-dark text-white overflow-hidden relative">
-      <div className="container mx-auto px-6 text-center relative z-10">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.9 }}
+        className="container mx-auto px-6 text-center relative z-10"
+      >
         <h2 className="text-4xl md:text-6xl font-black mb-8 tracking-tight">
           Join Us for Industry Collaboration
         </h2>
@@ -12,7 +20,7 @@ export default function CollaborationSection() {
         <button className="px-10 py-5 text-lg font-bold text-brand-dark bg-brand-secondary rounded-2xl transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]">
           Collaborate With Us
         </button>
-      </div>
+      </motion.div>
       
       {/* Subtle decorative elements */}
       {/* <div className="absolute top-0 right-0 w-96 h-96 bg-brand-secondary/10 rounded-full blur-[100px] -mr-48 -mt-48"></div>
