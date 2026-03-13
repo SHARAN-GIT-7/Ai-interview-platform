@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import Webcam from "react-webcam";
 import API from "../api/api";
 
@@ -7,12 +7,31 @@ export default function WebcamVerify() {
   const webcamRef = useRef(null);
 
   const [uniqueId, setUniqueId] = useState("");
-  const [status, setStatus] = useState("START");
+  const [cameraOn, setCameraOn] = useState(false);
+
+  const [status, setStatus] = useState("");
+  const [instruction, setInstruction] = useState("");
+  const [progress, setProgress] = useState("");
+
   const [verified, setVerified] = useState(false);
+  const [error, setError] = useState(false);
 
-  const sendFrame = async () => {
+  const [faceBox, setFaceBox] = useState(null);
 
-    if (!webcamRef.current || verified) return;
+  const startVerification = () => {
+    if (!uniqueId) return;
+
+    setCameraOn(true);
+    setStatus("Align your face inside the frame");
+    setInstruction("");
+    setProgress("");
+    setVerified(false);
+    setError(false);
+  };
+
+  const sendFrame = useCallback(async () => {
+
+    if (!webcamRef.current || verified || !cameraOn) return;
 
     const imageSrc = webcamRef.current.getScreenshot();
 
@@ -27,80 +46,151 @@ export default function WebcamVerify() {
 
     try {
 
-      const res = await API.post("/verify-interview", formData);
+      const res = await API.post("/interview/verify-interview", formData);
 
-      console.log("Backend:", res.data);
+      const data = res.data;
 
-      setStatus(res.data.status);
+      console.log("Backend:", data);
 
-      if (res.data.status === "VERIFIED") {
+      setStatus(data.status || "");
+      setInstruction(data.instruction || "");
+      setProgress(data.progress || "");
 
+      if (data.face_box) {
+        setFaceBox(data.face_box);
+      }
+
+      if (data.error) {
+        setError(true);
+      }
+
+      if (data.verified) {
         setVerified(true);
-
-        console.log("Face verified");
-
+        setStatus("Verification Successful");
       }
 
     } catch (err) {
 
       console.log(err.response?.data);
 
+      setStatus("Server error");
+      setError(true);
+
     }
-  };
+
+  }, [cameraOn, verified, uniqueId]);
 
   useEffect(() => {
 
-    const interval = setInterval(sendFrame, 1500);
+    if (!cameraOn || verified) return;
+
+    const interval = setInterval(sendFrame, 800);
 
     return () => clearInterval(interval);
 
-  }, [uniqueId, verified]);
+  }, [cameraOn, verified, sendFrame]);
 
   return (
 
-    <div style={{textAlign:"center"}}>
+    <div style={{ textAlign: "center", fontFamily: "Arial" }}>
 
       <h2>Live Identity Verification</h2>
 
-      <input
-        placeholder="Enter Unique ID"
-        onChange={(e)=>setUniqueId(e.target.value)}
-      />
+      <div style={{ marginBottom: "20px" }}>
 
-      <div style={{position:"relative", width:"500px", margin:"auto"}}>
-
-        <Webcam
-          ref={webcamRef}
-          screenshotFormat="image/jpeg"
-          width={500}
-        />
-
-        {/* face box */}
-        <div
+        <input
+          placeholder="Enter Unique ID"
+          value={uniqueId}
+          onChange={(e) => setUniqueId(e.target.value)}
           style={{
-            position:"absolute",
-            border:"3px solid lime",
-            width:"220px",
-            height:"220px",
-            top:"70px",
-            left:"140px",
-            borderRadius:"10px"
+            padding: "10px",
+            fontSize: "16px",
+            width: "220px"
           }}
         />
 
+        <button
+          onClick={startVerification}
+          style={{
+            marginLeft: "10px",
+            padding: "10px 20px",
+            fontSize: "16px",
+            cursor: "pointer"
+          }}
+        >
+          Start Verification
+        </button>
+
       </div>
 
-      <h3>
+      {cameraOn && (
 
-        {status === "START" && "Align your face inside the box"}
-        {status === "LOOK_LEFT" && "Look Left"}
-        {status === "LOOK_RIGHT" && "Look Right"}
-        {status === "LOOK_CENTER" && "Look Center"}
-        {status === "PROCESSING" && "Verifying face"}
-        {status === "VERIFIED" && "Verification Successful"}
+        <div style={{ position: "relative", width: "500px", margin: "auto" }}>
 
+          <Webcam
+            ref={webcamRef}
+            screenshotFormat="image/jpeg"
+            width={500}
+            videoConstraints={{
+              facingMode: "user"
+            }}
+          />
+
+          {faceBox && (
+
+            <div
+              style={{
+                position: "absolute",
+                border: "3px solid lime",
+                left: faceBox[0],
+                top: faceBox[1],
+                width: faceBox[2] - faceBox[0],
+                height: faceBox[3] - faceBox[1],
+                borderRadius: "10px"
+              }}
+            />
+
+          )}
+
+        </div>
+
+      )}
+
+      <h3
+        style={{
+          marginTop: "20px",
+          color: verified ? "green" : error ? "red" : "black"
+        }}
+      >
+        {status}
       </h3>
 
+      {instruction && (
+
+        <p style={{ fontSize: "16px" }}>
+          {instruction}
+        </p>
+
+      )}
+
+      {progress && (
+
+        <p style={{ fontWeight: "bold" }}>
+          Step: {progress}
+        </p>
+
+      )}
+
+      {verified && (
+
+        <div style={{ marginTop: "20px", color: "green", fontWeight: "bold" }}>
+          Identity verified successfully
+        </div>
+
+      )}
+
     </div>
+
   );
+
 }
