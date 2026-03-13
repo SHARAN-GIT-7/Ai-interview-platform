@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-fade-in: fade-in 1s ease-out;
+  --animate-gradient: gradient 8s linear infinite;
+
+  /* Custom Palette */
+  --color-brand-dark: #144542;
+  --color-brand-secondary: #E5FD5F;
+  --color-brand-light: #EAF0F0;
+  --color-brand-gray: #9B9B9B;
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes gradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* Accounts for fixed navbar height */
+}
+
+:root {
+  --background: #EAF0F0;
+  --foreground: #144542;
+  --card: #ffffff;
+  --card-foreground: #144542;
+  --popover: #ffffff;
+  --popover-foreground: #144542;
+  --primary: #144542;
+  --primary-foreground: #ffffff;
+  --secondary: #E5FD5F;
+  --secondary-foreground: #144542;
+  --muted: #f4f7f7;
+  --muted-foreground: #9B9B9B;
+  --accent: #E5FD5F;
+  --accent-foreground: #144542;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #dce5e5;
+  --input: #dce5e5;
+  --ring: #144542;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
