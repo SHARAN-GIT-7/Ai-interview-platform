@@ -48,7 +48,7 @@ function Navbar() {
             to="/login"
             className="relative px-6 shadow-2xl py-2.5 text-sm tracking-wider text-brand-secondary bg-black rounded-lg transition-all duration-300 active:scale-95 overflow-hidden group border border-black"
           >
-            <span className="absolute inset-y-0 left-0 w-0 bg-brand-light/95 backdrop-blur-[8px] shadow-sm transition-all duration-500 ease-out group-hover:w-full z-0"></span>
+            <span className="absolute inset-y-0 left-0 w-0 bg-brand-light/98 backdrop-blur-[8px] shadow-sm transition-all duration-500 ease-out group-hover:w-full z-0"></span>
             <span className="relative z-10 transition-colors duration-500 group-hover:text-black">Take Test</span>
           </Link>
         </div>
