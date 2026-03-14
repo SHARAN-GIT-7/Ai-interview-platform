@@ -118,27 +118,10 @@ export default function UserRegister() {
                 </div>
               </div>
 
-              <button type="submit" className="w-full mt-6 py-4 bg-brand-dark text-white font-black rounded-xl hover:opacity-90 transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98]">
+              <button type="submit" className="w-full mt-6 py-4 mb-9 bg-brand-dark text-white font-black rounded-xl hover:opacity-90 transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98]">
                 Create Account
               </button>
             </form>
-
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase px-2">
-                <span className="bg-white px-2 text-brand-gray font-bold tracking-widest">or sign up with</span>
-              </div>
-            </div>
-
-            {/* <div className="grid grid-cols-3 gap-4 mb-5">
-              {['Bē', 'G', 'f'].map((social) => (
-                <button key={social} className="py-3 px-4 mb-0 border border-gray-100 bg-gray-50 rounded-xl hover:bg-white hover:border-brand-dark/20 transition-all font-bold text-brand-dark">
-                  {social}
-                </button>
-              ))}
-            </div> */}
 
             <p className="text-center text-sm text-brand-gray font-medium">
               Already have an account? <Link to="/login" className="text-brand-dark font-black hover:underline">Log in</Link>
