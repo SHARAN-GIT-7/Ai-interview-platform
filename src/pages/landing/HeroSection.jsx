@@ -36,7 +36,11 @@ export default function HeroSection() {
         transition={{ duration: 0.5, delay: 0.4 }}
         className="flex flex-col sm:flex-row items-center justify-center gap-4"
       >
-        <Link to="/login" className="px-10 py-5 text-lg font-normal tracking-wider text-white bg-brand-dark rounded-xl transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-brand-dark/10">
+        <Link 
+          to="/login" 
+          state={{ fromLanding: true }} 
+          className="px-10 py-5 text-lg font-normal tracking-wider text-white bg-brand-dark rounded-xl transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-brand-dark/10"
+        >
           Take the Test
         </Link>
         <button className="px-10 py-5 text-lg font-bold text-brand-dark bg-brand-secondary rounded-xl transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]">

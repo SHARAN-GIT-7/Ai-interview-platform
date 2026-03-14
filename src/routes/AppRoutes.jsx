@@ -18,9 +18,7 @@ import Error404 from "../pages/errors/Error404";
 export default function AppRoutes() {
   return (
     <Router>
-
       <Routes>
-
         {/* Landing Page */}
         <Route path="/" element={<LandingPage />} />
 
@@ -43,9 +41,7 @@ export default function AppRoutes() {
 
         {/* Error Page */}
         <Route path="*" element={<Error404 />} />
-
       </Routes>
-
     </Router>
   );
 }

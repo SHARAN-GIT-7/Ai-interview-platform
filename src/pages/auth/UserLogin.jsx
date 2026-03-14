@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import bgImage from "../../assets/images/login_register_BG.png";
+import { motion } from "framer-motion";
 
 export default function UserLogin() {
   const [showPassword, setShowPassword] = useState(false);
+  const location = useLocation();
+  const shouldAnimate = location.state?.fromLanding;
 
   return (
     <div className="flex min-h-screen h-[100dvh] w-full bg-white overflow-hidden">
@@ -29,12 +32,24 @@ export default function UserLogin() {
             </div>
 
             <div className="relative z-10 text-white">
-              <p className="text-white/90 text-lg mb-4 font-regular italic">You can easily</p>
-              <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight drop-shadow-md">
-                Your personal space <br />
-                to attend evaluations, <br />
-                monitor progress
-              </h2>
+              <motion.p 
+                initial={shouldAnimate ? { opacity: 0, x: -20 } : false}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="text-white/90 text-lg mb-4 font-regular italic"
+              >
+                You can
+              </motion.p>
+              <motion.h2 
+                initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                className="text-4xl xl:text-5xl font-black leading-tight tracking-tight drop-shadow-md"
+              >
+                Start your journey <br />
+                towards smarter<br />
+                evaluations
+              </motion.h2>
             </div>
           </div>
         </div>
@@ -99,14 +114,6 @@ export default function UserLogin() {
                 <span className="bg-white px-2 text-brand-gray font-bold tracking-widest">or continue with</span>
               </div>
             </div>
-
-            {/* <div className="grid grid-cols-3 gap-4 mb-5">
-              {['Bē', 'G', 'f'].map((social) => (
-                <button key={social} className="py-3 px-4 mb-0 border border-gray-100 bg-gray-50 rounded-xl hover:bg-white hover:border-brand-dark/20 transition-all font-bold text-brand-dark">
-                  {social}
-                </button>
-              ))}
-            </div> */}
 
             <p className="text-center text-sm text-brand-gray font-medium">
               Don't have an account? <Link to="/register" className="text-brand-dark font-black hover:underline">Sign up</Link>

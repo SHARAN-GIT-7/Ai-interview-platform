@@ -85,7 +85,7 @@ export default function UserRegister() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-0"></div>
 
             <div className="relative z-10">
-              <Link to="/login" className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white text-3xl font-bold hover:bg-white/30 transition-all">
+              <Link to="/" className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white text-3xl font-bold hover:bg-white/30 transition-all">
                 <IoMdArrowRoundBack />
               </Link>
             </div>
@@ -222,14 +222,6 @@ export default function UserRegister() {
                 <span className="bg-white px-2 text-brand-gray font-bold tracking-widest">or sign up with</span>
               </div>
             </div>
-
-            {/* <div className="grid grid-cols-3 gap-4 mb-5">
-              {['Bē', 'G', 'f'].map((social) => (
-                <button key={social} className="py-3 px-4 mb-0 border border-gray-100 bg-gray-50 rounded-xl hover:bg-white hover:border-brand-dark/20 transition-all font-bold text-brand-dark">
-                  {social}
-                </button>
-              ))}
-            </div> */}
 
             <p className="text-center text-sm text-brand-gray font-medium pb-12">
               Already have an account? <Link to="/login" className="text-brand-dark font-black hover:underline">Log in</Link>

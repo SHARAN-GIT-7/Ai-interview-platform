@@ -1,6 +1,4 @@
 import Navbar from "../../components/layout/Navbar";
- 
-
 import HeroSection from "./HeroSection";
 import ProblemSection from "./ProblemSection";
 import SolutionSection from "./SolutionSection";
