@@ -100,13 +100,13 @@ export default function UserLogin() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-5">
+            {/* <div className="grid grid-cols-3 gap-4 mb-5">
               {['Bē', 'G', 'f'].map((social) => (
                 <button key={social} className="py-3 px-4 mb-0 border border-gray-100 bg-gray-50 rounded-xl hover:bg-white hover:border-brand-dark/20 transition-all font-bold text-brand-dark">
                   {social}
                 </button>
               ))}
-            </div>
+            </div> */}
 
             <p className="text-center text-sm text-brand-gray font-medium">
               Don't have an account? <Link to="/register" className="text-brand-dark font-black hover:underline">Sign up</Link>
