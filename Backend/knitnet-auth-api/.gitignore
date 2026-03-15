@@ -1,0 +1,29 @@
+## Visual Studio / .NET Core
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+## User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+
+## Packages
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+## Others
+.DS_Store
+.vs/
+.vscode/
