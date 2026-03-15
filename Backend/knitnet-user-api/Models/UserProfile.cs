@@ -34,5 +34,8 @@ namespace knitnet_user_api.Models
 
         [Column("photo_url")]
         public string PhotoUrl { get; set; }
+
+        [Column("gender")]
+        public string Gender { get; set; }
     }
 }

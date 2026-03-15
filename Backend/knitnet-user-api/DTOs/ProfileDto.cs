@@ -19,5 +19,7 @@ namespace knitnet_user_api.DTOs
         public string Phone { get; set; }
 
         public string PhotoUrl { get; set; }
+
+        public string Gender { get; set; }
     }
 }

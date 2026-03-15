@@ -82,7 +82,23 @@ namespace knitnet_auth_api.Controllers
             return Ok(new
             {
                 token,
-                role = user.Role
+                role = user.Role,
+                userId = user.Id
+            });
+        }
+
+        [HttpGet("profile/{email}")]
+        public IActionResult GetProfile(string email)
+        {
+            var user = _context.Users.FirstOrDefault(x => x.Email == email);
+
+            if (user == null)
+                return NotFound("User not found");
+
+            return Ok(new
+            {
+                name = user.Name,
+                email = user.Email
             });
         }
 

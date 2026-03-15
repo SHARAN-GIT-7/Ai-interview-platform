@@ -35,12 +35,45 @@ namespace knitnet_user_api.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateProfile(ProfileDto model)
         {
+            // Sync name in core users table
+            var user = _context.Users.FirstOrDefault(u => u.Id == model.UserId);
+            if (user != null)
+            {
+                user.Name = model.FullName;
+                _context.Users.Update(user);
+            }
+
             // Check if profile already exists
             var existingProfile = _context.UserProfiles
                 .FirstOrDefault(x => x.UserId == model.UserId);
 
             if (existingProfile != null)
-                return BadRequest("Profile already exists for this user");
+            {
+                // Update existing profile
+                existingProfile.FullName = model.FullName;
+                existingProfile.Email = model.Email;
+                existingProfile.Dob = model.Dob;
+                existingProfile.Age = model.Age;
+                existingProfile.College = model.College;
+                existingProfile.Address = model.Address;
+                existingProfile.Phone = model.Phone;
+                existingProfile.Gender = model.Gender;
+
+                // Only update photo if a new one was uploaded
+                if (!string.IsNullOrEmpty(model.PhotoUrl))
+                {
+                    existingProfile.PhotoUrl = model.PhotoUrl;
+                }
+
+                _context.UserProfiles.Update(existingProfile);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Profile updated successfully",
+                    profile = existingProfile
+                });
+            }
 
             var profile = new UserProfile
             {
@@ -52,7 +85,8 @@ namespace knitnet_user_api.Controllers
                 College = model.College,
                 Address = model.Address,
                 Phone = model.Phone,
-                PhotoUrl = model.PhotoUrl
+                PhotoUrl = model.PhotoUrl,
+                Gender = model.Gender
             };
 
             _context.UserProfiles.Add(profile);

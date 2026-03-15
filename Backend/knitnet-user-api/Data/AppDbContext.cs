@@ -11,5 +11,6 @@ namespace knitnet_user_api.Data
         }
 
         public DbSet<UserProfile> UserProfiles { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }

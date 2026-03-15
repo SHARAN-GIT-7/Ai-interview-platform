@@ -1,31 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\knitnet\\Autonomous-Recruitment-Engine\\backend\\knitnet-user-api\\knitnet-user-api.csproj": {}
+    "C:\\Projects\\Autonomous-Recruitment-Engine\\Backend\\knitnet-user-api\\knitnet-user-api.csproj": {}
   },
   "projects": {
-    "C:\\knitnet\\Autonomous-Recruitment-Engine\\backend\\knitnet-user-api\\knitnet-user-api.csproj": {
+    "C:\\Projects\\Autonomous-Recruitment-Engine\\Backend\\knitnet-user-api\\knitnet-user-api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\knitnet\\Autonomous-Recruitment-Engine\\backend\\knitnet-user-api\\knitnet-user-api.csproj",
+        "projectUniqueName": "C:\\Projects\\Autonomous-Recruitment-Engine\\Backend\\knitnet-user-api\\knitnet-user-api.csproj",
         "projectName": "knitnet-user-api",
-        "projectPath": "C:\\knitnet\\Autonomous-Recruitment-Engine\\backend\\knitnet-user-api\\knitnet-user-api.csproj",
-        "packagesPath": "C:\\Users\\rudhran\\.nuget\\packages\\",
-        "outputPath": "C:\\knitnet\\Autonomous-Recruitment-Engine\\backend\\knitnet-user-api\\obj\\",
+        "projectPath": "C:\\Projects\\Autonomous-Recruitment-Engine\\Backend\\knitnet-user-api\\knitnet-user-api.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "C:\\Projects\\Autonomous-Recruitment-Engine\\Backend\\knitnet-user-api\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\rudhran\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -44,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net10.0": {
@@ -86,7 +80,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
