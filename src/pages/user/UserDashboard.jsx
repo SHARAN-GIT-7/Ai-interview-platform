@@ -1,22 +1,99 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiClock, FiBook, FiLogOut, FiEdit, FiUser, FiMail, FiHome, FiLayout } from 'react-icons/fi';
+import api from '../../services/api';
+import axios from 'axios';
 import EditProfileModal from './EditProfileModal.jsx';
+
+const profileApi = axios.create({
+  baseURL: 'http://localhost:5222/api',
+  headers: { 'Content-Type': 'application/json' },
+});
 
 export default function UserDashboard() {
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState({
-    name: "Shailesh",
-    email: "shaileshsaravanan263@gmail.com",
-    college: "Panimalar Engineering college",
+    name: "",
+    email: "",
+    college: "",
     dob: "",
     age: "",
     address: "",
     phone: "",
+    gender: "",
+    photoUrl: "",
   });
 
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const email = localStorage.getItem("userEmail");
+        const userId = localStorage.getItem("userId");
+
+        if (!token || !email) {
+          navigate('/login');
+          return;
+        }
+
+        // Step 1: Fetch auth data (name + email)
+        const authResponse = await api.get(`/auth/profile/${encodeURIComponent(email)}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        let profileData = {
+          name: authResponse.data.name || "",
+          email: authResponse.data.email || "",
+        };
+
+        // Step 2: Fetch profile data (college, dob, age, etc.)
+        if (userId) {
+          try {
+            const profileResponse = await profileApi.get(`/profile/${userId}`);
+            if (profileResponse.data) {
+              profileData = {
+                ...profileData,
+                name: profileResponse.data.fullName || profileData.name,
+                college: profileResponse.data.college || "",
+                dob: profileResponse.data.dob || "",
+                age: profileResponse.data.age || "",
+                address: profileResponse.data.address || "",
+                phone: profileResponse.data.phone || "",
+                gender: profileResponse.data.gender || "",
+                photoUrl: profileResponse.data.photoUrl || "",
+              };
+            }
+          } catch (profileError) {
+            // Profile not created yet — that's fine, just show auth data
+            if (profileError.response?.status !== 404) {
+              console.error("Error fetching profile:", profileError);
+            }
+          }
+        }
+
+        setUserData((prev) => ({ ...prev, ...profileData }));
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("userEmail");
+          localStorage.removeItem("userId");
+          navigate('/login');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, [navigate]);
+
   const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userId");
     navigate('/login');
   };
 
@@ -24,6 +101,17 @@ export default function UserDashboard() {
     setUserData(newData);
     // Here you would typically make an API call to save the data
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full bg-[#EAF0F0] items-center justify-center font-sans">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#144542] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-[#144542] font-bold tracking-wide">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full bg-[#EAF0F0] p-4 md:p-6 gap-6 md:gap-8 font-sans overflow-hidden">
@@ -37,7 +125,11 @@ export default function UserDashboard() {
           {/* Boxed Profile Image - Slightly Downscaled */}
           <div className="relative group shrink-0">
             <div className="w-24 h-24 lg:w-32 lg:h-32 bg-white rounded-2xl shadow-2xl border-2 border-[#1b5b53] flex items-center justify-center overflow-hidden transition-transform duration-500 hover:scale-105">
-               <FiUser className="text-5xl text-[#144542]/20" />
+               {userData.photoUrl ? (
+                 <img src={userData.photoUrl} alt={userData.name} className="w-full h-full object-cover" />
+               ) : (
+                 <FiUser className="text-5xl text-[#144542]/20" />
+               )}
             </div>
           </div>
 

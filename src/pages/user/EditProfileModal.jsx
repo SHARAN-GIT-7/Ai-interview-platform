@@ -1,8 +1,15 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiX, FiCamera, FiCheckCircle } from "react-icons/fi";
+import axios from "axios";
+
+const profileApi = axios.create({
+  baseURL: "http://localhost:5222/api",
+  headers: { "Content-Type": "application/json" },
+});
 
 const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: userData.name || "",
     email: userData.email || "",
@@ -11,6 +18,7 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
     college: userData.college || "",
     address: userData.address || "",
     phone: userData.phone || "",
+    gender: userData.gender || "",
     photo: null,
   });
 
@@ -26,10 +34,69 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
-    onClose();
+    setIsSaving(true);
+
+    try {
+      const userId = localStorage.getItem("userId");
+
+      if (!userId) {
+        alert("Session expired. Please login again.");
+        return;
+      }
+
+      // Step 1: Upload photo if selected
+      let photoUrl = "";
+      if (formData.photo) {
+        const photoFormData = new FormData();
+        photoFormData.append("photo", formData.photo);
+
+        const photoResponse = await profileApi.post("/profile/upload-photo", photoFormData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        photoUrl = photoResponse.data.photoUrl || "";
+      }
+
+      // Step 2: Create/save the profile
+      const profilePayload = {
+        userId: parseInt(userId),
+        fullName: formData.name,
+        email: formData.email,
+        dob: formData.dob || "2000-01-01",
+        age: parseInt(formData.age) || 0,
+        college: formData.college || "",
+        address: formData.address || "",
+        phone: formData.phone || "",
+        photoUrl: photoUrl,
+        gender: formData.gender || "",
+      };
+
+      await profileApi.post("/profile/create", profilePayload);
+
+      alert("Profile saved successfully!");
+      const updatedData = { ...formData };
+      if (photoUrl) {
+        updatedData.photoUrl = photoUrl;
+      } else {
+        updatedData.photoUrl = userData.photoUrl;
+      }
+      onSave(updatedData);
+      onClose();
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      if (error.response?.data) {
+        const msg = typeof error.response.data === "string"
+          ? error.response.data
+          : error.response.data.message || "Failed to save profile";
+        alert(msg);
+      } else {
+        alert("Error connecting to profile server. Please ensure it is running.");
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -73,7 +140,7 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                 {/* User Name */}
                 <div className="space-y-2">
                   <label className="block text-sm font-bold text-[#144542] ml-1">
-                    User Name
+                    Full Name
                   </label>
                   <input
                     type="text"
@@ -127,6 +194,25 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                     className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#144542]/5 focus:border-[#144542] transition-all text-sm font-medium"
                     placeholder="Age"
                   />
+                </div>
+
+                {/* Gender */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-[#144542] ml-1">
+                    Gender
+                  </label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#144542]/5 focus:border-[#144542] transition-all text-sm font-medium appearance-none"
+                    required
+                  >
+                    <option value="" disabled>Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
 
                 {/* College */}
@@ -224,15 +310,17 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-4 px-6 bg-white border border-gray-200 text-gray-600 font-bold rounded-2xl hover:bg-gray-50 transition-all active:scale-95"
+                disabled={isSaving}
+                className="flex-1 py-4 px-6 bg-white border border-gray-200 text-gray-600 font-bold rounded-2xl hover:bg-gray-50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex-[2] py-4 px-6 bg-[#144542] text-[#DAFF0C] font-black rounded-2xl hover:opacity-95 shadow-xl shadow-[#144542]/20 transition-all active:scale-95 uppercase tracking-widest text-sm"
+                disabled={isSaving}
+                className="flex-[2] py-4 px-6 bg-[#144542] text-[#DAFF0C] font-black rounded-2xl hover:opacity-95 shadow-xl shadow-[#144542]/20 transition-all active:scale-95 uppercase tracking-widest text-sm disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Apply Changes
+                {isSaving ? "Saving..." : "Apply Changes"}
               </button>
             </div>
           </motion.div>
