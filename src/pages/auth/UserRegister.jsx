@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import bgImage from "../../assets/images/login_register_BG.png";
@@ -7,10 +7,14 @@ import bgImage from "../../assets/images/login_register_BG.png";
 export default function UserRegister() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [emailVerified, setEmailVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isWaitingForVerification, setIsWaitingForVerification] = useState(false);
+  const navigate = useNavigate();
 
   // Poll the backend to check if the user clicked the verification link
   useEffect(() => {
@@ -63,7 +67,58 @@ export default function UserRegister() {
       }
     } catch (error) {
       console.error("Verification error:", error);
-      alert("Error sending verification email. Please ensure the backend server is running.");
+      alert(`Error sending verification email: ${error.message}. Please ensure the Node.js backend (port 5000) is running.`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (!name || !email || !password || !confirmPassword) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch("http://localhost:5258/api/auth/signup/student", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          password, 
+          confirmPassword 
+        })
+      });
+
+      if (response.ok) {
+        alert("Account created successfully! Please login.");
+        navigate("/login");
+      } else {
+        let errorMsg = "Registration failed";
+        try {
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text);
+            errorMsg = errorData.message || "Registration failed";
+          } catch {
+            errorMsg = text || "Registration failed";
+          }
+        } catch (e) {
+          // ignore
+        }
+        alert(errorMsg);
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert(`Error connecting to the registration server: ${error.message}. Please check if the .NET backend (port 5258) is running and CORS is enabled.`);
     } finally {
       setIsLoading(false);
     }
@@ -123,6 +178,8 @@ export default function UserRegister() {
                 </label>
                 <input 
                   type="text" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="Your name" 
                   className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
                 />
@@ -174,6 +231,8 @@ export default function UserRegister() {
                     <div className="relative">
                       <input 
                         type={showPassword ? "text" : "password"} 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••••••" 
                         className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
                       />
@@ -194,6 +253,8 @@ export default function UserRegister() {
                     <div className="relative">
                       <input 
                         type={showConfirmPassword ? "text" : "password"} 
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="••••••••••••" 
                         className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
                       />
@@ -207,8 +268,13 @@ export default function UserRegister() {
                     </div>
                   </div>
 
-                  <button type="submit" className="w-full mt-6 py-4 bg-brand-dark text-white font-black rounded-xl hover:opacity-90 transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98]">
-                    Create Account
+                  <button 
+                    type="submit" 
+                    onClick={handleRegister}
+                    disabled={isLoading}
+                    className="w-full mt-6 py-4 bg-brand-dark text-white font-black rounded-xl hover:opacity-90 transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98] disabled:opacity-70"
+                  >
+                    {isLoading ? "Creating..." : "Create Account"}
                   </button>
                 </>
               )}
