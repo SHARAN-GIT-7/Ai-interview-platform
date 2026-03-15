@@ -23,6 +23,11 @@ namespace knitnet_auth_api.Controllers
         [HttpPost("signup/student")]
         public async Task<IActionResult> StudentSignup(SignupDto model)
         {
+            if (model.Password != model.ConfirmPassword)
+            {
+                return BadRequest("Passwords do not match");
+            }
+
             var user = new User
             {
                 Name = model.Name,
@@ -40,6 +45,11 @@ namespace knitnet_auth_api.Controllers
         [HttpPost("signup/company")]
         public async Task<IActionResult> CompanySignup(SignupDto model)
         {
+            if (model.Password != model.ConfirmPassword)
+            {
+                return BadRequest("Passwords do not match");
+            }
+
             var user = new User
             {
                 Name = model.Name,
@@ -76,6 +86,27 @@ namespace knitnet_auth_api.Controllers
             });
         }
 
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto model)
+        {
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                return BadRequest("Passwords do not match");
+            }
+
+            var user = _context.Users.FirstOrDefault(x => x.Email == model.Email);
+            if (user == null)
+            {
+                return BadRequest("User not found");
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok("Password updated successfully");
+        }
+
         private string GenerateJwt(User user)
         {
             var claims = new[]
@@ -85,7 +116,7 @@ namespace knitnet_auth_api.Controllers
             };
 
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes("super_secret_key"));
+                Encoding.UTF8.GetBytes("super_secret_key_for_knitnet_2026_jwt!"));
 
             var creds = new SigningCredentials(key,
                 SecurityAlgorithms.HmacSha256);
