@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import Navbar from "../../components/layout/Navbar";
-import Lenis from "lenis";
-import "lenis/dist/lenis.css";
+ 
 
 import HeroSection from "./HeroSection";
 import ProblemSection from "./ProblemSection";
