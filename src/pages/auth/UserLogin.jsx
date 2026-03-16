@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import bgImage from "../../assets/images/login_register_BG.png";
+
+gsap.registerPlugin(useGSAP);
 
 export default function UserLogin() {
   const [view, setView] = useState("login"); // login, forgot, verify, reset
@@ -12,7 +16,50 @@ export default function UserLogin() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
+  
+  // Message state
+  const [message, setMessage] = useState({ text: "", type: "" }); // type: "success" | "error"
+  
   const navigate = useNavigate();
+  const containerRef = useRef(null);
+  const formRef = useRef(null);
+  const messageRef = useRef(null);
+
+  // Initial Entrance Animation
+  useGSAP(() => {
+    gsap.fromTo(
+      ".gsap-fade-in",
+      { y: 30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: "power3.out", delay: 0.2 }
+    );
+  }, { scope: containerRef });
+
+  // Animate Message Banner
+  useGSAP(() => {
+    if (message.text) {
+      gsap.fromTo(
+        messageRef.current,
+        { y: -20, opacity: 0, scale: 0.95 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)" }
+      );
+    }
+  }, [message]);
+
+  const showMessage = (text, type) => {
+    setMessage({ text, type });
+    // Auto clear success messages after some time, keep errors until next action
+    if (type === "success") {
+      setTimeout(() => setMessage({ text: "", type: "" }), 5000);
+    }
+  };
+
+  const shakeForm = () => {
+    gsap.fromTo(
+      formRef.current,
+      { x: -10 },
+      { x: 10, duration: 0.1, yoyo: true, repeat: 5, ease: "linear", onComplete: () => gsap.set(formRef.current, { x: 0 }) }
+    );
+  };
 
   // Poll the backend to check if the user clicked the verification link
   useEffect(() => {
@@ -26,6 +73,7 @@ export default function UserLogin() {
             setEmailVerified(true);
             setView("reset");
             clearInterval(interval);
+            showMessage("Email verified! You can now reset your password.", "success");
           }
         } catch (error) {
           console.error("Error polling verification status:", error);
@@ -37,8 +85,11 @@ export default function UserLogin() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" }); // Clear previous messages
+    
     if (!email || !password) {
-      alert("Please fill in all fields");
+      showMessage("Please fill in all fields", "error");
+      shakeForm();
       return;
     }
 
@@ -59,15 +110,18 @@ export default function UserLogin() {
           localStorage.setItem("userId", data.userId);
         }
         localStorage.setItem("userEmail", email);
-        alert("Login successful!");
-        navigate("/user/dashboard");
+        showMessage("Login successful! Redirecting...", "success");
+        // Slight delay for animation before redirect
+        setTimeout(() => navigate("/user/dashboard"), 1000);
       } else {
         const errorData = await response.json();
-        alert(typeof errorData === 'string' ? errorData : (errorData.message || "Login failed"));
+        showMessage(typeof errorData === 'string' ? errorData : (errorData.message || "Login failed"), "error");
+        shakeForm();
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("Invalid Email or Password");
+      showMessage("Invalid Email or Password", "error");
+      shakeForm();
     } finally {
       setIsLoading(false);
     }
@@ -75,8 +129,11 @@ export default function UserLogin() {
 
   const handleForgot = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" });
+    
     if (!email) {
-      alert("Please enter your email");
+      showMessage("Please enter your email", "error");
+      shakeForm();
       return;
     }
 
@@ -89,15 +146,17 @@ export default function UserLogin() {
       });
 
       if (response.ok) {
-        alert("Reset link sent! Please check your email.");
+        showMessage("Reset link sent! Please check your email.", "success");
         setView("verify");
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to send reset email");
+        showMessage(data.error || "Failed to send reset email", "error");
+        shakeForm();
       }
     } catch (error) {
       console.error("Forgot password error:", error);
-      alert("Error connecting to verification server.");
+      showMessage("Error connecting to verification server.", "error");
+      shakeForm();
     } finally {
       setIsLoading(false);
     }
@@ -105,8 +164,11 @@ export default function UserLogin() {
 
   const handleReset = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" });
+    
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      showMessage("Passwords do not match", "error");
+      shakeForm();
       return;
     }
 
@@ -123,24 +185,26 @@ export default function UserLogin() {
       });
 
       if (response.ok) {
-        alert("Password updated successfully! Please login.");
+        showMessage("Password updated successfully! Please login.", "success");
         setView("login");
         setPassword("");
         setConfirmPassword("");
       } else {
         const errorData = await response.json();
-        alert(typeof errorData === 'string' ? errorData : (errorData.message || "Reset failed"));
+        showMessage(typeof errorData === 'string' ? errorData : (errorData.message || "Reset failed"), "error");
+        shakeForm();
       }
     } catch (error) {
       console.error("Reset error:", error);
-      alert("User not registered.");
+      showMessage("User not registered.", "error");
+      shakeForm();
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen h-[100dvh] w-full bg-white overflow-hidden">
+    <div ref={containerRef} className="flex min-h-screen h-[100dvh] w-full bg-white overflow-hidden">
         
         {/* Left Side - Image Background */}
         <div className="hidden lg:flex w-[45%] p-4 bg-white">
@@ -174,7 +238,7 @@ export default function UserLogin() {
         {/* Right Side - Login Form (60% Width) */}
         <div className="w-full lg:w-[55%] p-8 md:p-16 flex flex-col justify-center h-full bg-white relative overflow-y-auto">
           <div className="max-w-md mx-auto w-full">
-            <div className="mb-10 text-center lg:text-left">
+            <div className="mb-10 text-center lg:text-left gsap-fade-in">
               <div className="w-10 h-10 bg-brand-dark rounded-lg flex lg:hidden items-center justify-center text-brand-secondary text-2xl font-bold mb-6 mx-auto">
                 ❊
               </div>
@@ -192,9 +256,24 @@ export default function UserLogin() {
               </p>
             </div>
 
+            {/* GSAP Animated Message Banner */}
+            {message.text && (
+              <div
+                ref={messageRef}
+                className={`mb-6 p-4 rounded-xl font-bold text-sm flex items-center gap-3 gsap-fade-in ${
+                  message.type === "success" 
+                    ? "bg-green-100 text-green-800 border border-green-200" 
+                    : "bg-red-100 text-red-800 border border-red-200"
+                }`}
+              >
+                <div className={`w-2 h-2 rounded-full ${message.type === "success" ? "bg-green-600" : "bg-red-600"}`}></div>
+                {message.text}
+              </div>
+            )}
+
             {view === "login" && (
-              <form className="space-y-6" onSubmit={handleLogin}>
-                <div>
+              <form ref={formRef} className="space-y-6" onSubmit={handleLogin}>
+                <div className="gsap-fade-in">
                   <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
                     Your email
                   </label>
@@ -203,11 +282,11 @@ export default function UserLogin() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com" 
-                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
+                    className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm ${message.type === "error" ? "border-red-300 focus:border-red-500" : "border-gray-200 focus:border-brand-dark"}`}
                   />
                 </div>
 
-                <div>
+                <div className="gsap-fade-in">
                   <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
                     Password
                   </label>
@@ -217,7 +296,7 @@ export default function UserLogin() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••••••" 
-                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
+                      className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm ${message.type === "error" ? "border-red-300 focus:border-red-500" : "border-gray-200 focus:border-brand-dark"}`}
                     />
                     <button 
                       type="button" 
@@ -241,16 +320,17 @@ export default function UserLogin() {
                 <button 
                   type="submit" 
                   disabled={isLoading}
-                  className="w-full mt-4 py-4 bg-brand-dark text-white font-black rounded-xl hover:opacity-90 transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98] disabled:opacity-70"
+                  className="gsap-fade-in relative w-full mt-5 py-4 bg-brand-dark text-white font-bold tracking-wide rounded-xl overflow-hidden shadow-lg shadow-brand-dark/30 hover:shadow-xl hover:shadow-brand-dark/50 hover:bg-[#1a1c23] transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
                 >
-                  {isLoading ? "Logging in..." : "Login Now"}
+                  <span className="relative z-10">{isLoading ? "Logging in..." : "Login Now"}</span>
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:animate-[shimmer_1.5s_infinite]"></div>
                 </button>
               </form>
             )}
 
             {view === "forgot" && (
-              <form className="space-y-6" onSubmit={handleForgot}>
-                <div>
+              <form ref={formRef} className="space-y-6" onSubmit={handleForgot}>
+                <div className="gsap-fade-in">
                   <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
                     Your email
                   </label>
@@ -278,7 +358,7 @@ export default function UserLogin() {
             )}
 
             {view === "verify" && (
-              <div className="text-center space-y-6 py-8">
+              <div className="text-center space-y-6 py-8 gsap-fade-in">
                 <div className="flex justify-center">
                   <span className="w-12 h-12 rounded-full border-4 border-brand-dark border-t-transparent animate-spin"></span>
                 </div>
@@ -294,8 +374,8 @@ export default function UserLogin() {
             )}
 
             {view === "reset" && (
-              <form className="space-y-6" onSubmit={handleReset}>
-                <div>
+              <form ref={formRef} className="space-y-6" onSubmit={handleReset}>
+                <div className="gsap-fade-in">
                   <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
                     New Password
                   </label>
@@ -310,7 +390,7 @@ export default function UserLogin() {
                   </div>
                 </div>
 
-                <div>
+                <div className="gsap-fade-in">
                   <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
                     Confirm New Password
                   </label>
@@ -328,14 +408,15 @@ export default function UserLogin() {
                 <button 
                   type="submit" 
                   disabled={isLoading}
-                  className="w-full mt-4 py-4 bg-brand-dark text-white font-black rounded-xl hover:opacity-90 transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98] disabled:opacity-70"
+                  className="gsap-fade-in relative w-full mt-5 py-4 bg-brand-dark text-white font-bold tracking-wide rounded-xl overflow-hidden shadow-lg shadow-brand-dark/30 hover:shadow-xl hover:shadow-brand-dark/50 hover:bg-[#1a1c23] transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
                 >
-                  {isLoading ? "Updating..." : "Update Password"}
+                  <span className="relative z-10">{isLoading ? "Updating..." : "Update Password"}</span>
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:animate-[shimmer_1.5s_infinite]"></div>
                 </button>
               </form>
             )}
 
-            <div className="relative my-10">
+            <div className="relative my-10 gsap-fade-in">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-100"></div>
               </div>
@@ -344,7 +425,7 @@ export default function UserLogin() {
               </div>
             </div>
 
-            <p className="text-center text-sm text-brand-gray font-medium">
+            <p className="text-center text-sm text-brand-gray font-medium gsap-fade-in">
               Don't have an account? <Link to="/register" className="text-brand-dark font-black hover:underline">Sign up</Link>
             </p>
           </div>

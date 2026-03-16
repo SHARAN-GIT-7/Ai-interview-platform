@@ -30,7 +30,7 @@ function Navbar() {
         }`}
     >
       <div
-        className={`container mx-auto px-6 flex items-center justify-between transition-all duration-500 ${scrolled ? "py-8" : "py-8"
+        className={`container mx-auto px-6 flex items-center justify-between transition-all duration-500 ${scrolled ? "py-5" : "py-6"
           }`}
       >
         <div className="text-2xl font-black tracking-tighter text-brand-dark">
