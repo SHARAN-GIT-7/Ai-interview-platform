@@ -1,4 +1,7 @@
+import { useEffect } from "react";
 import Navbar from "../../components/layout/Navbar";
+ 
+
 import HeroSection from "./HeroSection";
 import ProblemSection from "./ProblemSection";
 import SolutionSection from "./SolutionSection";
@@ -12,6 +15,16 @@ import CollaborationSection from "./CollaborationSection";
 import FooterSection from "./FooterSection";
 
 export default function LandingPage() {
+  useEffect(() => {
+    const lenis = new Lenis({
+      autoRaf: true,
+    });
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
+
   return (
     <div className="App">
 

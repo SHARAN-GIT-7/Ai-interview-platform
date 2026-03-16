@@ -246,6 +246,7 @@ export default function UserRegister() {
                     </div>
                   </div>
 
+
                   <div>
                     <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
                       Confirm Password
