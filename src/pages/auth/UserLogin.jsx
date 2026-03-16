@@ -1,23 +1,65 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import bgImage from "../../assets/images/login_register_BG.png";
-import { motion, AnimatePresence } from "framer-motion";
+
+gsap.registerPlugin(useGSAP);
 
 export default function UserLogin() {
   const [view, setView] = useState("login"); // login, forgot, verify, reset
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   
-  const location = useLocation();
+  // Message state
+  const [message, setMessage] = useState({ text: "", type: "" }); // type: "success" | "error"
+  
   const navigate = useNavigate();
-  const shouldAnimate = location.state?.fromLanding;
+  const containerRef = useRef(null);
+  const formRef = useRef(null);
+  const messageRef = useRef(null);
+
+  // Initial Entrance Animation
+  useGSAP(() => {
+    gsap.fromTo(
+      ".gsap-fade-in",
+      { y: 30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: "power3.out", delay: 0.2 }
+    );
+  }, { scope: containerRef });
+
+  // Animate Message Banner
+  useGSAP(() => {
+    if (message.text) {
+      gsap.fromTo(
+        messageRef.current,
+        { y: -20, opacity: 0, scale: 0.95 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)" }
+      );
+    }
+  }, [message]);
+
+  const showMessage = (text, type) => {
+    setMessage({ text, type });
+    // Auto clear success messages after some time, keep errors until next action
+    if (type === "success") {
+      setTimeout(() => setMessage({ text: "", type: "" }), 5000);
+    }
+  };
+
+  const shakeForm = () => {
+    gsap.fromTo(
+      formRef.current,
+      { x: -10 },
+      { x: 10, duration: 0.1, yoyo: true, repeat: 5, ease: "linear", onComplete: () => gsap.set(formRef.current, { x: 0 }) }
+    );
+  };
 
   // Poll the backend to check if the user clicked the verification link
   useEffect(() => {
@@ -25,13 +67,13 @@ export default function UserLogin() {
     if (view === "verify" && !emailVerified) {
       interval = setInterval(async () => {
         try {
-          // Pointing back to Node.js backend port 5000 for email verification
           const response = await fetch(`http://localhost:5000/api/check-verification/${email}`);
           const data = await response.json();
           if (data.verified) {
             setEmailVerified(true);
             setView("reset");
             clearInterval(interval);
+            showMessage("Email verified! You can now reset your password.", "success");
           }
         } catch (error) {
           console.error("Error polling verification status:", error);
@@ -43,8 +85,11 @@ export default function UserLogin() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" }); // Clear previous messages
+    
     if (!email || !password) {
-      alert("Please fill in all fields");
+      showMessage("Please fill in all fields", "error");
+      shakeForm();
       return;
     }
 
@@ -61,26 +106,22 @@ export default function UserLogin() {
         if (data.token) {
           localStorage.setItem("authToken", data.token);
         }
-        alert("Login successful!");
-        navigate("/user/dashboard");
-      } else {
-        let errorMsg = "Login failed";
-        try {
-          const text = await response.text();
-          try {
-            const errorData = JSON.parse(text);
-            errorMsg = errorData.message || "Login failed";
-          } catch {
-            errorMsg = text || "Login failed";
-          }
-        } catch (e) {
-          // ignore
+        if (data.userId) {
+          localStorage.setItem("userId", data.userId);
         }
-        alert(errorMsg);
+        localStorage.setItem("userEmail", email);
+        showMessage("Login successful! Redirecting...", "success");
+        // Slight delay for animation before redirect
+        setTimeout(() => navigate("/user/dashboard"), 1000);
+      } else {
+        const errorData = await response.json();
+        showMessage(typeof errorData === 'string' ? errorData : (errorData.message || "Login failed"), "error");
+        shakeForm();
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert(`Error connecting to the login server: ${error.message}. Please check if the .NET backend (port 5258) is running.`);
+      showMessage("Invalid Email or Password", "error");
+      shakeForm();
     } finally {
       setIsLoading(false);
     }
@@ -88,8 +129,11 @@ export default function UserLogin() {
 
   const handleForgot = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" });
+    
     if (!email) {
-      alert("Please enter your email");
+      showMessage("Please enter your email", "error");
+      shakeForm();
       return;
     }
 
@@ -102,15 +146,17 @@ export default function UserLogin() {
       });
 
       if (response.ok) {
-        alert("Reset link sent! Please check your email.");
+        showMessage("Reset link sent! Please check your email.", "success");
         setView("verify");
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to send reset email");
+        showMessage(data.error || "Failed to send reset email", "error");
+        shakeForm();
       }
     } catch (error) {
       console.error("Forgot password error:", error);
-      alert("Error connecting to verification server.");
+      showMessage("Error connecting to verification server.", "error");
+      shakeForm();
     } finally {
       setIsLoading(false);
     }
@@ -118,8 +164,11 @@ export default function UserLogin() {
 
   const handleReset = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" });
+    
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      showMessage("Passwords do not match", "error");
+      shakeForm();
       return;
     }
 
@@ -136,24 +185,26 @@ export default function UserLogin() {
       });
 
       if (response.ok) {
-        alert("Password updated successfully! Please login.");
+        showMessage("Password updated successfully! Please login.", "success");
         setView("login");
         setPassword("");
         setConfirmPassword("");
       } else {
         const errorData = await response.json();
-        alert(typeof errorData === 'string' ? errorData : (errorData.message || "Reset failed"));
+        showMessage(typeof errorData === 'string' ? errorData : (errorData.message || "Reset failed"), "error");
+        shakeForm();
       }
     } catch (error) {
       console.error("Reset error:", error);
-      alert("Error connecting to the server.");
+      showMessage("User not registered.", "error");
+      shakeForm();
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen h-[100dvh] w-full bg-white overflow-hidden">
+    <div ref={containerRef} className="flex min-h-screen h-[100dvh] w-full bg-white overflow-hidden">
         
         {/* Left Side - Image Background */}
         <div className="hidden lg:flex w-[45%] p-4 bg-white">
@@ -174,24 +225,12 @@ export default function UserLogin() {
             </div>
 
             <div className="relative z-10 text-white">
-              <motion.p 
-                initial={shouldAnimate ? { opacity: 0, x: -20 } : false}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="text-white/90 text-lg mb-4 font-regular italic"
-              >
-                You can
-              </motion.p>
-              <motion.h2 
-                initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-                className="text-4xl xl:text-5xl font-black leading-tight tracking-tight drop-shadow-md"
-              >
-                Start your journey <br />
-                towards smarter<br />
-                evaluations
-              </motion.h2>
+              <p className="text-white/90 text-lg mb-4 font-regular italic">You can easily</p>
+              <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight drop-shadow-md">
+                Your personal space <br />
+                to attend evaluations, <br />
+                monitor progress
+              </h2>
             </div>
           </div>
         </div>
@@ -199,7 +238,7 @@ export default function UserLogin() {
         {/* Right Side - Login Form (60% Width) */}
         <div className="w-full lg:w-[55%] p-8 md:p-16 flex flex-col justify-center h-full bg-white relative overflow-y-auto">
           <div className="max-w-md mx-auto w-full">
-            <div className="mb-10 text-center lg:text-left">
+            <div className="mb-10 text-center lg:text-left gsap-fade-in">
               <div className="w-10 h-10 bg-brand-dark rounded-lg flex lg:hidden items-center justify-center text-brand-secondary text-2xl font-bold mb-6 mx-auto">
                 ❊
               </div>
@@ -210,200 +249,174 @@ export default function UserLogin() {
                 {view === "reset" && "Create New Password"}
               </h1>
               <p className="text-brand-gray text-sm leading-relaxed">
-                {view === "login" && "Access your tasks, notes, and projects anytime, anywhere - and keep everything flowing in one place."}
+                {view === "login" && "Access your tasks, notes, and projects anytime, anywhere."}
                 {view === "forgot" && "Enter your email to receive a password reset link."}
                 {view === "verify" && "Please click the verification link sent to your email."}
                 {view === "reset" && "Set your new password to regain access to your account."}
               </p>
             </div>
 
-            <AnimatePresence mode="wait">
-              {view === "login" && (
-                <motion.form 
-                  key="login"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6" 
-                  onSubmit={handleLogin}
-                >
-                  <div>
-                    <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
-                      Your email
-                    </label>
+            {/* GSAP Animated Message Banner */}
+            {message.text && (
+              <div
+                ref={messageRef}
+                className={`mb-6 p-4 rounded-xl font-bold text-sm flex items-center gap-3 gsap-fade-in ${
+                  message.type === "success" 
+                    ? "bg-green-100 text-green-800 border border-green-200" 
+                    : "bg-red-100 text-red-800 border border-red-200"
+                }`}
+              >
+                <div className={`w-2 h-2 rounded-full ${message.type === "success" ? "bg-green-600" : "bg-red-600"}`}></div>
+                {message.text}
+              </div>
+            )}
+
+            {view === "login" && (
+              <form ref={formRef} className="space-y-6" onSubmit={handleLogin}>
+                <div className="gsap-fade-in">
+                  <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
+                    Your email
+                  </label>
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@example.com" 
+                    className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm ${message.type === "error" ? "border-red-300 focus:border-red-500" : "border-gray-200 focus:border-brand-dark"}`}
+                  />
+                </div>
+
+                <div className="gsap-fade-in">
+                  <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
+                    Password
+                  </label>
+                  <div className="relative">
                     <input 
-                      type="email" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@example.com" 
+                      type={showPassword ? "text" : "password"} 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••••" 
+                      className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm ${message.type === "error" ? "border-red-300 focus:border-red-500" : "border-gray-200 focus:border-brand-dark"}`}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-dark transition-colors"
+                    >
+                      {showPassword ? <FaEye /> : <FaEyeSlash />}
+                    </button>
+                  </div>
+                  <div className="mt-2 text-right">
+                    <button 
+                      type="button" 
+                      onClick={() => setView("forgot")}
+                      className="text-xs font-bold text-brand-dark hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="gsap-fade-in relative w-full mt-5 py-4 bg-brand-dark text-white font-bold tracking-wide rounded-xl overflow-hidden shadow-lg shadow-brand-dark/30 hover:shadow-xl hover:shadow-brand-dark/50 hover:bg-[#1a1c23] transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
+                >
+                  <span className="relative z-10">{isLoading ? "Logging in..." : "Login Now"}</span>
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:animate-[shimmer_1.5s_infinite]"></div>
+                </button>
+              </form>
+            )}
+
+            {view === "forgot" && (
+              <form ref={formRef} className="space-y-6" onSubmit={handleForgot}>
+                <div className="gsap-fade-in">
+                  <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
+                    Your email
+                  </label>
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@example.com" 
+                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="w-full mt-4 py-4 bg-brand-dark text-white font-black rounded-xl hover:opacity-90 transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98] disabled:opacity-70"
+                >
+                  {isLoading ? "Sending..." : "Send Reset Link"}
+                </button>
+                
+                <p className="text-center text-sm text-brand-gray font-medium">
+                  Remember your password? <button type="button" onClick={() => setView("login")} className="text-brand-dark font-black hover:underline">Log in</button>
+                </p>
+              </form>
+            )}
+
+            {view === "verify" && (
+              <div className="text-center space-y-6 py-8 gsap-fade-in">
+                <div className="flex justify-center">
+                  <span className="w-12 h-12 rounded-full border-4 border-brand-dark border-t-transparent animate-spin"></span>
+                </div>
+                <p className="text-brand-gray font-bold">Waiting for email verification...</p>
+                <button 
+                  type="button" 
+                  onClick={() => setView("forgot")}
+                  className="text-brand-dark font-black hover:underline"
+                >
+                  Change Email
+                </button>
+              </div>
+            )}
+
+            {view === "reset" && (
+              <form ref={formRef} className="space-y-6" onSubmit={handleReset}>
+                <div className="gsap-fade-in">
+                  <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input 
+                      type={showPassword ? "text" : "password"} 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••••" 
                       className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
                     />
                   </div>
+                </div>
 
-                  <div>
-                    <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <input 
-                        type={showPassword ? "text" : "password"} 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••••••" 
-                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
-                      />
-                      <button 
-                        type="button" 
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-dark transition-colors"
-                      >
-                        {showPassword ? <FaEye /> : <FaEyeSlash />}
-                      </button>
-                    </div>
-                    <div className="mt-2 text-right">
-                      <button 
-                        type="button" 
-                        onClick={() => setView("forgot")}
-                        className="text-xs font-bold text-brand-dark hover:underline underline-offset-4"
-                      >
-                        Forgot password?
-                      </button>
-                    </div>
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    disabled={isLoading}
-                    className="w-full mt-4 py-4 bg-brand-dark text-white font-black rounded-xl hover:opacity-90 transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98] disabled:opacity-70"
-                  >
-                    {isLoading ? "Logging in..." : "Login Now"}
-                  </button>
-                </motion.form>
-              )}
-
-              {view === "forgot" && (
-                <motion.form 
-                  key="forgot"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6" 
-                  onSubmit={handleForgot}
-                >
-                  <div>
-                    <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
-                      Your email
-                    </label>
+                <div className="gsap-fade-in">
+                  <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
                     <input 
-                      type="email" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@example.com" 
+                      type={showPassword ? "text" : "password"} 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••••••" 
                       className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
                     />
                   </div>
+                </div>
 
-                  <button 
-                    type="submit" 
-                    disabled={isLoading}
-                    className="w-full mt-4 py-4 bg-brand-dark text-white font-black rounded-xl hover:opacity-90 transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98] disabled:opacity-70"
-                  >
-                    {isLoading ? "Sending..." : "Send Reset Link"}
-                  </button>
-                  
-                  <p className="text-center text-sm text-brand-gray font-medium">
-                    Remember your password? <button type="button" onClick={() => setView("login")} className="text-brand-dark font-black hover:underline">Log in</button>
-                  </p>
-                </motion.form>
-              )}
-
-              {view === "verify" && (
-                <motion.div 
-                  key="verify"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="text-center space-y-6 py-8"
+                <button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="gsap-fade-in relative w-full mt-5 py-4 bg-brand-dark text-white font-bold tracking-wide rounded-xl overflow-hidden shadow-lg shadow-brand-dark/30 hover:shadow-xl hover:shadow-brand-dark/50 hover:bg-[#1a1c23] transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
                 >
-                  <div className="flex justify-center">
-                    <span className="w-12 h-12 rounded-full border-4 border-brand-dark border-t-transparent animate-spin"></span>
-                  </div>
-                  <p className="text-brand-gray font-bold">Waiting for email verification...</p>
-                  <button 
-                    type="button" 
-                    onClick={() => setView("forgot")}
-                    className="text-brand-dark font-black hover:underline px-4 py-2"
-                  >
-                    Change Email
-                  </button>
-                </motion.div>
-              )}
+                  <span className="relative z-10">{isLoading ? "Updating..." : "Update Password"}</span>
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:animate-[shimmer_1.5s_infinite]"></div>
+                </button>
+              </form>
+            )}
 
-              {view === "reset" && (
-                <motion.form 
-                  key="reset"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6" 
-                  onSubmit={handleReset}
-                >
-                  <div>
-                    <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
-                      New Password
-                    </label>
-                    <div className="relative">
-                      <input 
-                        type={showPassword ? "text" : "password"} 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••••••" 
-                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
-                      />
-                      <button 
-                        type="button" 
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-dark transition-colors"
-                      >
-                        {showPassword ? <FaEye /> : <FaEyeSlash />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
-                      Confirm New Password
-                    </label>
-                    <div className="relative">
-                      <input 
-                        type={showConfirmPassword ? "text" : "password"} 
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••••••" 
-                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
-                      />
-                      <button 
-                        type="button" 
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-dark transition-colors"
-                      >
-                        {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    disabled={isLoading}
-                    className="w-full mt-4 py-4 bg-brand-dark text-white font-black rounded-xl hover:opacity-90 transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98] disabled:opacity-70"
-                  >
-                    {isLoading ? "Updating..." : "Update Password"}
-                  </button>
-                </motion.form>
-              )}
-            </AnimatePresence>
-
-            <div className="relative my-10">
+            <div className="relative my-10 gsap-fade-in">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-100"></div>
               </div>
@@ -412,7 +425,7 @@ export default function UserLogin() {
               </div>
             </div>
 
-            <p className="text-center text-sm text-brand-gray font-medium">
+            <p className="text-center text-sm text-brand-gray font-medium gsap-fade-in">
               Don't have an account? <Link to="/register" className="text-brand-dark font-black hover:underline">Sign up</Link>
             </p>
           </div>

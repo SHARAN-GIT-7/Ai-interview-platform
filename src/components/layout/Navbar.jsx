@@ -30,7 +30,7 @@ function Navbar() {
         }`}
     >
       <div
-        className={`container mx-auto px-6 flex items-center justify-between transition-all duration-500 ${scrolled ? "py-4" : "py-6"
+        className={`container mx-auto px-6 flex items-center justify-between transition-all duration-500 ${scrolled ? "py-5" : "py-6"
           }`}
       >
         <div className="text-2xl font-black tracking-tighter text-brand-dark">
@@ -46,7 +46,6 @@ function Navbar() {
           <NavLink href="#collaboration">Collaboration</NavLink>
           <Link
             to="/login"
-            state={{ fromLanding: true }}
             className="relative px-6 shadow-2xl py-2.5 text-sm tracking-wider text-brand-secondary bg-black rounded-lg transition-all duration-300 active:scale-95 overflow-hidden group border border-black"
           >
             <span className="absolute inset-y-0 left-0 w-0 bg-brand-light/98 backdrop-blur-[8px] shadow-sm transition-all duration-500 ease-out group-hover:w-full z-0"></span>

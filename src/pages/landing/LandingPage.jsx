@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import Lenis from "lenis";
 import Navbar from "../../components/layout/Navbar";
  
 
