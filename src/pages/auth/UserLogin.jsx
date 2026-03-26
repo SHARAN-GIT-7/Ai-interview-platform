@@ -5,6 +5,8 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import bgImage from "../../assets/images/login_register_BG.png";
+import SplitText from "../../components/animations/SplitText";
+import BlurText from "../../components/animations/BlurText";
 
 gsap.registerPlugin(useGSAP);
 
@@ -111,8 +113,22 @@ export default function UserLogin() {
         }
         localStorage.setItem("userEmail", email);
         showMessage("Login successful! Redirecting...", "success");
-        // Slight delay for animation before redirect
-        setTimeout(() => navigate("/user/dashboard"), 1000);
+
+        // Check if profile exists to determine redirect target
+        try {
+          const profileApiResponse = await fetch(`http://localhost:5222/api/profile/${data.userId}`);
+          if (profileApiResponse.ok) {
+            // Profile exists, go to dashboard
+            setTimeout(() => navigate("/user/dashboard"), 1000);
+          } else {
+            // Profile doesn't exist (404), go to submit profile
+            setTimeout(() => navigate("/user/submit-profile"), 1000);
+          }
+        } catch (error) {
+          console.error("Error checking profile status:", error);
+          // Fallback to submit profile if API fails or other errors
+          setTimeout(() => navigate("/user/submit-profile"), 1000);
+        }
       } else {
         const errorData = await response.json();
         showMessage(typeof errorData === 'string' ? errorData : (errorData.message || "Login failed"), "error");
@@ -225,11 +241,34 @@ export default function UserLogin() {
             </div>
 
             <div className="relative z-10 text-white">
-              <p className="text-white/90 text-lg mb-4 font-regular italic">You can easily</p>
+              <BlurText 
+                text="You can easily" 
+                className="text-white/90 text-lg mb-4 font-regular italic block" 
+                variant="letter"
+                stagger={0.05}
+              />
               <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight drop-shadow-md">
-                Your personal space <br />
-                to attend evaluations, <br />
-                monitor progress
+                <SplitText 
+                  text="Your personal space" 
+                  className="block" 
+                  variant="word"
+                  stagger={0.15}
+                  delay={0.5}
+                />
+                <SplitText 
+                  text="to attend evaluations," 
+                  className="block" 
+                  variant="word"
+                  stagger={0.15}
+                  delay={1}
+                />
+                <SplitText 
+                  text="monitor progress" 
+                  className="block" 
+                  variant="word"
+                  stagger={0.15}
+                  delay={1.5}
+                />
               </h2>
             </div>
           </div>
@@ -239,9 +278,9 @@ export default function UserLogin() {
         <div className="w-full lg:w-[55%] p-8 md:p-16 flex flex-col justify-center h-full bg-white relative overflow-y-auto">
           <div className="max-w-md mx-auto w-full">
             <div className="mb-10 text-center lg:text-left gsap-fade-in">
-              <div className="w-10 h-10 bg-brand-dark rounded-lg flex lg:hidden items-center justify-center text-brand-secondary text-2xl font-bold mb-6 mx-auto">
-                ❊
-              </div>
+              <Link to="/" className="w-12 h-12 bg-brand-dark rounded-xl flex lg:hidden items-center justify-center mb-6 mx-auto overflow-hidden shadow-lg shadow-brand-dark/20 active:scale-95 transition-transform">
+                <img src="/logo.jpg" alt="Knitnet Logo" className="w-full h-full object-cover" />
+              </Link>
               <h1 className="text-4xl font-black text-brand-dark mb-4 tracking-tight">
                 {view === "login" && "Login with your account"}
                 {view === "forgot" && "Reset Password"}
@@ -281,7 +320,7 @@ export default function UserLogin() {
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com" 
+                    placeholder="Enter your email" 
                     className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm ${message.type === "error" ? "border-red-300 focus:border-red-500" : "border-gray-200 focus:border-brand-dark"}`}
                   />
                 </div>
@@ -295,7 +334,7 @@ export default function UserLogin() {
                       type={showPassword ? "text" : "password"} 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••" 
+                      placeholder="Enter your password" 
                       className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm ${message.type === "error" ? "border-red-300 focus:border-red-500" : "border-gray-200 focus:border-brand-dark"}`}
                     />
                     <button 
@@ -338,7 +377,7 @@ export default function UserLogin() {
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com" 
+                    placeholder="Enter your email" 
                     className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 focus:border-brand-dark transition-all text-sm"
                   />
                 </div>
