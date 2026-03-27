@@ -33,15 +33,21 @@ namespace knitnet_user_api.Controllers
 
         // Create user profile
         [HttpPost("create")]
-        public async Task<IActionResult> CreateProfile(ProfileDto model)
+        public async Task<IActionResult> CreateProfile([FromForm] ProfileUpdateDto model)
         {
-            // Sync name in core users table
+            // Fetch the user to get the authoritative email and update name
             var user = _context.Users.FirstOrDefault(u => u.Id == model.UserId);
-            if (user != null)
+            if (user == null)
             {
-                user.Name = model.FullName;
-                _context.Users.Update(user);
+                return BadRequest("User not found");
             }
+
+            // Sync name in core users table
+            user.Name = model.FullName;
+            _context.Users.Update(user);
+
+            // Use the email from the registration record, not the form input
+            string authoritativeEmail = user.Email;
 
             // Check if profile already exists
             var existingProfile = _context.UserProfiles
@@ -51,7 +57,7 @@ namespace knitnet_user_api.Controllers
             {
                 // Update existing profile
                 existingProfile.FullName = model.FullName;
-                existingProfile.Email = model.Email;
+                existingProfile.Email = authoritativeEmail; // Enforce immutable email
                 existingProfile.Dob = model.Dob;
                 existingProfile.Age = model.Age;
                 existingProfile.College = model.College;
@@ -70,7 +76,7 @@ namespace knitnet_user_api.Controllers
 
                 return Ok(new
                 {
-                    message = "Profile updated successfully",
+                    message = "Profile updated successfully (email preserved from registration)",
                     profile = existingProfile
                 });
             }
@@ -79,7 +85,7 @@ namespace knitnet_user_api.Controllers
             {
                 UserId = model.UserId,
                 FullName = model.FullName,
-                Email = model.Email,
+                Email = authoritativeEmail, // Use authoritative email for new profile
                 Dob = model.Dob,
                 Age = model.Age,
                 College = model.College,
@@ -95,7 +101,7 @@ namespace knitnet_user_api.Controllers
 
             return Ok(new
             {
-                message = "Profile created successfully",
+                message = "Profile created successfully (email fetched from registration)",
                 profile
             });
         }

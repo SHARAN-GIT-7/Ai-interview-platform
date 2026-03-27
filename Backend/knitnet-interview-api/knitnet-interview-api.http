@@ -1,0 +1,6 @@
+@knitnet_interview_api_HostAddress = http://localhost:5206
+
+GET {{knitnet_interview_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

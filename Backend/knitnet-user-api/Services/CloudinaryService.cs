@@ -35,5 +35,23 @@ namespace knitnet_user_api.Services
 
             return result.SecureUrl.ToString();
         }
+
+        public async Task<string> UploadFileAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return null;
+
+            await using var stream = file.OpenReadStream();
+
+            var uploadParams = new RawUploadParams
+            {
+                File = new FileDescription(file.FileName, stream),
+                Folder = "knitnet_aadhar_zips"
+            };
+
+            var result = await _cloudinary.UploadAsync(uploadParams);
+
+            return result.SecureUrl.ToString();
+        }
     }
 }
