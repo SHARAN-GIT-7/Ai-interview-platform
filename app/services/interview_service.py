@@ -14,7 +14,7 @@ from app.liveness.blink_detector import detect_blink
 EMBED_STORAGE = "app/storage/embeddings"
 
 # Configuration
-THRESHOLD = 0.45  
+THRESHOLD = 0.40 
 MIN_FRAMES_FOR_VERIFICATION = 7  
 DIRECTION_STABLE_FRAMES = 3  
 MAX_SESSION_DURATION = 120  
@@ -347,7 +347,7 @@ def verify_interview(unique_id, webcam_image):
             quality = calculate_face_quality(face_crop)
            
             # NEW: Check for screen BEFORE adding to buffer (early detection)
-            if detect_screen(face_crop):
+            if detect_screen(face_crop, aggressive=False):
                 return {
                     "status": "Screen detected",
                     "face_box": face_box,
@@ -497,3 +497,4 @@ def get_verification_status(unique_id):
    
     return {"status": "Not started"}
 
+    

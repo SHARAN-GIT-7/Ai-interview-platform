@@ -4,13 +4,14 @@ import os
 import json
 
 from app.face.model import get_face_embedding
+from app.utils.cloudinary_utils import upload_to_cloudinary
 
 
 AADHAAR_STORAGE = "app/storage/aadhaar"
 PASSPORT_STORAGE = "app/storage/passport"
 EMBED_STORAGE = "app/storage/embeddings"
 
-THRESHOLD = 0.5
+THRESHOLD = 0.4
 
 
 def verify_face(unique_id, masked_aadhaar, uploaded_photo):
@@ -96,7 +97,7 @@ def verify_face(unique_id, masked_aadhaar, uploaded_photo):
         }
 
     # -----------------------
-    # Store passport photo
+    # Store passport photo locally
     # -----------------------
     passport_folder = f"{PASSPORT_STORAGE}/{unique_id}"
 
@@ -106,6 +107,11 @@ def verify_face(unique_id, masked_aadhaar, uploaded_photo):
 
     with open(passport_path, "wb") as f:
         f.write(uploaded_photo)
+
+    # -----------------------
+    # Upload to Cloudinary
+    # -----------------------
+    passport_url = upload_to_cloudinary(passport_path, folder="passports")
 
     # -----------------------
     # Store embedding
@@ -122,5 +128,6 @@ def verify_face(unique_id, masked_aadhaar, uploaded_photo):
     return {
         "status": "Face verified",
         "similarity": similarity,
+        "passport_url": passport_url,
         "message": "Passport photo stored for interview verification"
     }

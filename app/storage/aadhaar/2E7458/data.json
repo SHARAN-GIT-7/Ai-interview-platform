@@ -1,4 +1,5 @@
 {
+    "aadhaar_zip_url": "https://res.cloudinary.com/dkfidppml/raw/upload/v1774599073/aadhaar_zips/l74gecy6ll9mvqkhj7eb",
     "reference_id": "936920260217060529799",
     "masked_aadhaar": "XXXX XXXX 9369",
     "name": "Shailesh Saravanan",
@@ -7,5 +8,7 @@
     "address": "PUDHU VASANTHAM AVENUE",
     "district": "Kancheepuram",
     "state": "Tamil Nadu",
-    "pincode": "631501"
+    "pincode": "631501",
+    "aadhaar_photo_url": "https://res.cloudinary.com/dkfidppml/image/upload/v1774599074/aadhaar_photos/ud21zmitcmr9hviqs4q0.jpg",
+    "zip_url": "https://res.cloudinary.com/dkfidppml/raw/upload/v1774599073/aadhaar_zips/l74gecy6ll9mvqkhj7eb"
 }

@@ -30,8 +30,8 @@ def detect_screen(frame, aggressive=True):
     # Phone screens typically have lower sharpness due to re-capture
     lap_var = cv2.Laplacian(gray, cv2.CV_64F).var()
    
-    # STRICT thresholds - real webcams have lap_var > 100
-    threshold = 90 if aggressive else 110
+    # Aggressive mode should have a HIGHER threshold to flag more potential screens
+    threshold = 130 if aggressive else 80
     if lap_var < threshold:
         screen_indicators += 1
     total_checks += 1
@@ -75,7 +75,7 @@ def detect_screen(frame, aggressive=True):
     brightness_std = np.std(gray)
    
     # Real faces: std > 35, Screens: std < 30
-    if brightness_std < 32:
+    if brightness_std < 25:
         screen_indicators += 1
     total_checks += 1
    
@@ -153,7 +153,7 @@ def detect_screen(frame, aggressive=True):
     texture_variance = np.mean(local_var)
    
     # Screens have lower texture variance
-    if texture_variance < 100:
+    if texture_variance < 60:
         screen_indicators += 1
     total_checks += 1
    

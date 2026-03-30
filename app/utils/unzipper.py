@@ -1,11 +1,16 @@
 import zipfile
 import os
 import shutil
+import io
 
 TEMP_FOLDER = "app/temp"
 
 
 def extract_zip(zip_file, share_code):
+
+    # Fix: 'SpooledTemporaryFile' object has no attribute 'seekable' error in old Python versions
+    if not hasattr(zip_file, "seekable") or not zip_file.seekable():
+        zip_file = io.BytesIO(zip_file.read())
 
     # clear temp folder
     if os.path.exists(TEMP_FOLDER):

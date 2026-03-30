@@ -56,9 +56,9 @@ def get_eye_direction(landmarks, sensitivity=0.15):
     center_max = 0.5 + sensitivity
     
     if avg_ratio < center_min:
-        return "LEFT"
-    elif avg_ratio > center_max:
         return "RIGHT"
+    elif avg_ratio > center_max:
+        return "LEFT"
     else:
         return "CENTER"
 
@@ -108,11 +108,11 @@ def get_eye_direction_with_confidence(landmarks, sensitivity=0.15):
     center_max = 0.5 + sensitivity
     
     if avg_ratio < center_min:
-        direction = "LEFT"
+        direction = "RIGHT"
         # Confidence increases with distance from center_min
         confidence = min(1.0, deviation_from_center / 0.3)
     elif avg_ratio > center_max:
-        direction = "RIGHT"
+        direction = "LEFT"
         confidence = min(1.0, deviation_from_center / 0.3)
     else:
         direction = "CENTER"
@@ -154,8 +154,8 @@ def smooth_gaze_detection(landmarks_history, window_size=5):
     
     # Return majority direction
     if left_count > right_count and left_count > center_count:
-        return "LEFT"
-    elif right_count > left_count and right_count > center_count:
         return "RIGHT"
+    elif right_count > left_count and right_count > center_count:
+        return "LEFT"
     else:
         return "CENTER"
