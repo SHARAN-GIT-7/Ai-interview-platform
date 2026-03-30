@@ -5,6 +5,8 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import bgImage from "../../assets/images/login_register_BG.png";
+import SplitText from "../../components/animations/SplitText";
+import BlurText from "../../components/animations/BlurText";
 
 gsap.registerPlugin(useGSAP);
 
@@ -197,11 +199,34 @@ export default function UserRegister() {
             </div>
 
             <div className="relative z-10 text-white">
-              <p className="text-white/90 text-lg mb-4 font-regular italic">Join us today</p>
+              <BlurText 
+                text="Join us today" 
+                className="text-white/90 text-lg mb-4 font-regular italic block" 
+                variant="letter"
+                stagger={0.05}
+              />
               <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight drop-shadow-md">
-                Start your journey <br />
-                towards smarter <br />
-                evaluations
+                <SplitText 
+                  text="Start your journey" 
+                  className="block" 
+                  variant="word"
+                  stagger={0.15}
+                  delay={0.5}
+                />
+                <SplitText 
+                  text="towards smarter" 
+                  className="block" 
+                  variant="word"
+                  stagger={0.15}
+                  delay={1}
+                />
+                <SplitText 
+                  text="evaluations" 
+                  className="block" 
+                  variant="word"
+                  stagger={0.15}
+                  delay={1.5}
+                />
               </h2>
             </div>
           </div>
@@ -211,9 +236,9 @@ export default function UserRegister() {
         <div className="w-full lg:w-[55%] p-8 md:p-16 flex justify-center h-full bg-white relative overflow-y-auto">
           <div className="max-w-md mx-auto w-full">
             <div className="mb-8 text-center lg:text-left gsap-fade-in">
-              <div className="w-10 h-10 bg-brand-dark rounded-lg flex lg:hidden items-center justify-center text-brand-secondary text-2xl font-bold mb-6 mx-auto">
-                ❊
-              </div>
+              <Link to="/" className="w-12 h-12 bg-brand-dark rounded-xl flex lg:hidden items-center justify-center mb-6 mx-auto overflow-hidden shadow-lg shadow-brand-dark/20 active:scale-95 transition-transform">
+                <img src="/logo.jpg" alt="Knitnet Logo" className="w-full h-full object-cover" />
+              </Link>
               <h1 className="text-4xl font-black text-brand-dark mb-4 tracking-tight">
                 Create an account
               </h1>
@@ -246,7 +271,7 @@ export default function UserRegister() {
                   type="text" 
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Your name" 
+                  placeholder="Enter your full name" 
                   className={`w-full px-5 py-3.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm ${message.type === "error" && (!fullName) ? "border-red-300 focus:border-red-500" : "border-gray-200 focus:border-brand-dark"}`}
                 />
               </div>
@@ -261,7 +286,7 @@ export default function UserRegister() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={emailVerified}
-                    placeholder="name@example.com" 
+                    placeholder="Enter your email" 
                     className={`w-full px-5 py-3.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm disabled:bg-gray-100 disabled:text-gray-500 ${message.type === "error" && (!email || !emailRegex.test(email)) ? "border-red-300 focus:border-red-500" : "border-gray-200 focus:border-brand-dark"}`}
                   />
                   {!emailVerified && !isWaitingForVerification && (
@@ -269,7 +294,7 @@ export default function UserRegister() {
                       type="button" 
                       onClick={handleVerifyEmail}
                       disabled={isLoading}
-                      className="relative px-6 py-3.5 bg-brand-dark text-white font-bold tracking-wide rounded-xl overflow-hidden shadow-md shadow-brand-dark/20 hover:shadow-lg hover:shadow-brand-dark/40 hover:bg-[#1a1c23] transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] whitespace-nowrap disabled:opacity-60 disabled:pointer-events-none group"
+                      className="relative px-8 py-3.5 flex items-center justify-center cursor-pointer bg-brand-dark text-white font-bold tracking-wide rounded-xl overflow-hidden shadow-md shadow-brand-dark/20 hover:shadow-lg hover:shadow-brand-dark/40 hover:bg-[#1a1c23] transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] whitespace-nowrap disabled:opacity-60 disabled:pointer-events-none group"
                     >
                       <span className="relative z-10">{isLoading ? "Sending..." : "Verify"}</span>
                       <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:animate-[shimmer_1.5s_infinite]"></div>

@@ -38,9 +38,9 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
 
 <<<<<<< HEAD
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, photo: file }));
+    const { name, files } = e.target;
+    if (files && files[0]) {
+      setFormData((prev) => ({ ...prev, [name]: files[0] }));
     }
   };
 
@@ -57,7 +57,7 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
       }
 
       // Step 1: Upload photo if selected
-      let photoUrl = "";
+      let photoUrl = userData.photoUrl || "";
       if (formData.photo) {
         const photoFormData = new FormData();
         photoFormData.append("photo", formData.photo);
@@ -70,40 +70,48 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
       }
 
       // Step 2: Create/save the profile
-      const profilePayload = {
-        userId: parseInt(userId),
-        fullName: formData.name,
-        email: formData.email,
-        dob: formData.dob || "2000-01-01",
-        age: parseInt(formData.age) || 0,
-        college: formData.college || "",
-        address: formData.address || "",
-        phone: formData.phone || "",
-        photoUrl: photoUrl,
-        gender: formData.gender || "",
+      const submissionData = new FormData();
+      submissionData.append("UserId", userId);
+      submissionData.append("FullName", formData.name);
+      submissionData.append("Email", formData.email);
+      submissionData.append("Dob", formData.dob);
+      submissionData.append("Age", formData.age);
+      submissionData.append("College", formData.college);
+      submissionData.append("Address", formData.address);
+      submissionData.append("Phone", formData.phone);
+      submissionData.append("Gender", formData.gender);
+      submissionData.append("PhotoUrl", photoUrl);
+
+      await profileApi.post("/profile/create", submissionData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert("Profile updated successfully!");
+      
+      const updatedData = { 
+        ...formData, 
+        photoUrl
       };
-
-      await profileApi.post("/profile/create", profilePayload);
-
-      alert("Profile saved successfully!");
-      const updatedData = { ...formData };
-      if (photoUrl) {
-        updatedData.photoUrl = photoUrl;
-      } else {
-        updatedData.photoUrl = userData.photoUrl;
-      }
+      delete updatedData.photo;
+      
       onSave(updatedData);
       onClose();
     } catch (error) {
       console.error("Error saving profile:", error);
+      let errorMsg = "Failed to save profile";
+      
       if (error.response?.data) {
-        const msg = typeof error.response.data === "string"
-          ? error.response.data
-          : error.response.data.message || "Failed to save profile";
-        alert(msg);
-      } else {
-        alert("Error connecting to profile server. Please ensure it is running.");
+        if (typeof error.response.data === "string") {
+          errorMsg = error.response.data;
+        } else if (error.response.data.errors) {
+          errorMsg = Object.values(error.response.data.errors).flat().join("\n");
+        } else if (error.response.data.message) {
+          errorMsg = error.response.data.message;
+        } else {
+          errorMsg = JSON.stringify(error.response.data, null, 2);
+        }
       }
+      alert(errorMsg);
     } finally {
       setIsSaving(false);
     }
@@ -293,6 +301,7 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                     <input
                       type="file"
                       id="photo-upload"
+                      name="photo"
                       className="hidden"
                       onChange={handleFileChange}
                       accept="image/*"

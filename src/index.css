@@ -20,9 +20,16 @@
     50% { background-position: 100% 50%; }
   }
 
+  @keyframes shine {
+    from { left: -100%; }
+    to { left: 100%; }
+  }
+
   @keyframes shimmer {
     100% { transform: translateX(100%); }
   }
+
+  --animate-shine: shine 1.5s infinite;
 }
 
 html {
@@ -39,7 +46,7 @@ html {
   --popover-foreground: #144542;
   --primary: #144542;
   --primary-foreground: #ffffff;
-  --secondary: #DAFF0CE ;
+  --secondary: #DAFF0C;
   --secondary-foreground: #144542;
   --muted: #f4f7f7;
   --muted-foreground: #9B9B9B;
@@ -59,3 +66,22 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1445421a;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #DAFF0C33;
+}
+
