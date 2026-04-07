@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("knitnet-interview-api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7f95b6c118e0060c25a0534810ba1464c42dfbae")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d614c3dc5451b193c66dfb9924302058f6b91933")]
 [assembly: System.Reflection.AssemblyProductAttribute("knitnet-interview-api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("knitnet-interview-api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
