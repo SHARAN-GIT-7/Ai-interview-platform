@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiClock, FiBook, FiLogOut, FiEdit, FiUser, FiMail, FiHome, FiLayout, FiUserCheck, FiCheckCircle, FiChevronRight } from 'react-icons/fi';
@@ -79,29 +78,13 @@ export default function UserDashboard() {
   const [isVerified, setIsVerified] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [userData, setUserData] = useState({
-
     name: "",
     email: "",
     college: "",
-=======
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiClock, FiBook, FiLogOut, FiEdit, FiUser, FiMail, FiHome, FiLayout } from 'react-icons/fi';
-import EditProfileModal from './EditProfileModal.jsx';
-
-export default function UserDashboard() {
-  const navigate = useNavigate();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [userData, setUserData] = useState({
-    name: "Sharan",
-    email: "tsharan2006@gmail.com",
-    college: "Panimaler Engineering college",
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
     dob: "",
     age: "",
     address: "",
     phone: "",
-<<<<<<< HEAD
     gender: "",
     photoUrl: "",
   });
@@ -183,11 +166,6 @@ export default function UserDashboard() {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userId");
-=======
-  });
-
-  const handleLogout = () => {
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
     navigate('/login');
   };
 
@@ -214,7 +192,6 @@ export default function UserDashboard() {
     }
   };
 
-<<<<<<< HEAD
   if (isLoading) {
     return (
       <div className="flex h-screen w-full bg-[#EAF0F0] items-center justify-center font-sans">
@@ -226,8 +203,6 @@ export default function UserDashboard() {
     );
   }
 
-=======
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
   return (
     <div className="flex h-screen w-full bg-[#EAF0F0] p-4 md:p-6 gap-6 md:gap-8 font-sans overflow-hidden">
       {/* Left Sidebar Profile Section - 40% Width */}
@@ -238,15 +213,11 @@ export default function UserDashboard() {
         <div className="relative z-10 bg-white/5 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/10 flex items-center gap-6 shadow-inner grow-0">
           <div className="relative group shrink-0">
             <div className="w-24 h-24 lg:w-32 lg:h-32 bg-white rounded-2xl shadow-2xl border-2 border-[#1b5b53] flex items-center justify-center overflow-hidden transition-transform duration-500 hover:scale-105">
-<<<<<<< HEAD
                {userData.photoUrl ? (
                  <img src={userData.photoUrl} alt={userData.name} className="w-full h-full object-cover" />
                ) : (
                  <FiUser className="text-5xl text-[#144542]/20" />
                )}
-=======
-               <FiUser className="text-5xl text-[#144542]/20" />
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
             </div>
           </div>
 
@@ -381,4 +352,3 @@ export default function UserDashboard() {
     </div>
   );
 }
-

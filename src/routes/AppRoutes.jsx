@@ -13,6 +13,8 @@ import SubmitProfile from "../pages/user/SubmitProfile";
 import LiveVerification from "../pages/aadhar-verification/LiveVerification";
 import UploadDetails from "../pages/aadhar-verification/UploadDetails";
 import CompanyDashboard from "../pages/company/CompanyDashboard";
+import CompanyInfoOnboarding from "../pages/company/CompanyInfoOnboarding";
+
 
 import ResumeParser from "../pages/test-portal/ResumeParser";
 import TestPortal from "../pages/test-portal/TestPortal";
@@ -46,8 +48,10 @@ export default function AppRoutes() {
         <Route path="/user/live-verification" element={<LiveVerification />} />
         <Route path="/user/upload-details" element={<UploadDetails />} />
 
-        {/* Company Dashboard */}
+        {/* Company Dashboard & Setup */}
         <Route path="/company/dashboard" element={<CompanyDashboard />} />
+        <Route path="/company/setup" element={<CompanyInfoOnboarding />} />
+
 
         {/* Interview Flow */}
         <Route path="/interview/resume-parser" element={<ResumeParser />} />

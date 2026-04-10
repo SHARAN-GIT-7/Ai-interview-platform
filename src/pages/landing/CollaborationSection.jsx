@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-
+import { Link } from "react-router-dom";
 export default function CollaborationSection() {
   return (
     <section id="collaboration" className="py-24 bg-brand-dark text-white overflow-hidden relative">
@@ -17,9 +17,9 @@ export default function CollaborationSection() {
           We collaborate with companies and universities to improve
           AI-driven hiring systems. Let's build the future of recruitment together.
         </p>
-        <button className="px-10 py-5 text-lg font-bold text-brand-dark bg-brand-secondary rounded-2xl transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]">
+        <Link to="/company/login" className="px-10 py-5 text-lg font-bold text-brand-dark bg-brand-secondary rounded-2xl transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] inline-block">
           Collaborate With Us
-        </button>
+        </Link>
       </motion.div>
       
       {/* Subtle decorative elements */}

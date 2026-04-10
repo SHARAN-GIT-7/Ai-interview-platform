@@ -1,5 +1,6 @@
 import express from 'express';
 import nodemailer from 'nodemailer';
+import axios from 'axios';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
@@ -37,7 +38,7 @@ app.post('/api/send-verification', async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Verify your Interview App Account',
+      subject: 'Verify your Company Account',
       html: `
         <!DOCTYPE html>
         <html>
@@ -48,12 +49,11 @@ app.post('/api/send-verification', async (req, res) => {
         </head>
         <body style="font-family: 'Inter', Arial, sans-serif; background-color: #EAF0F0; padding: 40px 20px; text-align: center;">
           <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 24px; box-shadow: 0 4px 20px rgba(20, 69, 66, 0.05);">
-            <div style="width: 56px; height: 56px; background-color: #144542; border-radius: 16px; display: inline-block; text-align: center; line-height: 56px; font-size: 32px; font-weight: bold; color: #DAFF0C; margin-bottom: 24px;">❊</div>
-            <h2 style="color: #144542; font-size: 28px; font-weight: 900; margin-top: 0; margin-bottom: 16px; letter-spacing: -0.5px;">Verify your email</h2>
-            <p style="color: #9B9B9B; font-size: 16px; margin-bottom: 32px; line-height: 1.6;">You're almost there! Please verify your email address to unlock your personal workspace and start your journey.</p>
+            <div style="width: 56px; height: 56px; background-color: #144542; border-radius: 16px; display: inline-block; text-align: center; line-height: 56px; font-size: 32px; font-weight: bold; color: #DAFF0C; margin-bottom: 24px;">🏢</div>
+            <h2 style="color: #144542; font-size: 28px; font-weight: 900; margin-top: 0; margin-bottom: 16px; letter-spacing: -0.5px;">Verify your company email</h2>
+            <p style="color: #9B9B9B; font-size: 16px; margin-bottom: 32px; line-height: 1.6;">You're almost ready to start hiring! Please verify your company email address to unlock your recruitment workspace and start discovering top talent.</p>
 
- +
- }" style="background-color: #144542; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 900; display: inline-block; font-size: 16px; box-shadow: 0 4px 14px rgba(20, 69, 66, 0.2);">Verify Email Address</a>
+            <a href="${verificationLink}" style="background-color: #144542; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 900; display: inline-block; font-size: 16px; box-shadow: 0 4px 14px rgba(20, 69, 66, 0.2);">Verify Company Email</a>
             <p style="color: #9B9B9B; font-size: 13px; margin-top: 40px; border-top: 1px solid #dce5e5; padding-top: 24px;">If you didn't request this, you can safely ignore this email.</p>
           </div>
         </body>
@@ -79,7 +79,7 @@ app.get('/api/verify', (req, res) => {
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Email Verified - Interview App</title>
+          <title>Company Email Verified - Interview App</title>
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -94,8 +94,8 @@ app.get('/api/verify', (req, res) => {
         <body>
           <div class="card">
             <div class="success-icon">✓</div>
-            <h1>Email Verified!</h1>
-            <p>Your email has been successfully verified. You can safely close this window and return to the app.</p>
+            <h1>Company Email Verified!</h1>
+            <p>Your company email has been successfully verified. You can safely close this window and return to the app to complete registration.</p>
           </div>
           <script>
             setTimeout(() => { window.close() }, 4000);
@@ -120,7 +120,40 @@ app.get('/api/check-verification/:email', (req, res) => {
   }
 });
 
-const PORT = 5000;
+// HR Database Proxy Endpoints
+app.get('/api/hr/exists', async (req, res) => {
+  const { email } = req.query;
+  try {
+    const response = await axios.get(`http://localhost:5263/api/HR/exists?email=${encodeURIComponent(email)}`);
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error checking HR status:', error.message);
+    res.status(error.response?.status || 500).json({ error: 'Failed to check HR status' });
+  }
+});
+
+app.post('/api/hr/register', async (req, res) => {
+  try {
+    const response = await axios.post('http://localhost:5263/api/HR/register', req.body);
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error registering HR:', error.message);
+    res.status(error.response?.status || 500).json({ error: error.response?.data || 'Failed to register HR' });
+  }
+});
+
+app.get('/api/hr/list/:companyId', async (req, res) => {
+  const { companyId } = req.params;
+  try {
+    const response = await axios.get(`http://localhost:5263/api/HR/company/${companyId}`);
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching HR list:', error.message);
+    res.status(error.response?.status || 500).json({ error: 'Failed to fetch HR list' });
+  }
+});
+
+const PORT = 5001;
 app.listen(PORT, () => {
-  console.log(`Email verification server running on http://localhost:${PORT}`);
+  console.log(`Company email verification server running on http://localhost:${PORT}`);
 });

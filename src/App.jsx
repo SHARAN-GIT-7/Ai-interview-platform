@@ -4,7 +4,7 @@ import LoadingScreen from "./components/animations/LoadingScreen";
 function App() {
   return (
     <div>
-      <LoadingScreen />
+      {/* <LoadingScreen /> */}
       <AppRoutes />
     </div>
   );

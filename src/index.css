@@ -1,6 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import "tailwindcss";
 
 @theme {
+  --font-primary: 'Inter', sans-serif;
+  --font-secondary: 'Inter', sans-serif;
+
   --animate-fade-in: fade-in 1s ease-out;
   --animate-gradient: gradient 8s linear infinite;
 
@@ -62,9 +66,13 @@ html {
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-secondary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, .font-primary {
+  font-family: var(--font-primary);
 }
 
 /* Custom Scrollbar */
@@ -84,4 +92,4 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #DAFF0C33;
 }
-
+
