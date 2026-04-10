@@ -7,6 +7,7 @@ import {
   FiVolume2, FiLoader
 } from 'react-icons/fi';
 import { transcribeAudio, synthesizeSpeech } from '../../services/interviewApi';
+import ProctorOverlay from '../../routes/ProctorOverlay';
 
 export default function TestPortal() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function TestPortal() {
   const parsedData = location.state?.parsedData;
   const backendQuestions = location.state?.questions || [];
   const sessionId = location.state?.sessionId;
+  const uniqueId = location.state?.uniqueId;
 
   const totalQuestions = backendQuestions.length;
 
@@ -199,6 +201,7 @@ export default function TestPortal() {
           answers: answerPayload,
           questions: backendQuestions,
           parsedData,
+          uniqueId,
         }
       });
     }
@@ -261,6 +264,8 @@ export default function TestPortal() {
 
   return (
     <div className="min-h-screen bg-[#f8fafa] font-sans">
+      {/* Continuous Face Monitoring */}
+      <ProctorOverlay uniqueId={uniqueId} />
       {/* Top Progress Bar */}
       <div className="bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto">

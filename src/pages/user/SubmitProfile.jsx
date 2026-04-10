@@ -5,7 +5,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const profileApi = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: "http://localhost:5222/api",
 });
 
 const SubmitProfile = () => {
@@ -62,7 +62,8 @@ const SubmitProfile = () => {
           photoUrl = photoResponse.data.photoUrl;
         } catch (photoError) {
           console.error("Error uploading photo:", photoError);
-          alert("Failed to upload profile picture. Please try again.");
+          const detail = photoError.response?.data?.details || photoError.message;
+          alert(`Failed to upload profile picture: ${detail}`);
           setIsSubmitting(false);
           return;
         }

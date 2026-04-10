@@ -1,9 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FiClock, FiCheckCircle, FiAward, FiWifi, FiCpu, FiInfo, FiArrowLeft, FiZap } from 'react-icons/fi';
+import ProctorOverlay from '../../routes/ProctorOverlay';
 
 export default function StartingTest() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { uniqueId } = location.state || {};
 
   const stats = [
     { icon: <FiCheckCircle className="text-2xl" />, value: '15 Questions', label: 'TOTAL VOLUME' },
@@ -28,6 +31,7 @@ export default function StartingTest() {
 
   return (
     <div className="min-h-screen bg-[#EAF0F0] flex items-center justify-center p-4 md:p-8 font-sans">
+      <ProctorOverlay uniqueId={uniqueId} />
       {/* Background decorative elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#144542]/5 rounded-full blur-3xl"></div>
@@ -96,7 +100,7 @@ export default function StartingTest() {
         {/* Action Buttons */}
         <div className="flex items-center justify-center gap-4">
           <button
-            onClick={() => navigate('/aptitude/test')}
+            onClick={() => navigate('/aptitude/test', { state: { uniqueId } })}
             className="group border border-gray-300 cursor-pointer relative px-10 py-4 bg-[#DAFF0C] text-[#144542] font-black text-sm uppercase tracking-[0.15em] rounded-xl shadow-lg shadow-[#DAFF0C]/30 hover:shadow-xl hover:shadow-[#DAFF0C]/40 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden"
           >
             <span className="relative z-10 flex items-center gap-2">

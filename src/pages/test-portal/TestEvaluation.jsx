@@ -8,6 +8,7 @@ import {
   FiStar, FiZap, FiCpu, FiAlertCircle
 } from 'react-icons/fi';
 import { evaluateAnswers } from '../../services/interviewApi';
+import ProctorOverlay from '../../routes/ProctorOverlay';
 
 const CircularProgress = ({ score, size = 160, strokeWidth = 12 }) => {
   const [animatedScore, setAnimatedScore] = useState(0);
@@ -76,6 +77,7 @@ export default function TestEvaluation() {
   const sessionId = location.state?.sessionId;
   const answersPayload = location.state?.answers || [];
   const questions = location.state?.questions || [];
+  const uniqueId = location.state?.uniqueId;
 
   useEffect(() => {
     const runEvaluation = async () => {
@@ -191,6 +193,8 @@ export default function TestEvaluation() {
 
   return (
     <div className="min-h-screen bg-brand-light font-sans pb-20">
+      {/* Continuous Face Monitoring */}
+      <ProctorOverlay uniqueId={uniqueId} />
       {/* Hero Header Section */}
       <div className="bg-brand-dark relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full bg-secondary/5 -skew-x-12 transform translate-x-1/2" />
@@ -316,10 +320,10 @@ export default function TestEvaluation() {
             Download PDF Report
           </button>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/aptitude/start', { state: { uniqueId } })}
             className="flex-[1.5] bg-brand-dark text-white py-5 rounded-3xl font-black text-base flex items-center justify-center gap-3 transition-all hover:scale-[1.02] shadow-2xl active:scale-95 cursor-pointer"
           >
-            Complete Process & Return
+            Complete Process & Go to Aptitude Test
             <FiArrowRight />
           </button>
         </div>

@@ -241,26 +241,6 @@ export default function UserDashboard() {
 
         {/* Action Buttons */}
         <div className="w-full flex flex-col gap-3 mt-auto mb-2 relative z-10 overflow-y-auto pr-1 custom-scrollbar">
-          <button onClick={() => navigate('/aptitude/start')} className="w-full flex items-center justify-between px-6 py-4 bg-[#DAFF0C]/5 hover:bg-[#DAFF0C]/10 border border-[#DAFF0C]/10 hover:border-[#DAFF0C]/30 text-white rounded-xl transition-all duration-300 group shadow-lg shrink-0">
-            <div className="flex items-center gap-4">
-               <FiLayout className="text-2xl text-[#DAFF0C] group-hover:rotate-12 transition-transform" />
-               <span className="font-bold text-lg tracking-wide">Aptitude Test</span>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#DAFF0C] transition-all duration-300">
-              <div className="w-2 h-2 border-t-2 border-r-2 border-white group-hover:border-[#144542] rotate-45 ml-[-2px]"></div>
-            </div>
-          </button>
-
-          <button className="w-full flex items-center justify-between px-6 py-4 bg-white/5 hover:bg-[#DAFF0C]/10 border border-white/5 hover:border-[#DAFF0C]/20 text-white rounded-xl transition-all duration-300 group shadow-lg shrink-0">
-            <div className="flex items-center gap-4">
-               <FiClock className="text-2xl text-[#DAFF0C] group-hover:rotate-12 transition-transform" />
-               <span className="font-bold text-lg tracking-wide">Completed test</span>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#DAFF0C] transition-all duration-300">
-              <div className="w-2 h-2 border-t-2 border-r-2 border-white group-hover:border-[#144542] rotate-45 ml-[-2px]"></div>
-            </div>
-          </button>
-          
           <button className="w-full flex items-center justify-between px-6 py-4 bg-white/5 hover:bg-[#DAFF0C]/10 border border-white/5 hover:border-[#DAFF0C]/20 text-white rounded-xl transition-all duration-300 group shadow-lg shrink-0">
             <div className="flex items-center gap-4">
                <FiBook className="text-2xl text-[#DAFF0C] group-hover:rotate-12 transition-transform" />

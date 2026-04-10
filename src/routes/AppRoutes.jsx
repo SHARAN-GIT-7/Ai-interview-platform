@@ -22,7 +22,11 @@ import TestEvaluation from "../pages/test-portal/TestEvaluation";
 
 import StartingTest from "../pages/aptitude-test-portal/StartingTest";
 import AptitudeTest from "../pages/aptitude-test-portal/AptitudeTest";
- 
+
+import InitialProcess from "../pages/interview-module/InitialProcess";
+import MainAssessment from "../pages/interview-module/MainAssessment";
+import Results from "../pages/interview-module/Results";
+
 import Error404 from "../pages/errors/Error404";
 
 
@@ -64,6 +68,11 @@ export default function AppRoutes() {
         {/* Aptitude Test */}
         <Route path="/aptitude/start" element={<StartingTest />} />
         <Route path="/aptitude/test" element={<AptitudeTest />} />
+
+        {/* Coding Assessment Module */}
+        <Route path="/coding/instructions" element={<InitialProcess />} />
+        <Route path="/coding/assessment"   element={<MainAssessment />} />
+        <Route path="/coding/results"      element={<Results />} />
 
         {/* Error Page */}
         <Route path="*" element={<Error404 />} />

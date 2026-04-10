@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft, FiChevronRight, FiClock, FiCheck, FiAlertCircle, FiSend, FiLoader } from 'react-icons/fi';
 import { fetchQuestions, submitAnswers } from '../../services/aptitudeApi';
+import ProctorOverlay from '../../routes/ProctorOverlay';
 
 const TOTAL_TIME = 15 * 60;
 
 export default function AptitudeTest() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { uniqueId } = location.state || {};
 
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -58,14 +61,14 @@ export default function AptitudeTest() {
 
       setShowSuccess(true);
       setTimeout(() => {
-        navigate('/user/dashboard');
+        navigate('/coding/instructions', { state: { uniqueId } });
       }, 3000);
     } catch (err) {
       console.error('Failed to submit:', err);
       // Still show success and redirect even if submit fails
       setShowSuccess(true);
       setTimeout(() => {
-        navigate('/user/dashboard');
+        navigate('/coding/instructions', { state: { uniqueId } });
       }, 3000);
     }
   }, [isSubmitting, questions, selectedAnswers, navigate]);
@@ -180,7 +183,7 @@ export default function AptitudeTest() {
           </div>
           <h2 className="text-[#144542] text-3xl font-black tracking-tight mb-3">Test Submitted!</h2>
           <p className="text-[#144542]/50 text-base font-medium mb-2">Your responses have been recorded successfully.</p>
-          <p className="text-[#144542]/30 text-sm font-medium">Redirecting to dashboard...</p>
+          <p className="text-[#144542]/30 text-sm font-medium">Redirecting to Coding Assessment...</p>
           <div className="mt-6 flex justify-center">
             <div className="w-48 h-1.5 bg-[#144542]/10 rounded-full overflow-hidden">
               <div className="h-full bg-[#DAFF0C] rounded-full animate-[shimmer_2s_ease-in-out_infinite]" style={{ width: '100%' }}></div>
@@ -194,6 +197,8 @@ export default function AptitudeTest() {
   // ── Main Test UI ──
   return (
     <div className="min-h-screen bg-[#EAF0F0] flex flex-col font-sans">
+      {/* Continuous Face Monitoring */}
+      <ProctorOverlay uniqueId={uniqueId} />
       {/* Top Header Bar */}
       <div className="bg-[#144542] px-6 md:px-10 py-4 flex items-center justify-between shadow-lg shadow-[#144542]/20 relative z-20">
         <div className="flex items-center gap-4">

@@ -80,7 +80,7 @@ export default function UserLogin() {
         } catch (error) {
           console.error("Error polling verification status:", error);
         }
-      }, 2000); // Check every 2 seconds
+      }, 2000); 
     }
     return () => clearInterval(interval);
   }, [view, email, emailVerified]);
@@ -130,8 +130,21 @@ export default function UserLogin() {
           setTimeout(() => navigate("/user/submit-profile"), 1000);
         }
       } else {
-        const errorData = await response.json();
-        showMessage(typeof errorData === 'string' ? errorData : (errorData.message || "Login failed"), "error");
+        let errorData;
+        const contentType = response.headers.get("content-type");
+        
+        if (contentType && contentType.includes("application/json")) {
+            errorData = await response.json();
+        } else {
+            const textError = await response.text();
+            errorData = { message: "Server Error", details: textError };
+        }
+
+        const displayMessage = errorData.details 
+            ? `${errorData.message}: ${errorData.details}`
+            : (errorData.message || "Login failed");
+            
+        showMessage(displayMessage, "error");
         shakeForm();
       }
     } catch (error) {
