@@ -2,7 +2,7 @@
 // Module 1: Resume Parser
 // Module 2: Interview Engine (questions, evaluation, STT, TTS)
 
-const MODULE_1_URL = 'https://supermagnificent-overoptimistically-misty.ngrok-free.dev';
+const MODULE_1_URL = 'https://eula-larger-serenely.ngrok-free.dev';
 const MODULE_2_URL = 'https://molluscous-shona-prediligently.ngrok-free.dev';
 
 // Ngrok requires this header to bypass the browser warning page

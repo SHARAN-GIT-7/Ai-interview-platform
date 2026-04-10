@@ -5,7 +5,10 @@ import { FiArrowLeft, FiShield, FiCheckCircle, FiAlertCircle, FiLoader, FiEye } 
 
 // API base URLs — both now served by New-AI-verification-module FastAPI (port 8000)
 const PYTHON_API = 'http://localhost:8000';
-const DOTNET_API = 'http://localhost:8000';
+const DOTNET_API = 'http://localhost:5006/api';
+
+// Proctoring backend (proctor.py) — separate port
+const PROCTOR_API = 'http://localhost:8001';
 
 const UploadDetails = () => {
   const navigate = useNavigate();
@@ -144,9 +147,39 @@ const UploadDetails = () => {
 
       if (!completeRes.ok) throw new Error('Could not update .NET database.');
 
+      // ── Set proctoring reference face ──────────────────────────────────────
+      // Capture current video frame as reference for proctoring throughout assessment
+      try {
+        const canvas = canvasRef.current;
+        const video  = videoRef.current;
+        if (video && video.videoWidth > 0) {
+          canvas.width  = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext('2d').drawImage(video, 0, 0);
+
+          // 1. Reset any previous proctoring session
+          await fetch(`${PROCTOR_API}/reset`, { method: 'POST' }).catch(() => {});
+
+          // 2. Upload this verified face as the reference
+          await new Promise((resolve) => {
+            canvas.toBlob(async (blob) => {
+              if (blob) {
+                const form = new FormData();
+                form.append('file', blob, 'reference.jpg');
+                await fetch(`${PROCTOR_API}/reference`, { method: 'POST', body: form }).catch(() => {});
+              }
+              resolve();
+            }, 'image/jpeg', 0.9);
+          });
+        }
+      } catch {
+        // Proctoring setup failed — don't block navigation; monitoring banner will show
+      }
+
       setIsSuccess(true);
       setTimeout(() => {
-        navigate('/interview/resume-parser', { state: { verified: true } });
+        // Pass uniqueId forward so ProctorOverlay can identify the session
+        navigate('/interview/resume-parser', { state: { verified: true, uniqueId } });
       }, 2500);
 
     } catch (err) {
@@ -154,6 +187,7 @@ const UploadDetails = () => {
       setIsVerifying(false);
     }
   };
+
 
   const startLivenessFlow = () => {
     setError('');

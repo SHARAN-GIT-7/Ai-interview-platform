@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiUploadCloud, FiFile, FiX, FiZap, FiCheckCircle,
@@ -7,6 +7,7 @@ import {
   FiGlobe, FiStar, FiTrendingUp, FiAlertCircle
 } from 'react-icons/fi';
 import { uploadResume, generateQuestions } from '../../services/interviewApi';
+import ProctorOverlay from '../../routes/ProctorOverlay';
 
 // ── Steps for the AI Concierge ──
 const PARSE_STEPS = [
@@ -15,9 +16,15 @@ const PARSE_STEPS = [
   { label: 'Parsing resume skills...', key: 'generate' },
 ];
 
+
+
 export default function ResumeParser() {
   const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef(null);
+
+  // Forward uniqueId from verification state into assessment chain
+  const { uniqueId } = location.state || {};
 
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -265,6 +272,7 @@ export default function ResumeParser() {
           parsedData: parsedData,
           questions: result.questions,
           sessionId: result.session_id,
+          uniqueId,
         }
       });
     } catch (err) {
@@ -283,6 +291,8 @@ export default function ResumeParser() {
 
   return (
     <div className="min-h-screen bg-brand-light font-sans">
+      <ProctorOverlay uniqueId={uniqueId} />
+
       {/* Header */}
       <div className="max-w-6xl mx-auto px-6 pt-10 pb-6">
         <motion.div

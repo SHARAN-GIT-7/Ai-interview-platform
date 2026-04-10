@@ -164,8 +164,21 @@ export default function UserRegister() {
         showMessage("Account created successfully! Redirecting to login...", "success");
         setTimeout(() => navigate("/login"), 1500);
       } else {
-        const errorData = await response.json();
-        showMessage(typeof errorData === 'string' ? errorData : (errorData.message || "Registration failed"), "error");
+        let errorData;
+        const contentType = response.headers.get("content-type");
+        
+        if (contentType && contentType.includes("application/json")) {
+            errorData = await response.json();
+        } else {
+            const textError = await response.text();
+            errorData = { message: "Server Error", details: textError };
+        }
+
+        const displayMessage = errorData.details 
+            ? `${errorData.message}: ${errorData.details}`
+            : (errorData.message || "Registration failed");
+            
+        showMessage(displayMessage, "error");
         shakeForm();
       }
     } catch (error) {

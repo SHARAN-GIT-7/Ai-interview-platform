@@ -1,7 +1,7 @@
 // ── Backend API Service for Aptitude Test Module ──
 // Connects to the AptitudeIQ backend via ngrok
 
-const APTITUDE_API_URL = 'https://julius-nondivisional-laureen.ngrok-free.dev';
+const APTITUDE_API_URL = 'https://porous-bleakish-krystle.ngrok-free.dev';
 
 // Ngrok requires this header to bypass the browser warning page
 const NGROK_HEADERS = { 'ngrok-skip-browser-warning': 'true' };

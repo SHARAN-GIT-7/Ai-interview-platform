@@ -4,14 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiUpload, FiImage, FiCheckCircle, FiArrowLeft, FiAlertCircle, FiLoader, FiFileText } from 'react-icons/fi';
 
 const PYTHON_API = 'http://localhost:8000';
-const DOTNET_API = 'http://localhost:8000';       // Now served by Python FastAPI
-const DOTNET_PROFILE_API = 'http://localhost:8000'; // Profile fallback (userName from localStorage)
+const DOTNET_API = 'http://localhost:5006/api';
+const DOTNET_PROFILE_API = 'http://localhost:5222/api';
 
 const LiveVerification = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { testId } = location.state || {}; // testId from dashboard
+  const { testId } = location.state || {};
 
 
   const [aadhaarDigits, setAadhaarDigits] = useState('');
