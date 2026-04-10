@@ -15,6 +15,11 @@ namespace Knitnet.CompanyInfoApi.Repositories
             _context = context;
         }
 
+        public async Task<bool> CompanyExistsAsync(Guid companyId)
+        {
+            return await _context.Companies.AnyAsync(x => x.Uid == companyId);
+        }
+
         public async Task<CompanyInfo> GetByCompanyIdAsync(Guid companyId)
         {
             return await _context.CompanyInfos

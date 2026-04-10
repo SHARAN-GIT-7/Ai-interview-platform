@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("knitnet-verification-api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d614c3dc5451b193c66dfb9924302058f6b91933")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3e2bdd9ba19a82fc68593e795d4863681c7b0bb5")]
 [assembly: System.Reflection.AssemblyProductAttribute("knitnet-verification-api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("knitnet-verification-api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

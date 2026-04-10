@@ -2700,11 +2700,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\knitnet main\\Backend\\Company-Auth-Api\\Company-Auth-Api.csproj",
+      "projectUniqueName": "C:\\knitnet main\\Backend\\Company_Backend\\Company-Auth-Api\\Company-Auth-Api.csproj",
       "projectName": "Company-Auth-Api",
-      "projectPath": "C:\\knitnet main\\Backend\\Company-Auth-Api\\Company-Auth-Api.csproj",
+      "projectPath": "C:\\knitnet main\\Backend\\Company_Backend\\Company-Auth-Api\\Company-Auth-Api.csproj",
       "packagesPath": "C:\\Users\\tshar\\.nuget\\packages\\",
-      "outputPath": "C:\\knitnet main\\Backend\\Company-Auth-Api\\obj\\",
+      "outputPath": "C:\\knitnet main\\Backend\\Company_Backend\\Company-Auth-Api\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\tshar\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -26,6 +26,12 @@ namespace Knitnet.CompanyInfoApi.Services
 
         public async Task CreateOrUpdateAsync(Guid companyId, CompanyInfoCreateDto dto)
         {
+            var companyExists = await _repo.CompanyExistsAsync(companyId);
+            if (!companyExists)
+            {
+                throw new KeyNotFoundException("Company not found for the provided CompanyId.");
+            }
+
             var existing = await _repo.GetByCompanyIdAsync(companyId);
 
             if (existing == null)

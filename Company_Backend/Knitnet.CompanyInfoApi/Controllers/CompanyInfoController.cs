@@ -25,14 +25,21 @@ public async Task<IActionResult> Get(Guid companyId)
 }
 
         [HttpPost]
-public async Task<IActionResult> CreateOrUpdate(CompanyInfoCreateDto dto)
-{
-    if (dto.CompanyId == Guid.Empty)
-        return BadRequest("CompanyId is required");
+        public async Task<IActionResult> CreateOrUpdate([FromBody] CompanyInfoCreateDto dto)
+        {
+            if (dto.CompanyId == Guid.Empty)
+                return BadRequest("CompanyId is required");
 
-    await _service.CreateOrUpdateAsync(dto.CompanyId, dto);
+            try
+            {
+                await _service.CreateOrUpdateAsync(dto.CompanyId, dto);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
 
-    return Ok("Saved successfully");
-}
+            return Ok("Saved successfully");
+        }
     }
 }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "f49huEK/B7k=",
+  "dgSpecHash": "CY7nn6uqGhU=",
   "success": true,
-  "projectFilePath": "C:\\knitnet main\\Backend\\company-Auth-Api\\Company-Auth-Api.csproj",
+  "projectFilePath": "C:\\knitnet main\\Backend\\Company_Backend\\Company-Auth-Api\\Company-Auth-Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\tshar\\.nuget\\packages\\bcrypt.net-next\\4.1.0\\bcrypt.net-next.4.1.0.nupkg.sha512",
     "C:\\Users\\tshar\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
