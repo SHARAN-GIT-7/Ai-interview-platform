@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -106,4 +107,14 @@ export default function Error404() {
       </div>
     </div>
   );
-}
+}
+=======
+export default function Error404() {
+  return (
+    <div className="error-page h-screen flex flex-col items-center justify-center text-brand-dark">
+      <h1 className="text-8xl font-black mb-4">404</h1>
+      <p className="text-xl font-bold">Page Not Found</p>
+    </div>
+  );
+}
+>>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
