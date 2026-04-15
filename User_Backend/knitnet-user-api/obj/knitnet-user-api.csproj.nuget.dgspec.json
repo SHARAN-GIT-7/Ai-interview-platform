@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\knitnet main\\Backend\\knitnet-user-api\\knitnet-user-api.csproj": {}
+    "C:\\knitnet main\\Backend\\User_Backend\\knitnet-user-api\\knitnet-user-api.csproj": {}
   },
   "projects": {
-    "C:\\knitnet main\\Backend\\knitnet-user-api\\knitnet-user-api.csproj": {
+    "C:\\knitnet main\\Backend\\User_Backend\\knitnet-user-api\\knitnet-user-api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\knitnet main\\Backend\\knitnet-user-api\\knitnet-user-api.csproj",
+        "projectUniqueName": "C:\\knitnet main\\Backend\\User_Backend\\knitnet-user-api\\knitnet-user-api.csproj",
         "projectName": "knitnet-user-api",
-        "projectPath": "C:\\knitnet main\\Backend\\knitnet-user-api\\knitnet-user-api.csproj",
+        "projectPath": "C:\\knitnet main\\Backend\\User_Backend\\knitnet-user-api\\knitnet-user-api.csproj",
         "packagesPath": "C:\\Users\\tshar\\.nuget\\packages\\",
-        "outputPath": "C:\\knitnet main\\Backend\\knitnet-user-api\\obj\\",
+        "outputPath": "C:\\knitnet main\\Backend\\User_Backend\\knitnet-user-api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\tshar\\AppData\\Roaming\\NuGet\\NuGet.Config"
