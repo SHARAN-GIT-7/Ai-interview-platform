@@ -1,0 +1,189 @@
+{
+  "format": 1,
+  "restore": {
+    "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.UserApi/Knitnet.UserApi.csproj": {}
+  },
+  "projects": {
+    "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.Shared/Knitnet.Shared.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.Shared/Knitnet.Shared.csproj",
+        "projectName": "Knitnet.Shared",
+        "projectPath": "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.Shared/Knitnet.Shared.csproj",
+        "packagesPath": "/home/rudhran/.nuget/packages/",
+        "outputPath": "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.Shared/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/rudhran/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "/usr/lib64/dotnet/library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.*, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.*, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.*, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.*, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.*, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/10.0.104/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.UserApi/Knitnet.UserApi.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.UserApi/Knitnet.UserApi.csproj",
+        "projectName": "Knitnet.UserApi",
+        "projectPath": "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.UserApi/Knitnet.UserApi.csproj",
+        "packagesPath": "/home/rudhran/.nuget/packages/",
+        "outputPath": "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.UserApi/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/rudhran/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "/usr/lib64/dotnet/library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.Shared/Knitnet.Shared.csproj": {
+                "projectPath": "/home/rudhran/projects/Knitnet/Intervista/Ai-interview-platform/Knitnet.Backend/Knitnet.Shared/Knitnet.Shared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.*, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.*, )"
+            },
+            "Microsoft.AspNetCore.OpenApi": {
+              "target": "Package",
+              "version": "[8.0.25, )"
+            },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[8.0.*, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.*, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[6.*, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.NETCore.App.Host.linux-x64",
+              "version": "[8.0.25, 8.0.25]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/10.0.104/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

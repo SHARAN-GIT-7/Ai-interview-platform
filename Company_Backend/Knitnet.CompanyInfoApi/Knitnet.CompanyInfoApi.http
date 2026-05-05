@@ -1,6 +1,0 @@
-@Knitnet.CompanyInfoApi_HostAddress = http://localhost:5082
-
-GET {{Knitnet.CompanyInfoApi_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
