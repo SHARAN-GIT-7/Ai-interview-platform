@@ -3,9 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUpload, FiImage, FiCheckCircle, FiArrowLeft, FiAlertCircle, FiLoader, FiFileText } from 'react-icons/fi';
 
-const PYTHON_API = 'http://localhost:8000';
-const DOTNET_API = 'http://localhost:5006/api';
-const DOTNET_PROFILE_API = 'http://localhost:5222/api';
+const PYTHON_API = 'http://localhost:8003';
+const DOTNET_API = 'http://localhost:5280/api/user';
+const DOTNET_PROFILE_API = 'http://localhost:5280/api/user';
 
 const LiveVerification = () => {
   const navigate = useNavigate();
@@ -94,7 +94,9 @@ const LiveVerification = () => {
 
       // Step 3: Fetch user name from Profile API (needed for verification record)
       const userId = localStorage.getItem('userId') || '1'; // Fallback for testing
-      const profileRes = await fetch(`${DOTNET_PROFILE_API}/profile/${userId}`);
+      const profileRes = await fetch(`${DOTNET_PROFILE_API}/profile/${userId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
+      });
       let userName = 'User';
       if (profileRes.ok) {
         const profileData = await profileRes.json();
@@ -104,7 +106,10 @@ const LiveVerification = () => {
       // Step 4: Create "pending" record in .NET Backend / PostgreSQL
       const createRes = await fetch(`${DOTNET_API}/verification/create`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
         body: JSON.stringify({
           userId: parseInt(userId),
           userName: userName,

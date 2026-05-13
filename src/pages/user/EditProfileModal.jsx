@@ -4,7 +4,7 @@ import { FiX, FiCamera, FiCheckCircle } from "react-icons/fi";
 import axios from "axios";
 
 const profileApi = axios.create({
-  baseURL: "/api/user",
+  baseURL: "http://localhost:5280/api/user",
   headers: { "Content-Type": "application/json" },
 });
 
@@ -30,6 +30,23 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
     photo: null,
   });
 
+  // Sync with userData when it changes or modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: userData.name || "",
+        email: userData.email || "",
+        dob: userData.dob || "",
+        age: userData.age || "",
+        college: userData.college || "",
+        address: userData.address || "",
+        phone: userData.phone || "",
+        gender: userData.gender || "",
+        photo: null,
+      });
+    }
+  }, [isOpen, userData]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -48,8 +65,9 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
 
     try {
       const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("authToken");
 
-      if (!userId) {
+      if (!userId || !token) {
         alert("Session expired. Please login again.");
         return;
       }
@@ -61,7 +79,10 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
         photoFormData.append("photo", formData.photo);
 
         const photoResponse = await profileApi.post("/profile/upload-photo", photoFormData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { 
+            "Content-Type": "multipart/form-data",
+            "Authorization": `Bearer ${token}`
+          },
         });
 
         photoUrl = photoResponse.data.photoUrl || "";
@@ -81,23 +102,26 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
       submissionData.append("PhotoUrl", photoUrl);
 
       await profileApi.post("/profile/create", submissionData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { 
+          "Content-Type": "multipart/form-data",
+          "Authorization": `Bearer ${token}`
+        },
       });
 
       alert("Profile updated successfully!");
-      
-      const updatedData = { 
-        ...formData, 
+
+      const updatedData = {
+        ...formData,
         photoUrl
       };
       delete updatedData.photo;
-      
+
       onSave(updatedData);
       onClose();
     } catch (error) {
       console.error("Error saving profile:", error);
       let errorMsg = "Failed to save profile";
-      
+
       if (error.response?.data) {
         if (typeof error.response.data === "string") {
           errorMsg = error.response.data;
@@ -292,16 +316,14 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                     />
                     <label
                       htmlFor="photo-upload"
-                      className={`flex items-center justify-between w-full px-5 py-4 bg-gray-50 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${
-                        formData.photo 
-                        ? 'border-[#144542] bg-[#144542]/5' 
-                        : 'border-gray-200 hover:border-[#144542] hover:bg-gray-100/50'
-                      }`}
+                      className={`flex items-center justify-between w-full px-5 py-4 bg-gray-50 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${formData.photo
+                          ? 'border-[#144542] bg-[#144542]/5'
+                          : 'border-gray-200 hover:border-[#144542] hover:bg-gray-100/50'
+                        }`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ${
-                          formData.photo ? 'bg-[#144542] text-[#DAFF0C]' : 'bg-white text-gray-400 border border-gray-100'
-                        }`}>
+                        <div className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ${formData.photo ? 'bg-[#144542] text-[#DAFF0C]' : 'bg-white text-gray-400 border border-gray-100'
+                          }`}>
                           {formData.photo ? <FiCheckCircle className="text-xl" /> : <FiCamera className="text-xl" />}
                         </div>
                         <div>

@@ -4,11 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiArrowLeft, FiShield, FiCheckCircle, FiAlertCircle, FiLoader, FiEye } from 'react-icons/fi';
 
 // API base URLs — both now served by New-AI-verification-module FastAPI (port 8000)
-const PYTHON_API = 'http://localhost:8000';
-const DOTNET_API = 'http://localhost:5006/api';
+const PYTHON_API = 'http://localhost:8003';
+const DOTNET_API = 'http://localhost:5280/api/user';
 
-// Proctoring backend (proctor.py) — separate port
-const PROCTOR_API = 'http://localhost:8001';
+// Proctoring backend (continuous monitoring bridge) — port 8004
+const PROCTOR_API = 'http://localhost:8004';
 
 const UploadDetails = () => {
   const navigate = useNavigate();
@@ -138,7 +138,10 @@ const UploadDetails = () => {
     try {
       const completeRes = await fetch(`${DOTNET_API}/verification/complete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
         body: JSON.stringify({
           uniqueId: uniqueId,
           passportPhotoUrl: photoUrl || '',

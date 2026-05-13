@@ -1,10 +1,7 @@
 // ── Backend API Service for Aptitude Test Module ──
-// Connects to the AptitudeIQ backend via ngrok
+// Connects to the AptitudeIQ backend
 
-const APTITUDE_API_URL = 'https://porous-bleakish-krystle.ngrok-free.dev';
-
-// Ngrok requires this header to bypass the browser warning page
-const NGROK_HEADERS = { 'ngrok-skip-browser-warning': 'true' };
+const APTITUDE_API_URL = 'http://localhost:5000';
 
 function cleanUrl(base) {
   return base.replace(/\/+$/, '');
@@ -17,7 +14,6 @@ function cleanUrl(base) {
 export async function fetchQuestions() {
   const res = await fetch(`${cleanUrl(APTITUDE_API_URL)}/api/questions`, {
     method: 'GET',
-    headers: { ...NGROK_HEADERS },
   });
 
   const text = await res.text();
@@ -36,7 +32,7 @@ export async function submitAnswers(answers, email = null) {
 
   const res = await fetch(`${cleanUrl(APTITUDE_API_URL)}/api/save`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...NGROK_HEADERS },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
 
@@ -52,7 +48,6 @@ export async function submitAnswers(answers, email = null) {
 export async function fetchResults() {
   const res = await fetch(`${cleanUrl(APTITUDE_API_URL)}/api/results`, {
     method: 'GET',
-    headers: { ...NGROK_HEADERS },
   });
 
   const text = await res.text();

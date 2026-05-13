@@ -7,7 +7,6 @@ import {
   FiGlobe, FiStar, FiTrendingUp, FiAlertCircle
 } from 'react-icons/fi';
 import { uploadResume, generateQuestions } from '../../services/interviewApi';
-import ProctorOverlay from '../../routes/ProctorOverlay';
 
 // ── Steps for the AI Concierge ──
 const PARSE_STEPS = [
@@ -266,21 +265,25 @@ export default function ResumeParser() {
       };
 
       const result = await generateQuestions(profilePayload);
-
-      navigate('/interview/test-portal', {
-        state: {
-          parsedData: parsedData,
-          questions: result.questions,
-          sessionId: result.session_id,
-          uniqueId,
-        }
-      });
+      setGeneratedQuestions(result.questions);
+      setSessionId(result.session_id);
     } catch (err) {
       console.error('Question generation error:', err);
       setApiError(err.message || 'Failed to generate questions. Please try again.');
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleStartInterview = () => {
+    navigate('/interview/test-portal', {
+      state: {
+        parsedData: parsedData,
+        questions: generatedQuestions,
+        sessionId: sessionId,
+        uniqueId,
+      }
+    });
   };
 
   const getFileIcon = (file) => {
@@ -291,7 +294,6 @@ export default function ResumeParser() {
 
   return (
     <div className="min-h-screen bg-brand-light font-sans">
-      <ProctorOverlay uniqueId={uniqueId} />
 
       {/* Header */}
       <div className="max-w-6xl mx-auto px-6 pt-10 pb-6">
@@ -458,8 +460,8 @@ export default function ResumeParser() {
                   <div
                     key={step.key}
                     className={`p-5 rounded-2xl border transition-all duration-500 ${parseStep >= i
-                        ? (parseStep > i || isParsed ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200')
-                        : 'bg-gray-50/50 border-gray-100'
+                      ? (parseStep > i || isParsed ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200')
+                      : 'bg-gray-50/50 border-gray-100'
                       }`}
                   >
                     <div className="flex items-center gap-2 mb-2">
@@ -573,8 +575,8 @@ export default function ResumeParser() {
                         className="rounded-2xl border border-gray-200 overflow-hidden bg-white transition-all duration-300 hover:shadow-[0_8px_30_rgba(20,69,66,0.1)] hover:-translate-y-1 group"
                       >
                         <div className={`h-32 bg-gradient-to-br flex items-center justify-center relative overflow-hidden ${i % 3 === 0 ? 'from-[#0f2027] via-[#203a43] to-[#2c5364]' :
-                            i % 3 === 1 ? 'from-[#134e5e] to-[#71b280]' :
-                              'from-[#1a2a6c] via-[#b21f1f] to-[#fdbb2d]'
+                          i % 3 === 1 ? 'from-[#134e5e] to-[#71b280]' :
+                            'from-[#1a2a6c] via-[#b21f1f] to-[#fdbb2d]'
                           }`}>
                           <div className="absolute inset-0 bg-radial-at-tl from-white/10 to-transparent" />
                           <div className="transform transition-transform duration-500 group-hover:scale-110">
@@ -676,19 +678,30 @@ export default function ResumeParser() {
                     <span className="text-sm font-semibold">{apiError}</span>
                   </div>
                 )}
-                <motion.button
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleGenerateQuestions}
-                  disabled={isGenerating}
-                  className={`w-full py-5 rounded-2xl border-none bg-gradient-to-r from-brand-dark to-emerald-900 text-white font-extrabold text-lg flex items-center justify-center gap-3 shadow-[0_8px_30px_rgba(20,69,66,0.25)] tracking-tight ${isGenerating ? 'opacity-70 cursor-wait' : 'cursor-pointer'}`}
-                >
-                  {isGenerating ? (
-                    <>Generating Questions... <FiLoader className="text-2xl animate-spin" /></>
-                  ) : (
-                    <>Generate Interview Questions <FiArrowRight className="text-2xl" /></>
-                  )}
-                </motion.button>
+                {generatedQuestions ? (
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleStartInterview}
+                    className="w-full py-5 rounded-2xl border-none bg-gradient-to-r from-[#144542] to-brand-dark text-white font-extrabold text-lg flex items-center justify-center gap-3 shadow-[0_8px_30px_rgba(20,69,66,0.25)] tracking-tight cursor-pointer"
+                  >
+                    Start Assessment <FiArrowRight className="text-2xl" />
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleGenerateQuestions}
+                    disabled={isGenerating}
+                    className={`w-full py-5 rounded-2xl border-none bg-gradient-to-r from-brand-dark to-emerald-900 text-white font-extrabold text-lg flex items-center justify-center gap-3 shadow-[0_8px_30px_rgba(20,69,66,0.25)] tracking-tight ${isGenerating ? 'opacity-70 cursor-wait' : 'cursor-pointer'}`}
+                  >
+                    {isGenerating ? (
+                      <>Generating Questions... <FiLoader className="text-2xl animate-spin" /></>
+                    ) : (
+                      <>Generate Interview Questions <FiArrowRight className="text-2xl" /></>
+                    )}
+                  </motion.button>
+                )}
               </div>
             </div>
           </motion.div>

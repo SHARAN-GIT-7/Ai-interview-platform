@@ -5,12 +5,14 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const profileApi = axios.create({
-  baseURL: "http://localhost:5222/api",
+  baseURL: "http://localhost:5280/api/user",
 });
 
 const SubmitProfile = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
   const [formData, setFormData] = useState({
     name: "",
     email: localStorage.getItem("userEmail") || "",
@@ -23,6 +25,14 @@ const SubmitProfile = () => {
     photo: null,
     photoUrl: "",
   });
+
+  const showMessage = (text, type = "error") => {
+    setMessage({ text, type });
+    if (type === "error") {
+      // Auto-clear error messages after 5 seconds
+      setTimeout(() => setMessage({ text: "", type: "" }), 5000);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,13 +49,15 @@ const SubmitProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage({ text: "", type: "" });
     setIsSubmitting(true);
 
     try {
       const userId = localStorage.getItem("userId");
-      if (!userId) {
-        alert("Session expired. Please login again.");
-        navigate("/login");
+      const token = localStorage.getItem("authToken");
+      if (!userId || !token) {
+        showMessage("Session expired. Please login again.", "error");
+        setTimeout(() => navigate("/login"), 2000);
         return;
       }
 
@@ -54,21 +66,24 @@ const SubmitProfile = () => {
       if (formData.photo) {
         const photoFormData = new FormData();
         photoFormData.append("photo", formData.photo);
-        
+
         try {
           const photoResponse = await profileApi.post("/profile/upload-photo", photoFormData, {
-            headers: { "Content-Type": "multipart/form-data" },
+            headers: { 
+              "Content-Type": "multipart/form-data",
+              "Authorization": `Bearer ${token}`
+            },
           });
           photoUrl = photoResponse.data.photoUrl;
         } catch (photoError) {
           console.error("Error uploading photo:", photoError);
           const detail = photoError.response?.data?.details || photoError.message;
-          alert(`Failed to upload profile picture: ${detail}`);
+          showMessage(`Failed to upload profile picture: ${detail}`, "error");
           setIsSubmitting(false);
           return;
         }
       } else {
-        alert("Please upload a profile picture.");
+        showMessage("Please upload a profile picture.", "error");
         setIsSubmitting(false);
         return;
       }
@@ -87,17 +102,21 @@ const SubmitProfile = () => {
       submissionData.append("PhotoUrl", photoUrl);
 
       const response = await profileApi.post("/profile/create", submissionData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { 
+          "Content-Type": "multipart/form-data",
+          "Authorization": `Bearer ${token}`
+        },
       });
 
       if (response.status === 200 || response.status === 201) {
-        alert("Profile submitted successfully!");
-        navigate("/user/dashboard");
+        localStorage.setItem("userName", formData.name);
+        setSubmitted(true);
+        setTimeout(() => navigate("/user/dashboard"), 3000);
       }
     } catch (error) {
       console.error("Error submitting profile:", error);
       let errorMsg = "Failed to submit profile. Please try again.";
-      
+
       if (error.response?.data) {
         if (typeof error.response.data === "string") {
           errorMsg = error.response.data;
@@ -109,11 +128,62 @@ const SubmitProfile = () => {
           errorMsg = JSON.stringify(error.response.data, null, 2);
         }
       }
-      alert(errorMsg);
+      showMessage(errorMsg, "error");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-gray-50/50 flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="max-w-md w-full bg-white rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden text-center"
+        >
+          <div className="p-10">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="w-24 h-24 bg-[#144542] rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <FiCheckCircle className="text-[#DAFF0C] text-5xl" />
+            </motion.div>
+            <motion.h2
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-3xl font-black text-[#144542] mb-3"
+            >
+              Profile Submitted!
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-gray-500 font-medium mb-2"
+            >
+              Your profile has been sent for review. We'll notify you once it's approved.
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-sm text-[#144542]/60 font-medium"
+            >
+              Redirecting to dashboard...
+            </motion.p>
+          </div>
+          <div className="bg-[#144542] py-4 px-10">
+            <p className="text-[#DAFF0C] text-xs font-bold uppercase tracking-widest">Intervista Platform</p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
@@ -126,7 +196,7 @@ const SubmitProfile = () => {
           {/* Header */}
           <div className="p-8 md:p-12 bg-[#144542] text-white relative overflow-hidden">
             <div className="relative z-10">
-              <motion.h1 
+              <motion.h1
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="text-3xl md:text-4xl font-black mb-2"
@@ -142,8 +212,26 @@ const SubmitProfile = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="p-8 md:p-12">
+            
+            {/* Error/Success Message */}
+            {message.text && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-4 mb-8 rounded-xl flex items-start gap-3 border ${
+                  message.type === "success" 
+                    ? "bg-[#144542]/5 border-[#144542]/10 text-[#144542]" 
+                    : "bg-red-50 border-red-100 text-red-600"
+                }`}
+              >
+                <div className="flex-1 font-medium text-sm">
+                  {message.text}
+                </div>
+              </motion.div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              
+
               {/* Personal Information Section */}
               <div className="md:col-span-2">
                 <h3 className="text-xl font-black text-[#144542] mb-6 flex items-center gap-3">
@@ -308,7 +396,7 @@ const SubmitProfile = () => {
                   Profile Picture
                 </h3>
                 <p className="text-gray-500 text-sm mb-6 ml-11 font-medium">Please upload a clear professional photo</p>
-                
+
                 <div className="relative group">
                   <input
                     type="file"
@@ -321,16 +409,14 @@ const SubmitProfile = () => {
                   />
                   <label
                     htmlFor="photo-upload"
-                    className={`flex items-center justify-between w-full p-6 bg-gray-50 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${
-                      formData.photo 
-                      ? 'border-[#144542] bg-[#144542]/5' 
-                      : 'border-gray-200 hover:border-[#144542] hover:bg-[#144542]/5'
-                    }`}
+                    className={`flex items-center justify-between w-full p-6 bg-gray-50 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${formData.photo
+                        ? 'border-[#144542] bg-[#144542]/5'
+                        : 'border-gray-200 hover:border-[#144542] hover:bg-[#144542]/5'
+                      }`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ${
-                        formData.photo ? 'bg-[#144542] text-[#DAFF0C]' : 'bg-white text-gray-400 border border-gray-100 shadow-sm'
-                      }`}>
+                      <div className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ${formData.photo ? 'bg-[#144542] text-[#DAFF0C]' : 'bg-white text-gray-400 border border-gray-100 shadow-sm'
+                        }`}>
                         {formData.photo ? <FiCheckCircle className="text-xl" /> : <FiCamera className="text-xl" />}
                       </div>
                       <div>

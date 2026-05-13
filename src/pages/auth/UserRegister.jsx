@@ -64,10 +64,6 @@ export default function UserRegister() {
     );
   };
 
-  // Poll the backend to check if the user clicked the verification link
-  useEffect(() => {
-    return () => {};
-  }, [isWaitingForVerification, email, emailVerified]);
 
   // Simple email regex validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -87,12 +83,45 @@ export default function UserRegister() {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      showMessage(`Verification link sent to ${email} (Mocked). Click 'Verify' again or wait... actually, we'll just verify you now!`, "success");
-      setEmailVerified(true);
-      setIsWaitingForVerification(false);
+    try {
+      const response = await fetch("http://localhost:5000/api/send-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      if (response.ok) {
+        showMessage("Verification email sent! Please check your inbox and click the link.", "success");
+        setIsWaitingForVerification(true);
+
+        // Start polling for verification status
+        const pollInterval = setInterval(async () => {
+          try {
+            const checkRes = await fetch(`http://localhost:5000/api/check-verification/${email}`);
+            const data = await checkRes.json();
+            
+            if (data.verified) {
+              clearInterval(pollInterval);
+              setIsWaitingForVerification(false);
+              setEmailVerified(true);
+              showMessage("Email verified successfully! You can now create your password.", "success");
+            }
+          } catch (e) {
+            console.error("Polling error", e);
+          }
+        }, 3000); // Check every 3 seconds
+
+        // Stop polling if user navigates away (cleanup on unmount not strictly needed here, but good practice if it was an effect. We'll rely on the user completing the flow or refreshing)
+      } else {
+        const errorData = await response.json();
+        showMessage(errorData.error || "Failed to send verification email.", "error");
+      }
+    } catch (error) {
+      console.error("Verification error:", error);
+      showMessage("Error connecting to verification server at port 5000.", "error");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleRegister = async (e) => {
@@ -114,7 +143,7 @@ export default function UserRegister() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/user/auth/signup/student", {
+      const response = await fetch("http://localhost:5280/api/user/auth/signup/student", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -140,15 +169,15 @@ export default function UserRegister() {
         }
 
         const displayMessage = errorData.details 
-            ? `${errorData.message}: ${errorData.details}`
-            : (errorData.message || "Registration failed");
+            ? `${errorData.error || errorData.message || "Error"}: ${errorData.details}`
+            : (errorData.error || errorData.message || "Registration failed");
             
         showMessage(displayMessage, "error");
         shakeForm();
       }
     } catch (error) {
       console.error("Registration error:", error);
-      showMessage("Error connecting to the server. Please ensure the backend is running at http://localhost:5258", "error");
+      showMessage("Error connecting to the server. Please ensure the backend is running at http://localhost:5280", "error");
       shakeForm();
     } finally {
       setIsLoading(false);
