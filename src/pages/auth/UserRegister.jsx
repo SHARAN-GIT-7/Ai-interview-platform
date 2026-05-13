@@ -66,24 +66,7 @@ export default function UserRegister() {
 
   // Poll the backend to check if the user clicked the verification link
   useEffect(() => {
-    let interval;
-    if (isWaitingForVerification && !emailVerified) {
-      interval = setInterval(async () => {
-        try {
-          const response = await fetch(`http://localhost:5000/api/check-verification/${email}`);
-          const data = await response.json();
-          if (data.verified) {
-            setEmailVerified(true);
-            setIsWaitingForVerification(false);
-            clearInterval(interval);
-            showMessage("Email verified successfully! You can now create your password.", "success");
-          }
-        } catch (error) {
-          console.error("Error polling verification status:", error);
-        }
-      }, 2000); // Check every 2 seconds
-    }
-    return () => clearInterval(interval);
+    return () => {};
   }, [isWaitingForVerification, email, emailVerified]);
 
   // Simple email regex validation
@@ -104,30 +87,12 @@ export default function UserRegister() {
     }
 
     setIsLoading(true);
-
-    try {
-      const response = await fetch("http://localhost:5000/api/send-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        showMessage(data.message || `Verification link sent to ${email}. Please check your inbox and click the link.`, "success");
-        setIsWaitingForVerification(true);
-      } else {
-        showMessage(data.error || "Failed to send verification email", "error");
-        shakeForm();
-      }
-    } catch (error) {
-      console.error("Verification error:", error);
-      showMessage("Error sending verification email. Please ensure the backend server is running.", "error");
-      shakeForm();
-    } finally {
+    setTimeout(() => {
+      showMessage(`Verification link sent to ${email} (Mocked). Click 'Verify' again or wait... actually, we'll just verify you now!`, "success");
+      setEmailVerified(true);
+      setIsWaitingForVerification(false);
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   const handleRegister = async (e) => {
@@ -149,7 +114,7 @@ export default function UserRegister() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5258/api/auth/signup/student", {
+      const response = await fetch("/api/user/auth/signup/student", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

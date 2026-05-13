@@ -30,22 +30,17 @@ function Navbar() {
         }`}
     >
       <div
-        className={`container mx-auto px-6 flex items-center justify-between transition-all duration-500 ${scrolled ? "py-5" : "py-6"
+        className={`container mx-10 px-2 flex items-center  justify-between transition-all duration-500 ${scrolled ? "py-5" : "py-6"
           }`}
       >
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 mr-3 bg-brand-dark rounded-[5px] flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-105 group-active:scale-95 shadow-lg shadow-brand-dark/10">
-            <img src="/logo.jpg" alt="Knitnet Logo" className="w-full h-full object-cover" />
+        <Link to="/" className=" flex items-center gap-2 group">
+          <div className=" h-12 w-40 mr-3 flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-105 group-active:scale-95">
+            <img src="/intervista full logo 4.svg" alt="Knitnet Logo" className="w-full h-full object-cover" />
           </div>
-          <div className="text-2xl font-black tracking-tighter text-brand-dark">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-dark to-brand-dark/100">
-              KNIT
-            </span>
-            NET
-          </div>
+        
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex  items-center gap-8">
           <NavLink href="#features">Features</NavLink>
           <NavLink href="#workflow">How It Works</NavLink>
           <NavLink href="#collaboration">Collaboration</NavLink>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiUser, FiMail, FiPhone, FiBriefcase, FiLayers, FiLock, FiCheck, FiShield } from "react-icons/fi";
+import { FiX, FiUser, FiMail, FiPhone, FiBriefcase, FiLayers, FiLock, FiCheck, FiShield, FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function AddHRModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
@@ -16,6 +16,8 @@ export default function AddHRModal({ isOpen, onClose }) {
   const [message, setMessage] = useState({ text: "", type: "" });
   const [emailVerified, setEmailVerified] = useState(false);
   const [isWaitingForVerification, setIsWaitingForVerification] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -25,21 +27,21 @@ export default function AddHRModal({ isOpen, onClose }) {
   // Poll for verification status
   useEffect(() => {
     let interval;
-    if (isWaitingForVerification && !emailVerified) {
+    if (isWaitingForVerification && formData.email && !emailVerified) {
       interval = setInterval(async () => {
         try {
-          const response = await fetch(`http://localhost:5001/api/check-verification/${formData.email}`);
-          const data = await response.json();
+          const res = await fetch(`/api/check-verification/${encodeURIComponent(formData.email)}`);
+          const data = await res.json();
           if (data.verified) {
             setEmailVerified(true);
             setIsWaitingForVerification(false);
             setMessage({ text: "Email verified successfully!", type: "success" });
             clearInterval(interval);
           }
-        } catch (error) {
-          console.error("Error polling verification status:", error);
+        } catch (err) {
+          console.error("Polling error:", err);
         }
-      }, 2000);
+      }, 3000);
     }
     return () => clearInterval(interval);
   }, [isWaitingForVerification, formData.email, emailVerified]);
@@ -50,12 +52,12 @@ export default function AddHRModal({ isOpen, onClose }) {
       return;
     }
 
-    setIsSubmitting(true);
-    setMessage({ text: "", type: "" });
-
     try {
-      // 1. Check if email already registered in HR DB (via Mail Server Proxy)
-      const existsRes = await fetch(`http://localhost:5001/api/hr/exists?email=${encodeURIComponent(formData.email)}`);
+      const token = localStorage.getItem("companyToken");
+      // 1. Check if email already registered in HR DB
+      const existsRes = await fetch(`/api/company/hr/exists?email=${encodeURIComponent(formData.email)}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
       const existsData = await existsRes.json();
       
       if (existsData.registered) {
@@ -64,22 +66,23 @@ export default function AddHRModal({ isOpen, onClose }) {
         return;
       }
 
-      // 2. Send verification email via Mail Server
-      const verifyRes = await fetch("http://localhost:5001/api/send-verification", {
+      // 2. Real verification call
+      const response = await fetch("/api/send-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email })
       });
-
-      if (verifyRes.ok) {
+      
+      if (response.ok) {
         setIsWaitingForVerification(true);
-        setMessage({ text: "Verification link sent! Please check your inbox.", type: "success" });
+        setMessage({ text: `Verification link sent to ${formData.email}. Please check your inbox.`, type: "success" });
       } else {
-        const error = await verifyRes.json();
-        setMessage({ text: error.error || "Failed to send verification email.", type: "error" });
+        const err = await response.json();
+        setMessage({ text: err.error || "Failed to send verification email", type: "error" });
       }
+
     } catch (err) {
-      setMessage({ text: "Error connecting to servers. Please check if backend/mail server is running.", type: "error" });
+      setMessage({ text: "Error connecting to servers.", type: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -103,11 +106,14 @@ export default function AddHRModal({ isOpen, onClose }) {
     }
 
     try {
-      const response = await fetch("http://localhost:5001/api/hr/register", {
+      const token = localStorage.getItem("companyToken");
+      const response = await fetch("/api/company/hr/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
-          companyId: companyId,
           name: formData.name,
           email: formData.email,
           phoneNumber: formData.phoneNumber,
@@ -169,7 +175,7 @@ export default function AddHRModal({ isOpen, onClose }) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          <form onSubmit={handleSubmit} className="p-8 space-y-10">
             {message.text && (
               <div className={`p-4 rounded-xl text-sm font-bold flex items-center gap-3 ${
                 message.type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"
@@ -295,13 +301,20 @@ export default function AddHRModal({ isOpen, onClose }) {
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><FiLock size={14}/></span>
                       <input 
                         required
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#144542]/5 transition-all text-sm"
+                        className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#144542]/5 transition-all text-sm"
                         placeholder="••••••••"
                       />
+                      <button 
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#144542] transition-colors"
+                      >
+                        {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                      </button>
                     </div>
                   </div>
 
@@ -312,13 +325,20 @@ export default function AddHRModal({ isOpen, onClose }) {
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><FiLock size={14}/></span>
                       <input 
                         required
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#144542]/5 transition-all text-sm"
+                        className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#144542]/5 transition-all text-sm"
                         placeholder="••••••••"
                       />
+                      <button 
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#144542] transition-colors"
+                      >
+                        {showConfirmPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                      </button>
                     </div>
                   </div>
                 </>

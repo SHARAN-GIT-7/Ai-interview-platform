@@ -97,7 +97,7 @@ export default function UserLogin() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5258/api/auth/login", {
+      const response = await fetch("/api/user/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -171,7 +171,7 @@ export default function UserLogin() {
       const response = await fetch("http://localhost:5000/api/send-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, type: "reset" })
       });
 
       if (response.ok) {

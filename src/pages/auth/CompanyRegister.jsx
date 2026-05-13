@@ -18,6 +18,7 @@ export default function CompanyRegister() {
   const [isLoading, setIsLoading] = useState(false);
   const [isWaitingForVerification, setIsWaitingForVerification] = useState(false);
   const [companyName, setCompanyName] = useState("");
+  const [name, setName] = useState("");
   const [contactNo, setContactNo] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -68,21 +69,21 @@ export default function CompanyRegister() {
   // Poll the backend to check if the user clicked the verification link
   useEffect(() => {
     let interval;
-    if (isWaitingForVerification && !emailVerified) {
+    if (isWaitingForVerification && email && !emailVerified) {
       interval = setInterval(async () => {
         try {
-          const response = await fetch(`http://localhost:5001/api/check-verification/${email}`);
-          const data = await response.json();
+          const res = await fetch(`/api/check-verification/${encodeURIComponent(email)}`);
+          const data = await res.json();
           if (data.verified) {
             setEmailVerified(true);
             setIsWaitingForVerification(false);
+            showMessage("Email verified successfully!", "success");
             clearInterval(interval);
-            showMessage("Email verified successfully! You can now complete registration.", "success");
           }
-        } catch (error) {
-          console.error("Error polling verification status:", error);
+        } catch (err) {
+          console.error("Polling error:", err);
         }
-      }, 2000); // Check every 2 seconds
+      }, 3000);
     }
     return () => clearInterval(interval);
   }, [isWaitingForVerification, email, emailVerified]);
@@ -105,26 +106,24 @@ export default function CompanyRegister() {
     }
 
     setIsLoading(true);
-
     try {
-      const response = await fetch("http://localhost:5001/api/send-verification", {
+      const response = await fetch("/api/send-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-
-      const data = await response.json();
-
+      
       if (response.ok) {
-        showMessage(data.message || `Verification link sent to ${email}. Please check your inbox and click the link.`, "success");
+        showMessage(`Verification link sent to ${email}. Please check your inbox and click the link.`, "success");
         setIsWaitingForVerification(true);
       } else {
-        showMessage(data.error || "Failed to send verification email", "error");
+        const err = await response.json();
+        showMessage(err.error || "Failed to send verification email", "error");
         shakeForm();
       }
     } catch (error) {
       console.error("Verification error:", error);
-      showMessage("Error sending verification email. Please ensure the backend server is running.", "error");
+      showMessage("Connection error. Is the mail server running?", "error");
       shakeForm();
     } finally {
       setIsLoading(false);
@@ -135,7 +134,7 @@ export default function CompanyRegister() {
     e.preventDefault();
     setMessage({ text: "", type: "" });
 
-    if (!companyName || !password || !confirmPassword || !contactNo) {
+    if (!name || !companyName || !password || !confirmPassword || !contactNo) {
       showMessage("Please fill in all fields", "error");
       shakeForm();
       return;
@@ -150,34 +149,23 @@ export default function CompanyRegister() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/company/auth/register", {
+      const response = await fetch("/api/user/auth/signup/company", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name,
           email,
           password,
+          confirmPassword,
           companyName,
           contactNo
         })
       });
 
       if (response.ok) {
-        let companyId = null;
-        try {
-          // After registration, fetch the profile to get the generated UID
-          const profileRes = await fetch(`/api/company/auth/profile?email=${encodeURIComponent(email)}`);
-          if (profileRes.ok) {
-            const profile = await profileRes.json();
-            companyId = profile.uid || profile.id;
-            if (companyId) localStorage.setItem("companyId", companyId);
-          }
-        } catch (e) {
-          console.error("Failed to fetch profile", e);
-        }
         localStorage.setItem("companyEmail", email);
-
-        showMessage("Company account created successfully! Redirecting to setup...", "success");
-        setTimeout(() => navigate("/company/setup"), 1500);
+        showMessage("Company account created! Log in to complete your profile.", "success");
+        setTimeout(() => navigate("/company/login"), 1500);
       } else {
         const textResponse = await response.text();
         let errorData = {};
@@ -282,6 +270,19 @@ export default function CompanyRegister() {
             )}
 
             <form ref={formRef} className="space-y-5" onSubmit={handleRegister}>
+              <div className="gsap-fade-in">
+                <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
+                  Representative Name
+                </label>
+                <input 
+                  type="text" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your full name" 
+                  className={`w-full px-5 py-3.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm ${message.type === "error" && (!name) ? "border-red-300 focus:border-red-500" : "border-gray-200 focus:border-brand-dark"}`}
+                />
+              </div>
+
               <div className="gsap-fade-in">
                 <label className="block text-sm font-bold text-brand-dark mb-1 pl-3">
                   Company Name

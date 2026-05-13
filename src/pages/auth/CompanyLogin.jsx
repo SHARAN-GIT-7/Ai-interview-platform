@@ -63,26 +63,18 @@ export default function CompanyLogin() {
     );
   };
 
+  // Load pre-filled email from registration
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("companyEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+    }
+  }, []);
+
   // Poll the backend to check if the user clicked the verification link
   useEffect(() => {
     let interval;
-    if (view === "verify" && !emailVerified) {
-      interval = setInterval(async () => {
-        try {
-          const response = await fetch(`http://localhost:5001/api/check-verification/${email}`);
-          const data = await response.json();
-          if (data.verified) {
-            setEmailVerified(true);
-            setView("reset");
-            clearInterval(interval);
-            showMessage("Email verified! You can now reset your password.", "success");
-          }
-        } catch (error) {
-          console.error("Error polling verification status:", error);
-        }
-      }, 2000); // Check every 2 seconds
-    }
-    return () => clearInterval(interval);
+    return () => {};
   }, [view, email, emailVerified]);
 
   const handleLogin = async (e) => {
@@ -97,62 +89,61 @@ export default function CompanyLogin() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("/api/company/auth/login", {
+      const response = await fetch("/api/user/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
       });
 
       if (response.ok) {
-        let companyId = null;
-        try {
-          const profileRes = await fetch(`/api/company/auth/profile?email=${encodeURIComponent(email)}`);
-          if (profileRes.ok) {
-            const profile = await profileRes.json();
-            companyId = profile.uid || profile.id;
-            if (companyId) localStorage.setItem("companyId", companyId);
-          }
-        } catch (e) {
-          console.error("Failed to fetch profile", e);
+        const data = await response.json();
+        const token = data.token;
+        const companyId = data.companyId;
+        const role = data.role;
+
+        if (role !== "company") {
+          showMessage("Invalid account type for company login", "error");
+          setIsLoading(false);
+          return;
         }
+
+        localStorage.setItem("companyToken", token);
         localStorage.setItem("companyEmail", email);
+        if (companyId) localStorage.setItem("companyId", companyId);
+        
         showMessage("Login successful! Checking profile status...", "success");
 
-        // Check if company details are already filled
+        // Check if company profile is already filled
         try {
-          if (!companyId) {
-            setTimeout(() => navigate("/company/setup"), 1500);
-            return;
-          }
+          const checkResponse = await fetch("/api/company/profile", {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
           
-          const checkResponse = await fetch(`http://localhost:5082/api/company-info/${companyId}`);
           if (checkResponse.ok) {
-            const textResponse = await checkResponse.text();
-            let hasProfile = false;
-            if (textResponse) {
-               try {
-                  const info = JSON.parse(textResponse);
-                  // If info has a non-empty companyId or some core field, it exists
-                  if (info && info.companyId && info.companyId !== "00000000-0000-0000-0000-000000000000") {
-                      hasProfile = true;
-                  }
-               } catch(e) {}
-            }
+            const info = await checkResponse.json();
             
-            if (hasProfile) {
-              // Profile exists, go to dashboard
+            // Check if essential details are filled
+            const isProfileFilled = info && 
+                                   info.website && 
+                                   info.industry && 
+                                   info.companySize && 
+                                   info.description && 
+                                   info.city;
+
+            if (isProfileFilled) {
+              showMessage("Login successful! Redirecting to dashboard...", "success");
               setTimeout(() => navigate("/company/dashboard"), 1500);
             } else {
-              // Profile not found or empty, go to setup
+              showMessage("Login successful! Please complete your company profile.", "success");
               setTimeout(() => navigate("/company/setup"), 1500);
             }
           } else {
             // Profile not found or error, go to setup
+            showMessage("Welcome! Let's set up your company profile.", "success");
             setTimeout(() => navigate("/company/setup"), 1500);
           }
         } catch (error) {
           console.error("Profile check error:", error);
-          // Default to setup if error occurs
           setTimeout(() => navigate("/company/setup"), 1500);
         }
       } else {
@@ -185,20 +176,10 @@ export default function CompanyLogin() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5001/api/send-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-
-      if (response.ok) {
-        showMessage("Reset link sent! Please check your email.", "success");
-        setView("verify");
-      } else {
-        const data = await response.json();
-        showMessage(data.error || "Failed to send reset email", "error");
-        shakeForm();
-      }
+      // The new backend doesn't have an explicit 'send-verification' endpoint yet.
+      // We will skip this for now or implement once the backend provides it.
+      showMessage("Password reset functionality is being updated. Please contact support.", "error");
+      shakeForm();
     } catch (error) {
       console.error("Forgot password error:", error);
       showMessage("Error connecting to verification server.", "error");
@@ -220,15 +201,13 @@ export default function CompanyLogin() {
 
     setIsLoading(true);
     try {
-      // Assuming company reset password endpoint would be something like this, adjust if needed
-      const response = await fetch("/api/company/auth/register", {
+      const response = await fetch("/api/user/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           email,
-          password,
-          companyName: "Password Reset",
-          contactNo: "N/A"
+          newPassword: password,
+          confirmPassword: confirmPassword
         })
       });
 

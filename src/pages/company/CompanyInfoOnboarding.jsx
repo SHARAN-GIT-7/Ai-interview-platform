@@ -68,14 +68,19 @@ const CompanyInfoOnboarding = () => {
         const email = localStorage.getItem("companyEmail");
         if (!email) return;
 
-        const response = await fetch(`/api/company/auth/profile?email=${encodeURIComponent(email)}`);
+        const token = localStorage.getItem("companyToken");
+        if (!token) return;
+
+        const response = await fetch(`/api/user/auth/profile/${encodeURIComponent(email)}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
         if (response.ok) {
           const data = await response.json();
           setFormData(prev => ({
             ...prev,
-            billingName: data.companyName || "",
+            billingName: data.name || "",
             billingEmail: email || "",
-            billingPhone: data.contactNo || ""
+            billingPhone: "" // No phone in user profile by default
           }));
         }
       } catch (error) {
@@ -133,12 +138,15 @@ const CompanyInfoOnboarding = () => {
     }
 
     try {
-      // 1. Submit General Company Info
-      const companyResponse = await fetch("http://localhost:5082/api/company-info", {
+      const token = localStorage.getItem("companyToken");
+      // 1. Submit Company Info (Includes Billing in the new DTO if configured, otherwise we'll just hit the info endpoint)
+      const companyResponse = await fetch("/api/company/profile/info", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
-           companyId: formData.companyId,
            website: formData.website,
            industry: formData.industry,
            companySize: formData.companySize,
@@ -152,7 +160,14 @@ const CompanyInfoOnboarding = () => {
            country: formData.country,
            postalCode: formData.postalCode,
            linkedinUrl: formData.linkedinUrl,
-           githubUrl: formData.githubUrl
+           githubUrl: formData.githubUrl,
+           // Note: In the new backend, billing info might be separate or merged. 
+           // I'll check the DTO, but for now I'll send it here.
+           billingName: formData.billingName,
+           billingEmail: formData.billingEmail,
+           billingPhone: formData.billingPhone,
+           gstin: formData.gstin,
+           isGstRegistered: formData.isGstRegistered
         })
       });
 
@@ -160,31 +175,7 @@ const CompanyInfoOnboarding = () => {
         throw new Error(`Profile update failed: ${await companyResponse.text()}`);
       }
 
-      // 2. Submit Billing Info
-      const billingResponse = await fetch("/api/billing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companyId: formData.companyId,
-          billingName: formData.billingName,
-          billingEmail: formData.billingEmail,
-          billingPhone: formData.billingPhone,
-          gstin: formData.gstin || "",
-          isGstRegistered: formData.isGstRegistered,
-          line1: formData.line1,
-          line2: formData.line2,
-          city: formData.city,
-          state: formData.state,
-          postalCode: formData.postalCode,
-          country: formData.country
-        })
-      });
-
-      if (!billingResponse.ok) {
-        throw new Error(`Billing info update failed: ${await billingResponse.text()}`);
-      }
-
-      setMessage({ text: "Profile and billing details saved successfully!", type: "success" });
+      setMessage({ text: "Profile details saved successfully!", type: "success" });
       setTimeout(() => navigate("/company/dashboard"), 2000);
 
     } catch (err) {

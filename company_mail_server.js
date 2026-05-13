@@ -23,13 +23,14 @@ const transporter = nodemailer.createTransport({
 });
 
 app.post('/api/send-verification', async (req, res) => {
-  const { email } = req.body;
+  const { email, type } = req.body;
   
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
   }
 
   try {
+    const isReset = type === 'reset';
     const token = crypto.randomBytes(32).toString('hex');
     const verificationLink = `http://localhost:${PORT}/api/verify?token=${token}`;
 
@@ -38,7 +39,7 @@ app.post('/api/send-verification', async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Verify your Company Account',
+      subject: isReset ? 'Reset your Company Password' : 'Verify your Company Account',
       html: `
         <!DOCTYPE html>
         <html>
@@ -49,12 +50,12 @@ app.post('/api/send-verification', async (req, res) => {
         </head>
         <body style="font-family: 'Inter', Arial, sans-serif; background-color: #EAF0F0; padding: 40px 20px; text-align: center;">
           <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 24px; box-shadow: 0 4px 20px rgba(20, 69, 66, 0.05);">
-            <div style="width: 56px; height: 56px; background-color: #144542; border-radius: 16px; display: inline-block; text-align: center; line-height: 56px; font-size: 32px; font-weight: bold; color: #DAFF0C; margin-bottom: 24px;">🏢</div>
-            <h2 style="color: #144542; font-size: 28px; font-weight: 900; margin-top: 0; margin-bottom: 16px; letter-spacing: -0.5px;">Verify your company email</h2>
-            <p style="color: #9B9B9B; font-size: 16px; margin-bottom: 32px; line-height: 1.6;">You're almost ready to start hiring! Please verify your company email address to unlock your recruitment workspace and start discovering top talent.</p>
+            <div style="width: 56px; height: 56px; background-color: #144542; border-radius: 16px; display: inline-block; text-align: center; line-height: 56px; font-size: 32px; font-weight: bold; color: #DAFF0C; margin-bottom: 24px;">${isReset ? '🔑' : '🏢'}</div>
+            <h2 style="color: #144542; font-size: 28px; font-weight: 900; margin-top: 0; margin-bottom: 16px; letter-spacing: -0.5px;">${isReset ? 'Reset your company password' : 'Verify your company email'}</h2>
+            <p style="color: #9B9B9B; font-size: 16px; margin-bottom: 32px; line-height: 1.6;">${isReset ? "We received a request to reset your password. Click the button below to verify it's you and create a new password." : "You're almost ready to start hiring! Please verify your company email address to unlock your recruitment workspace and start discovering top talent."}</p>
 
-            <a href="${verificationLink}" style="background-color: #144542; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 900; display: inline-block; font-size: 16px; box-shadow: 0 4px 14px rgba(20, 69, 66, 0.2);">Verify Company Email</a>
-            <p style="color: #9B9B9B; font-size: 13px; margin-top: 40px; border-top: 1px solid #dce5e5; padding-top: 24px;">If you didn't request this, you can safely ignore this email.</p>
+            <a href="${verificationLink}" style="background-color: #144542; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 900; display: inline-block; font-size: 16px; box-shadow: 0 4px 14px rgba(20, 69, 66, 0.2);">${isReset ? 'Reset Password' : 'Verify Company Email'}</a>
+            <p style="color: #9B9B9B; font-size: 13px; margin-top: 40px; border-top: 1px solid #dce5e5; padding-top: 24px;">${isReset ? "If you didn't request a password reset, you can safely ignore this email." : "If you didn't request this, you can safely ignore this email."}</p>
           </div>
         </body>
         </html>
@@ -62,7 +63,7 @@ app.post('/api/send-verification', async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-    res.json({ success: true, message: 'Verification email sent' });
+    res.json({ success: true, message: isReset ? 'Reset password email sent' : 'Verification email sent' });
   } catch (error) {
     console.error('Error sending email:', error);
     res.status(500).json({ error: 'Failed to send verification email' });

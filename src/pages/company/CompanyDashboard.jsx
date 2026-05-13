@@ -9,6 +9,7 @@ import CompanyTopBar from "./components/CompanyTopBar";
 import CompanySecondarySidebar from "./components/CompanySecondarySidebar";
 import AddHRModal from "./components/AddHRModal";
 import HRList from "./components/HRList";
+import CreateTest from "./CreateTest";
 import { FiPlus } from "react-icons/fi";
 
 gsap.registerPlugin(useGSAP);
@@ -19,6 +20,7 @@ export default function CompanyDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isHRModalOpen, setIsHRModalOpen] = useState(false);
   const [hrRefreshKey, setHrRefreshKey] = useState(0);
+  const [isCreatingTest, setIsCreatingTest] = useState(false);
   
   const navigate = useNavigate();
   const containerRef = useRef(null);
@@ -56,10 +58,22 @@ export default function CompanyDashboard() {
           return;
         }
 
-        const response = await fetch(`/api/company/auth/profile?email=${encodeURIComponent(email)}`);
+        const token = localStorage.getItem("companyToken");
+        if (!token) {
+          navigate("/company/login");
+          return;
+        }
+
+        const response = await fetch("/api/company/profile", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
         if (response.ok) {
           const data = await response.json();
-          setCompanyData(data);
+          // Map backend CompanyProfile to UI expectations
+          setCompanyData({
+            ...data,
+            companyName: data.name || data.companyName || ""
+          });
         } else {
           console.error("Failed to fetch profile");
         }
@@ -81,8 +95,7 @@ export default function CompanyDashboard() {
   };
 
   const handleCreateTest = () => {
-    console.log("Create test clicked");
-    // navigate("/company/create-test");
+    setIsCreatingTest(true);
   };
 
   if (isLoading) {
@@ -97,7 +110,10 @@ export default function CompanyDashboard() {
     <div ref={containerRef} className="flex flex-col h-screen w-full bg-[#EAF0F0]/50 font-sans overflow-hidden">
       
       {/* 2. Top Bar Component (Full Width) */}
-      <CompanyTopBar companyName={companyData.companyName} />
+      <CompanyTopBar 
+        companyName={companyData.companyName} 
+        companyLogo={companyData.logoUrl || companyData.logo} 
+      />
 
       <div className="flex-1 flex overflow-hidden">
         {/* 1. Side Nav Bar Component */}
@@ -109,21 +125,65 @@ export default function CompanyDashboard() {
 
         <div className="flex-1 flex overflow-hidden">
           {/* 3. Secondary Column Component */}
-          {activeTab === "home" && <CompanySecondarySidebar onCreateTest={handleCreateTest} />}
+          {activeTab === "home" && <CompanySecondarySidebar onCreateTest={handleCreateTest} isCreatingTest={isCreatingTest} />}
 
           {/* 4. Main Dashboard Area */}
           <div className="content-anim flex-1 p-8 overflow-y-auto bg-[#EAF0F0]/60 relative">
             {activeTab === "hr" ? (
               <div className="flex flex-col h-full">
-                <div className="flex justify-between items-center mb-10">
+                <div className="flex justify-between items-center mb-4 mr-2">
                   <button 
                     onClick={() => setIsHRModalOpen(true)}
-                    className="flex items-center gap-3 px-8 py-4 bg-[#DAFF0C] text-[#144542] font-black rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 group"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-[#DFFF00] text-[#144542] font-bold rounded-md shadow-sm hover:shadow transition-all group text-sm"
                   >
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#144542] text-xl font-bold border border-[#144542]/10 group-hover:rotate-90 transition-transform">
-                      <FiPlus />
-                    </div>
-                    <span className="tracking-tight text-lg">Add HR</span>
+                    <span className="text-lg leading-none">+</span> Add HR
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const token = localStorage.getItem("companyToken");
+                        if (!token) return;
+                        
+                        const response = await fetch("/api/company/hr/list", {
+                          headers: { "Authorization": `Bearer ${token}` }
+                        });
+                        if (response.ok) {
+                          const data = await response.json();
+                          
+                          // Generate CSV content
+                          const headers = ["S. No.", "Name", "Email", "Phone no", "Department", "Roll"];
+                          const csvContent = [
+                            headers.join(","),
+                            ...data.map((hr, index) => [
+                              index + 1,
+                              `"${hr.name || ''}"`,
+                              `"${hr.email || ''}"`,
+                              `"${hr.phoneNumber || ''}"`,
+                              `"${hr.department || 'General'}"`,
+                              `"${hr.designation || 'HR'}"`
+                            ].join(","))
+                          ].join("\n");
+                          
+                          // Trigger Download
+                          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement("a");
+                          link.setAttribute("href", url);
+                          link.setAttribute("download", `HR_Personnel_List_${new Date().toISOString().split('T')[0]}.csv`);
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        } else {
+                          console.error("Failed to fetch data for Excel download");
+                        }
+                      } catch (err) {
+                        console.error("Error downloading Excel sheet:", err);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-white text-gray-600 font-medium text-sm rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 transition-all cursor-pointer"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    Excel download
                   </button>
                 </div>
 
@@ -131,6 +191,8 @@ export default function CompanyDashboard() {
                    <HRList refreshTrigger={hrRefreshKey} />
                 </div>
               </div>
+            ) : activeTab === "home" && isCreatingTest ? (
+               <CreateTest />
             ) : (
               <div className="max-w-5xl mx-auto h-full border-2 border-dashed border-gray-200/50 rounded-3xl flex items-center justify-center">
                  <p className="text-gray-300 font-bold uppercase tracking-[0.2em] text-sm">Dashboard Workspace</p>

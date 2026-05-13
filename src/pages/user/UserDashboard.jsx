@@ -15,14 +15,20 @@ import oracleLogo from '../../assets/company-logos/oracle.png';
 import salesforceLogo from '../../assets/company-logos/salesforce.png';
 
 
-const profileApi = axios.create({
-  baseURL: 'http://localhost:8000',
+// We'll use the imported 'api' service for auth and profile data
+// For profile and verification specifically, we can create instances with specific base paths if needed
+const userApi = axios.create({
+  baseURL: '/api/user',
   headers: { 'Content-Type': 'application/json' },
 });
 
-const verificationApi = axios.create({
-  baseURL: 'http://localhost:8000',
-  headers: { 'Content-Type': 'application/json' },
+// Add a request interceptor to include the token automatically
+userApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem("authToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 const mockTests = [
@@ -102,9 +108,7 @@ export default function UserDashboard() {
         }
 
         // Step 1: Fetch auth data (name + email)
-        const authResponse = await api.get(`/auth/profile/${encodeURIComponent(email)}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const authResponse = await userApi.get(`/auth/profile/${encodeURIComponent(email)}`);
 
         let profileData = {
           name: authResponse.data.name || "",
@@ -114,7 +118,7 @@ export default function UserDashboard() {
         // Step 2: Fetch profile data (college, dob, age, etc.)
         if (userId) {
           try {
-            const profileResponse = await profileApi.get(`/profile/${userId}`);
+            const profileResponse = await userApi.get(`/profile/${userId}`);
             if (profileResponse.data) {
               profileData = {
                 ...profileData,
@@ -136,7 +140,7 @@ export default function UserDashboard() {
 
           // Step 3: Fetch verification status
           try {
-            const verifyRes = await verificationApi.get(`/verification/status/${userId}`);
+            const verifyRes = await userApi.get(`/verification/status`);
             if (verifyRes.data && verifyRes.data.verified) {
               setIsVerified(true);
             }

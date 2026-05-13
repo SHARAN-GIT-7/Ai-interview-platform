@@ -4,8 +4,16 @@ import { FiX, FiCamera, FiCheckCircle } from "react-icons/fi";
 import axios from "axios";
 
 const profileApi = axios.create({
-  baseURL: "http://localhost:5222/api",
+  baseURL: "/api/user",
   headers: { "Content-Type": "application/json" },
+});
+
+profileApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem("authToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {

@@ -7,20 +7,27 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      '/api/company/auth': {
-        target: 'http://localhost:5118',
+      '/api/user': {
+        target: 'http://localhost:5280',
         changeOrigin: true,
         secure: false,
       },
-      '/api/company-info': {
-        target: 'http://localhost:5082',
+      '/api/company': {
+        target: 'http://localhost:5158',
         changeOrigin: true,
         secure: false,
       },
-      '/api/billing': {
-        target: 'http://localhost:5299',
+      '/api/send-verification': {
+        target: 'http://localhost:5000',
         changeOrigin: true,
-        secure: false,
+      },
+      '/api/check-verification': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+      '/api/verify': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
       }
     }
   }
