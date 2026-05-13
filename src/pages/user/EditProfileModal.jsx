@@ -1,21 +1,15 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-<<<<<<< HEAD
 import { FiX, FiCamera, FiCheckCircle } from "react-icons/fi";
 import axios from "axios";
 
 const profileApi = axios.create({
-  baseURL: "http://localhost:5222/api",
+  baseURL: "http://localhost:5280/api/user",
   headers: { "Content-Type": "application/json" },
 });
 
 const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
   const [isSaving, setIsSaving] = useState(false);
-=======
-import { FiX } from "react-icons/fi";
-
-const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
   const [formData, setFormData] = useState({
     name: userData.name || "",
     email: userData.email || "",
@@ -24,19 +18,32 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
     college: userData.college || "",
     address: userData.address || "",
     phone: userData.phone || "",
-<<<<<<< HEAD
     gender: userData.gender || "",
     photo: null,
-=======
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
   });
+
+  // Sync with userData when it changes or modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: userData.name || "",
+        email: userData.email || "",
+        dob: userData.dob || "",
+        age: userData.age || "",
+        college: userData.college || "",
+        address: userData.address || "",
+        phone: userData.phone || "",
+        gender: userData.gender || "",
+        photo: null,
+      });
+    }
+  }, [isOpen, userData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-<<<<<<< HEAD
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
@@ -50,8 +57,9 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
 
     try {
       const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("authToken");
 
-      if (!userId) {
+      if (!userId || !token) {
         alert("Session expired. Please login again.");
         return;
       }
@@ -63,7 +71,10 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
         photoFormData.append("photo", formData.photo);
 
         const photoResponse = await profileApi.post("/profile/upload-photo", photoFormData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { 
+            "Content-Type": "multipart/form-data",
+            "Authorization": `Bearer ${token}`
+          },
         });
 
         photoUrl = photoResponse.data.photoUrl || "";
@@ -83,23 +94,26 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
       submissionData.append("PhotoUrl", photoUrl);
 
       await profileApi.post("/profile/create", submissionData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { 
+          "Content-Type": "multipart/form-data",
+          "Authorization": `Bearer ${token}`
+        },
       });
 
       alert("Profile updated successfully!");
-      
-      const updatedData = { 
-        ...formData, 
+
+      const updatedData = {
+        ...formData,
         photoUrl
       };
       delete updatedData.photo;
-      
+
       onSave(updatedData);
       onClose();
     } catch (error) {
       console.error("Error saving profile:", error);
       let errorMsg = "Failed to save profile";
-      
+
       if (error.response?.data) {
         if (typeof error.response.data === "string") {
           errorMsg = error.response.data;
@@ -115,12 +129,6 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
     } finally {
       setIsSaving(false);
     }
-=======
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(formData);
-    onClose();
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
   };
 
   return (
@@ -164,11 +172,7 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                 {/* User Name */}
                 <div className="space-y-2">
                   <label className="block text-sm font-bold text-[#144542] ml-1">
-<<<<<<< HEAD
                     Full Name
-=======
-                    User Name
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
                   </label>
                   <input
                     type="text"
@@ -224,7 +228,6 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                   />
                 </div>
 
-<<<<<<< HEAD
                 {/* Gender */}
                 <div className="space-y-2">
                   <label className="block text-sm font-bold text-[#144542] ml-1">
@@ -244,8 +247,6 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                   </select>
                 </div>
 
-=======
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
                 {/* College */}
                 <div className="md:col-span-2 space-y-2">
                   <label className="block text-sm font-bold text-[#144542] ml-1">
@@ -290,7 +291,6 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                     placeholder="Your complete address..."
                   ></textarea>
                 </div>
-<<<<<<< HEAD
 
                 {/* Profile Photo Upload */}
                 <div className="md:col-span-2 space-y-3">
@@ -308,16 +308,14 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                     />
                     <label
                       htmlFor="photo-upload"
-                      className={`flex items-center justify-between w-full px-5 py-4 bg-gray-50 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${
-                        formData.photo 
-                        ? 'border-[#144542] bg-[#144542]/5' 
-                        : 'border-gray-200 hover:border-[#144542] hover:bg-gray-100/50'
-                      }`}
+                      className={`flex items-center justify-between w-full px-5 py-4 bg-gray-50 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${formData.photo
+                          ? 'border-[#144542] bg-[#144542]/5'
+                          : 'border-gray-200 hover:border-[#144542] hover:bg-gray-100/50'
+                        }`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ${
-                          formData.photo ? 'bg-[#144542] text-[#DAFF0C]' : 'bg-white text-gray-400 border border-gray-100'
-                        }`}>
+                        <div className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ${formData.photo ? 'bg-[#144542] text-[#DAFF0C]' : 'bg-white text-gray-400 border border-gray-100'
+                          }`}>
                           {formData.photo ? <FiCheckCircle className="text-xl" /> : <FiCamera className="text-xl" />}
                         </div>
                         <div>
@@ -335,8 +333,6 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                     </label>
                   </div>
                 </div>
-=======
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
               </div>
             </form>
 
@@ -345,27 +341,17 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
               <button
                 type="button"
                 onClick={onClose}
-<<<<<<< HEAD
                 disabled={isSaving}
                 className="flex-1 py-4 px-6 bg-white border border-gray-200 text-gray-600 font-bold rounded-2xl hover:bg-gray-50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-=======
-                className="flex-1 py-4 px-6 bg-white border border-gray-200 text-gray-600 font-bold rounded-2xl hover:bg-gray-50 transition-all active:scale-95"
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
-<<<<<<< HEAD
                 disabled={isSaving}
                 className="flex-[2] py-4 px-6 bg-[#144542] text-[#DAFF0C] font-black rounded-2xl hover:opacity-95 shadow-xl shadow-[#144542]/20 transition-all active:scale-95 uppercase tracking-widest text-sm disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isSaving ? "Saving..." : "Apply Changes"}
-=======
-                className="flex-[2] py-4 px-6 bg-[#144542] text-[#DAFF0C] font-black rounded-2xl hover:opacity-95 shadow-xl shadow-[#144542]/20 transition-all active:scale-95 uppercase tracking-widest text-sm"
-              >
-                Apply Changes
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9
               </button>
             </div>
           </motion.div>
@@ -375,8 +361,4 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
   );
 };
 
-<<<<<<< HEAD
 export default EditProfileModal;
-=======
-export default EditProfileModal;
->>>>>>> 2aa1b063be8d19d22a434836590ce99fdb0a73a9

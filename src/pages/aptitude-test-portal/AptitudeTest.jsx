@@ -4,6 +4,7 @@ import { FiChevronLeft, FiChevronRight, FiClock, FiCheck, FiAlertCircle, FiSend,
 import { fetchQuestions, submitAnswers } from '../../services/aptitudeApi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
 
+
 const TOTAL_TIME = 15 * 60;
 
 export default function AptitudeTest() {
@@ -61,14 +62,14 @@ export default function AptitudeTest() {
 
       setShowSuccess(true);
       setTimeout(() => {
-        navigate('/coding/instructions', { state: { uniqueId } });
+        navigate('/screening/start', { state: { uniqueId } });
       }, 3000);
     } catch (err) {
       console.error('Failed to submit:', err);
       // Still show success and redirect even if submit fails
       setShowSuccess(true);
       setTimeout(() => {
-        navigate('/coding/instructions', { state: { uniqueId } });
+        navigate('/screening/start', { state: { uniqueId } });
       }, 3000);
     }
   }, [isSubmitting, questions, selectedAnswers, navigate]);

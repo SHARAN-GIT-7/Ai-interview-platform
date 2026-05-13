@@ -7,7 +7,7 @@ import {
 } from 'react-icons/fi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
 
-const CODING_MODULE_URL = 'https://supermagnificent-overoptimistically-misty.ngrok-free.dev';
+const CODING_MODULE_URL = 'http://localhost:8000';
 
 // Fallback mock data used when the API is unreachable
 const MOCK_RESULTS = {
@@ -110,7 +110,6 @@ export default function Results() {
           try {
             const res = await fetch(url, {
               headers: {
-                'ngrok-skip-browser-warning': 'true',
                 'Accept': 'application/json',
               },
             });
@@ -424,7 +423,7 @@ export default function Results() {
           </button>
 
           <a
-            href={CODING_MODULE_URL}
+            href={`${CODING_MODULE_URL}/docs`}
             target="_blank"
             rel="noopener noreferrer"
             className="group flex items-center gap-2 px-10 py-4 bg-white border-2 border-[#144542]/10 text-[#144542] font-black text-sm uppercase tracking-[0.15em] rounded-xl hover:border-[#144542]/30 hover:bg-[#144542]/5 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"

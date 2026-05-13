@@ -1,31 +1,26 @@
 // ── Backend API Service for Interview Module ──
-// Module 1: Resume Parser
-// Module 2: Interview Engine (questions, evaluation, STT, TTS)
+// All endpoints served from a single FastAPI backend (module2_server.py)
+// Resume Parser + Interview Engine (questions, evaluation, STT, TTS)
 
-const MODULE_1_URL = 'https://eula-larger-serenely.ngrok-free.dev';
-const MODULE_2_URL = 'https://molluscous-shona-prediligently.ngrok-free.dev';
-
-// Ngrok requires this header to bypass the browser warning page
-const NGROK_HEADERS = { 'ngrok-skip-browser-warning': 'true' };
+const BACKEND_URL = 'http://localhost:8001';
 
 // ── Helper ──
 function cleanUrl(base) {
   return base.replace(/\/+$/, '');
 }
 
-// ── Module 1: Resume Parser ──
+// ── Resume Parser ──
 
 /**
- * Upload a resume file (PDF/DOCX) to Module 1.
+ * Upload a resume file (PDF/DOCX) to the backend.
  * Returns parsed profile: { candidate_name, skills, projects, experience, ... }
  */
 export async function uploadResume(file) {
   const form = new FormData();
   form.append('file', file);
 
-  const res = await fetch(`${cleanUrl(MODULE_1_URL)}/upload_resume`, {
+  const res = await fetch(`${cleanUrl(BACKEND_URL)}/upload_resume`, {
     method: 'POST',
-    headers: { ...NGROK_HEADERS },
     body: form,
   });
 
@@ -34,16 +29,16 @@ export async function uploadResume(file) {
   return JSON.parse(text);
 }
 
-// ── Module 2: Interview Engine ──
+// ── Interview Engine ──
 
 /**
  * Generate interview questions from a parsed profile.
  * Returns { session_id, questions: [{ id, question, difficulty }, ...] }
  */
 export async function generateQuestions(profileData) {
-  const res = await fetch(`${cleanUrl(MODULE_2_URL)}/questions/generate`, {
+  const res = await fetch(`${cleanUrl(BACKEND_URL)}/questions/generate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...NGROK_HEADERS },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(profileData),
   });
 
@@ -60,9 +55,9 @@ export async function generateQuestions(profileData) {
 export async function evaluateAnswers(sessionId, answers) {
   const payload = { session_id: sessionId, answers };
 
-  const res = await fetch(`${cleanUrl(MODULE_2_URL)}/evaluation/evaluate_answers`, {
+  const res = await fetch(`${cleanUrl(BACKEND_URL)}/evaluation/evaluate_answers`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...NGROK_HEADERS },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
 
@@ -79,9 +74,8 @@ export async function transcribeAudio(audioBlob) {
   const form = new FormData();
   form.append('file', audioBlob, 'audio.webm');
 
-  const res = await fetch(`${cleanUrl(MODULE_2_URL)}/stt/transcribe`, {
+  const res = await fetch(`${cleanUrl(BACKEND_URL)}/stt/transcribe`, {
     method: 'POST',
-    headers: { ...NGROK_HEADERS },
     body: form,
   });
 
@@ -97,9 +91,9 @@ export async function transcribeAudio(audioBlob) {
  * Returns an audio Blob that can be played via Audio().
  */
 export async function synthesizeSpeech(text) {
-  const res = await fetch(`${cleanUrl(MODULE_2_URL)}/stt/synthesize`, {
+  const res = await fetch(`${cleanUrl(BACKEND_URL)}/stt/synthesize`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...NGROK_HEADERS },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text }),
   });
 

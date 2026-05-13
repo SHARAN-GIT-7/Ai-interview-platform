@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-
+import { Link } from "react-router-dom";
 export default function FooterSection() {
   return (
     <footer className="bg-black text-white py-16 border-t border-white/10">
@@ -30,18 +30,15 @@ export default function FooterSection() {
               Platform
             </h4>
             <ul className="space-y-2">
-              {["Features", "How It Works","Pricing"].map(
-                (link, i) => (
-                  <li key={i}>
-                    <a
-                      href={`#${link.toLowerCase().replace(/\s+/g, "-")}`}
-                      className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                )
-              )}
+              <li>
+                <Link to="/features" className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300">Features</Link>
+              </li>
+              <li>
+                <Link to="/how-it-works" className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300">How It Works</Link>
+              </li>
+              <li>
+                <Link to="/pricing" className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300">Pricing</Link>
+              </li>
             </ul>
           </div>
 
@@ -50,16 +47,15 @@ export default function FooterSection() {
               Company
             </h4>
             <ul className="space-y-2">
-              {["About", "Careers","Contact"].map((link, i) => (
-                <li key={i}>
-                  <a
-                    href="#"
-                    className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300"
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
+              <li>
+                <Link to="/about" className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300">About</Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300">Careers</Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300 text-brand-secondary">Contact</Link>
+              </li>
             </ul>
           </div>
 
@@ -68,18 +64,30 @@ export default function FooterSection() {
               Legal
             </h4>
             <ul className="space-y-2">
-              {["Privacy Policy", "Terms of Service", "Cookie Policy"].map(
-                (link, i) => (
-                  <li key={i}>
-                    <a
-                      href="#"
-                      className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                )
-              )}
+              <li>
+                <Link
+                  to="/privacy-policy"
+                  className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/terms-conditions"
+                  className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300"
+                >
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/privacy-policy"
+                  className="text-brand-gray text-sm hover:text-brand-secondary transition-colors duration-300"
+                >
+                  Cookie Policy
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

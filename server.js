@@ -51,6 +51,10 @@ app.post('/api/send-verification', async (req, res) => {
             <div style="width: 56px; height: 56px; background-color: #144542; border-radius: 16px; display: inline-block; text-align: center; line-height: 56px; font-size: 32px; font-weight: bold; color: #DAFF0C; margin-bottom: 24px;">❊</div>
             <h2 style="color: #144542; font-size: 28px; font-weight: 900; margin-top: 0; margin-bottom: 16px; letter-spacing: -0.5px;">Verify your email</h2>
             <p style="color: #9B9B9B; font-size: 16px; margin-bottom: 32px; line-height: 1.6;">You're almost there! Please verify your email address to unlock your personal workspace and start your journey.</p>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
             <a href="${verificationLink}" style="background-color: #144542; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 900; display: inline-block; font-size: 16px; box-shadow: 0 4px 14px rgba(20, 69, 66, 0.2);">Verify Email Address</a>
             <p style="color: #9B9B9B; font-size: 13px; margin-top: 40px; border-top: 1px solid #dce5e5; padding-top: 24px;">If you didn't request this, you can safely ignore this email.</p>
           </div>
