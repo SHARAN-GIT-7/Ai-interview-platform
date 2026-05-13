@@ -79,6 +79,18 @@ public class TestController : CompanyBaseController
     [HttpPost("create")]
     public async Task<IActionResult> Create(CreateTestDto dto)
         => Ok(await _svc.CreateAsync(CompanyId, dto));
+
+    [HttpGet("exists/{testId}")]
+    public async Task<IActionResult> Exists(string testId)
+        => Ok(new { registered = await _svc.ExistsAsync(testId) });
+
+    [HttpGet("list")]
+    public async Task<IActionResult> List()
+        => Ok(await _svc.GetCompanyTestsAsync(CompanyId));
+
+    [HttpGet("all-debug")]
+    public async Task<IActionResult> AllDebug()
+        => Ok(await _svc.GetCompanyTestsAsync(Guid.Empty)); // Check if tests have empty company ID
 }
 
 [ApiController, Route("api/company/mapping"), Authorize(Roles = "company,hr")]

@@ -144,14 +144,19 @@ public class HRService : IHRService
 
     public async Task<List<HRResponseDto>> GetByCompanyAsync(Guid companyId)
         => await _db.HRs.Where(h => h.CompanyId == companyId)
-            .Select(h => new HRResponseDto { HrId = h.HrId, CompanyId = h.CompanyId, Name = h.Name, Email = h.Email })
+            .Select(h => new HRResponseDto { HrId = h.HrId, CompanyId = h.CompanyId, Name = h.Name, Email = h.Email, PhoneNumber = h.PhoneNumber })
             .ToListAsync();
 }
 
 // ═══════════════════════════════════════════════════════════════
 // TEST SERVICE - refactored: companyId/hrId from JWT, auto-code
 // ═══════════════════════════════════════════════════════════════
-public interface ITestService { Task<object> CreateAsync(Guid companyId, CreateTestDto dto); }
+public interface ITestService
+{
+    Task<object> CreateAsync(Guid companyId, CreateTestDto dto); 
+    Task<bool> ExistsAsync(string testId);
+    Task<IEnumerable<object>> GetCompanyTestsAsync(Guid companyId);
+}
 
 public class TestService : ITestService
 {
@@ -175,6 +180,31 @@ public class TestService : ITestService
         _db.TestInfos.Add(test);
         await _db.SaveChangesAsync();
         return new { message = "Test created", data = test };
+    }
+
+    public async Task<bool> ExistsAsync(string testId)
+        => await _db.TestInfos.AnyAsync(t => t.TestId.ToLower() == testId.ToLower());
+
+    public async Task<IEnumerable<object>> GetCompanyTestsAsync(Guid companyId)
+    {
+        var defaultId = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6");
+        
+        var tests = await _db.TestInfos
+            .Where(t => t.CompanyId == companyId || (companyId != Guid.Empty && t.CompanyId == defaultId))
+            .OrderByDescending(t => t.CreatedAt)
+            .Select(t => new
+            {
+                t.TestId,
+                t.CreatedAt,
+                HrName = _db.HRs.Where(h => h.HrId == t.HrId).Select(h => h.Name).FirstOrDefault() ?? "Unknown",
+                AttendedCount = _db.Results.Count(r => r.TestId == t.TestId),
+                t.AptitudeModule,
+                t.VerbalModule,
+                t.InterviewModule,
+                t.CodingModule
+            })
+            .ToListAsync();
+        return tests;
     }
 }
 
@@ -238,22 +268,14 @@ public class ResultService : IResultService
     private readonly CompanyDbContext _db;
     public ResultService(CompanyDbContext db) { _db = db; }
 
-    /// <summary>
-    /// Validates before creating a result:
-    /// 1. TestInfo must exist and belong to this company
-    /// 2. TestMapping must exist for the given test
-    /// 3. CompanyId on the result must match the JWT companyId
-    /// </summary>
     public async Task<object> CreateAsync(Guid companyId, ResultBase data)
     {
-        // Validate: test exists and belongs to this company
         var test = await _db.TestInfos.FirstOrDefaultAsync(t => t.TestId == data.TestId);
         if (test == null)
             throw new ArgumentException($"Test '{data.TestId}' not found");
         if (test.CompanyId != companyId)
             throw new UnauthorizedAccessException("Test does not belong to your company");
 
-        // Validate: test mapping exists for this test
         if (!string.IsNullOrEmpty(data.TestCode))
         {
             var mappingExists = await _db.TestMappings.AnyAsync(
@@ -262,7 +284,6 @@ public class ResultService : IResultService
                 throw new ArgumentException($"No mapping found for test '{data.TestId}' with code '{data.TestCode}'");
         }
 
-        // Enforce: companyId and hrId must match the test
         data.CompanyId = companyId;
         data.HrId = test.HrId;
 
