@@ -2,7 +2,7 @@
   "version": 3,
   "targets": {
     "net8.0": {
-      "BCrypt.Net-Next/4.2.0": {
+      "BCrypt.Net-Next/4.2.1": {
         "type": "package",
         "compile": {
           "lib/netstandard2.1/BCrypt-Net-Next.dll": {}
@@ -24,7 +24,7 @@
           }
         }
       },
-      "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.26": {
+      "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.27": {
         "type": "package",
         "dependencies": {
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "7.1.2"
@@ -321,11 +321,11 @@
           }
         }
       },
-      "Microsoft.EntityFrameworkCore/8.0.26": {
+      "Microsoft.EntityFrameworkCore/8.0.27": {
         "type": "package",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore.Abstractions": "8.0.26",
-          "Microsoft.EntityFrameworkCore.Analyzers": "8.0.26",
+          "Microsoft.EntityFrameworkCore.Abstractions": "8.0.27",
+          "Microsoft.EntityFrameworkCore.Analyzers": "8.0.27",
           "Microsoft.Extensions.Caching.Memory": "8.0.1",
           "Microsoft.Extensions.Logging": "8.0.1"
         },
@@ -343,7 +343,7 @@
           "buildTransitive/net8.0/Microsoft.EntityFrameworkCore.props": {}
         }
       },
-      "Microsoft.EntityFrameworkCore.Abstractions/8.0.26": {
+      "Microsoft.EntityFrameworkCore.Abstractions/8.0.27": {
         "type": "package",
         "compile": {
           "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll": {
@@ -356,7 +356,7 @@
           }
         }
       },
-      "Microsoft.EntityFrameworkCore.Analyzers/8.0.26": {
+      "Microsoft.EntityFrameworkCore.Analyzers/8.0.27": {
         "type": "package",
         "compile": {
           "lib/netstandard2.0/_._": {}
@@ -1256,16 +1256,15 @@
     }
   },
   "libraries": {
-    "BCrypt.Net-Next/4.2.0": {
-      "sha512": "gwLD2KfCuwQesP17aVh4h6lpiMPEVt5Lbpndo0ej903hNUUTtyxt3ARdDjmuydBRTAUICc7OVKVbaOvc6SQYXA==",
+    "BCrypt.Net-Next/4.2.1": {
+      "sha512": "cJ1Zaad8sBSQJq3QBSPmFuLq0XDi9ys0Dk5S11gakZ2qdFWC1aaRLZ7sqOLQjGJYhgIK3LW3TixJswM6+CVbyw==",
       "type": "package",
-      "path": "bcrypt.net-next/4.2.0",
+      "path": "bcrypt.net-next/4.2.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "bcrypt.net-next.4.2.0.nupkg.sha512",
+        "bcrypt.net-next.4.2.1.nupkg.sha512",
         "bcrypt.net-next.nuspec",
-        "ico.png",
         "lib/net10.0/BCrypt-Net-Next.dll",
         "lib/net10.0/BCrypt.Net-Next.xml",
         "lib/net462/BCrypt-Net-Next.dll",
@@ -1278,6 +1277,7 @@
         "lib/netstandard2.0/BCrypt.Net-Next.xml",
         "lib/netstandard2.1/BCrypt-Net-Next.dll",
         "lib/netstandard2.1/BCrypt.Net-Next.xml",
+        "logo.png",
         "readme.md"
       ]
     },
@@ -1299,10 +1299,10 @@
         "logo.png"
       ]
     },
-    "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.26": {
-      "sha512": "Z7Fcw2UdQ20QKqE0OgAcRqPpBvjNiSAQb8u3IXFwN0XLQbr/xJlRtg11orvkp7/aQltoRMCr8A9Nc6JhLV1VCQ==",
+    "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.27": {
+      "sha512": "OMYSRCQQyj2b2RxjIJqMg2kSRvN1X5VDk3tCHcR/gzQPMMiLQ04zUUH12ObFFdLj2zZAQq1E2A+owJCyKXXUrw==",
       "type": "package",
-      "path": "microsoft.aspnetcore.authentication.jwtbearer/8.0.26",
+      "path": "microsoft.aspnetcore.authentication.jwtbearer/8.0.27",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1310,7 +1310,7 @@
         "THIRD-PARTY-NOTICES.TXT",
         "lib/net8.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll",
         "lib/net8.0/Microsoft.AspNetCore.Authentication.JwtBearer.xml",
-        "microsoft.aspnetcore.authentication.jwtbearer.8.0.26.nupkg.sha512",
+        "microsoft.aspnetcore.authentication.jwtbearer.8.0.27.nupkg.sha512",
         "microsoft.aspnetcore.authentication.jwtbearer.nuspec"
       ]
     },
@@ -1781,10 +1781,10 @@
         "microsoft.codeanalysis.workspaces.common.nuspec"
       ]
     },
-    "Microsoft.EntityFrameworkCore/8.0.26": {
-      "sha512": "lOBe7qWbtS4UBPZCDjwbDqDgJFgnPHA5duKEae0RrW67q3EyX3mnE3vPdJ3pFWtTFPcCX0V/7wFX/xE4SkJ2og==",
+    "Microsoft.EntityFrameworkCore/8.0.27": {
+      "sha512": "fe3vhlibOcspurgPucQQW4KGC3Z2aj3hafb68AKxFVFawzT5+x6FA4NGzLrWMDs682A3uTodd0hOHX0ZUDwdzA==",
       "type": "package",
-      "path": "microsoft.entityframeworkcore/8.0.26",
+      "path": "microsoft.entityframeworkcore/8.0.27",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1793,14 +1793,14 @@
         "buildTransitive/net8.0/Microsoft.EntityFrameworkCore.props",
         "lib/net8.0/Microsoft.EntityFrameworkCore.dll",
         "lib/net8.0/Microsoft.EntityFrameworkCore.xml",
-        "microsoft.entityframeworkcore.8.0.26.nupkg.sha512",
+        "microsoft.entityframeworkcore.8.0.27.nupkg.sha512",
         "microsoft.entityframeworkcore.nuspec"
       ]
     },
-    "Microsoft.EntityFrameworkCore.Abstractions/8.0.26": {
-      "sha512": "UVXlDz6os+VLpCjEcCjxexXyrxlq7vM3OD2KnyQlnzM9Q8WCsKNI+1PJiR2B6Em+yDCROSHy1jPNXaqxrzrCPQ==",
+    "Microsoft.EntityFrameworkCore.Abstractions/8.0.27": {
+      "sha512": "/pqkVwmVsMOePo58AlmpXCQOOsGTqMahgbANhmP7WZMd9PiXLnzVxU06R+HbW0u+YdZ4w4aBDvVg+vUpGKydJg==",
       "type": "package",
-      "path": "microsoft.entityframeworkcore.abstractions/8.0.26",
+      "path": "microsoft.entityframeworkcore.abstractions/8.0.27",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1808,14 +1808,14 @@
         "PACKAGE.md",
         "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll",
         "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.xml",
-        "microsoft.entityframeworkcore.abstractions.8.0.26.nupkg.sha512",
+        "microsoft.entityframeworkcore.abstractions.8.0.27.nupkg.sha512",
         "microsoft.entityframeworkcore.abstractions.nuspec"
       ]
     },
-    "Microsoft.EntityFrameworkCore.Analyzers/8.0.26": {
-      "sha512": "uKIwY5fy7Xk3BrWMxryYyzQuzQxmhQADjZqXanXa27vE3vll8QHcUZuI1J1vyPu0bzyBITGdw9nJKDCsJmIHjg==",
+    "Microsoft.EntityFrameworkCore.Analyzers/8.0.27": {
+      "sha512": "9hl8QNHrgOtidE7I5aom9ABcXCIjv1fnRxgNNC4PaA043zPte28ifvkW2KK91OoAYF7trZSmU1qYScTra3N7HA==",
       "type": "package",
-      "path": "microsoft.entityframeworkcore.analyzers/8.0.26",
+      "path": "microsoft.entityframeworkcore.analyzers/8.0.27",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1823,7 +1823,7 @@
         "analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll",
         "docs/PACKAGE.md",
         "lib/netstandard2.0/_._",
-        "microsoft.entityframeworkcore.analyzers.8.0.26.nupkg.sha512",
+        "microsoft.entityframeworkcore.analyzers.8.0.27.nupkg.sha512",
         "microsoft.entityframeworkcore.analyzers.nuspec"
       ]
     },
@@ -3420,19 +3420,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\tshar\\.nuget\\packages\\": {}
+    "C:\\Users\\Admin\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.TransactionApi\\Knitnet.TransactionApi.csproj",
+      "projectUniqueName": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.TransactionApi\\Knitnet.TransactionApi.csproj",
       "projectName": "Knitnet.TransactionApi",
-      "projectPath": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.TransactionApi\\Knitnet.TransactionApi.csproj",
-      "packagesPath": "C:\\Users\\tshar\\.nuget\\packages\\",
-      "outputPath": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.TransactionApi\\obj\\",
+      "projectPath": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.TransactionApi\\Knitnet.TransactionApi.csproj",
+      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+      "outputPath": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.TransactionApi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\tshar\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -3444,8 +3444,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj": {
-              "projectPath": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj"
+            "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj": {
+              "projectPath": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj"
             }
           }
         }
@@ -3530,7 +3530,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

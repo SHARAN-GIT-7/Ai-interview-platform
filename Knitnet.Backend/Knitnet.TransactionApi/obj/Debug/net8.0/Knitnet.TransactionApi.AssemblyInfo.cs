@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Knitnet.TransactionApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd4dff139d3f605c3511bb28f9e5a0dbd74c39ec")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b00c05e99851480f1b4a22d7d523a5cc8aaf389")]
 [assembly: System.Reflection.AssemblyProductAttribute("Knitnet.TransactionApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Knitnet.TransactionApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

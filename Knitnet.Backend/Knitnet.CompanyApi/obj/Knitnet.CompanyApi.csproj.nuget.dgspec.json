@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.CompanyApi\\Knitnet.CompanyApi.csproj": {}
+    "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.CompanyApi\\Knitnet.CompanyApi.csproj": {}
   },
   "projects": {
-    "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.CompanyApi\\Knitnet.CompanyApi.csproj": {
+    "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.CompanyApi\\Knitnet.CompanyApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.CompanyApi\\Knitnet.CompanyApi.csproj",
+        "projectUniqueName": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.CompanyApi\\Knitnet.CompanyApi.csproj",
         "projectName": "Knitnet.CompanyApi",
-        "projectPath": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.CompanyApi\\Knitnet.CompanyApi.csproj",
-        "packagesPath": "C:\\Users\\tshar\\.nuget\\packages\\",
-        "outputPath": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.CompanyApi\\obj\\",
+        "projectPath": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.CompanyApi\\Knitnet.CompanyApi.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.CompanyApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\tshar\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -26,8 +26,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj": {
-                "projectPath": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj"
+              "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj": {
+                "projectPath": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj"
               }
             }
           }
@@ -116,21 +116,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj": {
+    "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj",
+        "projectUniqueName": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj",
         "projectName": "Knitnet.Shared",
-        "projectPath": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj",
-        "packagesPath": "C:\\Users\\tshar\\.nuget\\packages\\",
-        "outputPath": "C:\\knitnet main\\New Backend\\Knitnet.Backend\\Knitnet.Shared\\obj\\",
+        "projectPath": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.Shared\\Knitnet.Shared.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "C:\\Intervista Project\\Supabase Backend\\Ai-interview-platform\\Knitnet.Backend\\Knitnet.Shared\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\tshar\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -211,7 +211,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

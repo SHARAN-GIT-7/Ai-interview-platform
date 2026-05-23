@@ -10,7 +10,7 @@
         "dependencies": {
           "BCrypt.Net-Next": "4.2.0",
           "Knitnet.Shared": "1.0.0",
-          "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.26",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.27",
           "Microsoft.AspNetCore.OpenApi": "8.0.25",
           "Microsoft.EntityFrameworkCore.Design": "8.0.0",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "8.0.4",
@@ -36,14 +36,14 @@
           }
         }
       },
-      "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.26": {
+      "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.27": {
         "dependencies": {
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "7.1.2"
         },
         "runtime": {
           "lib/net8.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll": {
-            "assemblyVersion": "8.0.26.0",
-            "fileVersion": "8.0.2626.16911"
+            "assemblyVersion": "8.0.27.0",
+            "fileVersion": "8.0.2726.23008"
           }
         }
       },
@@ -277,24 +277,24 @@
           }
         }
       },
-      "Microsoft.EntityFrameworkCore/8.0.26": {
+      "Microsoft.EntityFrameworkCore/8.0.27": {
         "dependencies": {
-          "Microsoft.EntityFrameworkCore.Abstractions": "8.0.26",
+          "Microsoft.EntityFrameworkCore.Abstractions": "8.0.27",
           "Microsoft.Extensions.Caching.Memory": "8.0.1",
           "Microsoft.Extensions.Logging": "8.0.1"
         },
         "runtime": {
           "lib/net8.0/Microsoft.EntityFrameworkCore.dll": {
-            "assemblyVersion": "8.0.26.0",
-            "fileVersion": "8.0.2626.16905"
+            "assemblyVersion": "8.0.27.0",
+            "fileVersion": "8.0.2726.23001"
           }
         }
       },
-      "Microsoft.EntityFrameworkCore.Abstractions/8.0.26": {
+      "Microsoft.EntityFrameworkCore.Abstractions/8.0.27": {
         "runtime": {
           "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll": {
-            "assemblyVersion": "8.0.26.0",
-            "fileVersion": "8.0.2626.16905"
+            "assemblyVersion": "8.0.27.0",
+            "fileVersion": "8.0.2726.23001"
           }
         }
       },
@@ -315,7 +315,7 @@
       },
       "Microsoft.EntityFrameworkCore.Relational/8.0.4": {
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "8.0.26"
+          "Microsoft.EntityFrameworkCore": "8.0.27"
         },
         "runtime": {
           "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll": {
@@ -497,8 +497,8 @@
       },
       "Npgsql.EntityFrameworkCore.PostgreSQL/8.0.4": {
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "8.0.26",
-          "Microsoft.EntityFrameworkCore.Abstractions": "8.0.26",
+          "Microsoft.EntityFrameworkCore": "8.0.27",
+          "Microsoft.EntityFrameworkCore.Abstractions": "8.0.27",
           "Microsoft.EntityFrameworkCore.Relational": "8.0.4",
           "Npgsql": "8.0.3"
         },
@@ -629,8 +629,8 @@
       "Knitnet.Shared/1.0.0": {
         "dependencies": {
           "BCrypt.Net-Next": "4.2.0",
-          "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.26",
-          "Microsoft.EntityFrameworkCore": "8.0.26",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.27",
+          "Microsoft.EntityFrameworkCore": "8.0.27",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "8.0.4",
           "System.IdentityModel.Tokens.Jwt": "8.18.0"
         },
@@ -663,12 +663,12 @@
       "path": "humanizer.core/2.14.1",
       "hashPath": "humanizer.core.2.14.1.nupkg.sha512"
     },
-    "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.26": {
+    "Microsoft.AspNetCore.Authentication.JwtBearer/8.0.27": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Z7Fcw2UdQ20QKqE0OgAcRqPpBvjNiSAQb8u3IXFwN0XLQbr/xJlRtg11orvkp7/aQltoRMCr8A9Nc6JhLV1VCQ==",
-      "path": "microsoft.aspnetcore.authentication.jwtbearer/8.0.26",
-      "hashPath": "microsoft.aspnetcore.authentication.jwtbearer.8.0.26.nupkg.sha512"
+      "sha512": "sha512-OMYSRCQQyj2b2RxjIJqMg2kSRvN1X5VDk3tCHcR/gzQPMMiLQ04zUUH12ObFFdLj2zZAQq1E2A+owJCyKXXUrw==",
+      "path": "microsoft.aspnetcore.authentication.jwtbearer/8.0.27",
+      "hashPath": "microsoft.aspnetcore.authentication.jwtbearer.8.0.27.nupkg.sha512"
     },
     "Microsoft.AspNetCore.OpenApi/8.0.25": {
       "type": "package",
@@ -712,19 +712,19 @@
       "path": "microsoft.codeanalysis.workspaces.common/4.5.0",
       "hashPath": "microsoft.codeanalysis.workspaces.common.4.5.0.nupkg.sha512"
     },
-    "Microsoft.EntityFrameworkCore/8.0.26": {
+    "Microsoft.EntityFrameworkCore/8.0.27": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-lOBe7qWbtS4UBPZCDjwbDqDgJFgnPHA5duKEae0RrW67q3EyX3mnE3vPdJ3pFWtTFPcCX0V/7wFX/xE4SkJ2og==",
-      "path": "microsoft.entityframeworkcore/8.0.26",
-      "hashPath": "microsoft.entityframeworkcore.8.0.26.nupkg.sha512"
+      "sha512": "sha512-fe3vhlibOcspurgPucQQW4KGC3Z2aj3hafb68AKxFVFawzT5+x6FA4NGzLrWMDs682A3uTodd0hOHX0ZUDwdzA==",
+      "path": "microsoft.entityframeworkcore/8.0.27",
+      "hashPath": "microsoft.entityframeworkcore.8.0.27.nupkg.sha512"
     },
-    "Microsoft.EntityFrameworkCore.Abstractions/8.0.26": {
+    "Microsoft.EntityFrameworkCore.Abstractions/8.0.27": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-UVXlDz6os+VLpCjEcCjxexXyrxlq7vM3OD2KnyQlnzM9Q8WCsKNI+1PJiR2B6Em+yDCROSHy1jPNXaqxrzrCPQ==",
-      "path": "microsoft.entityframeworkcore.abstractions/8.0.26",
-      "hashPath": "microsoft.entityframeworkcore.abstractions.8.0.26.nupkg.sha512"
+      "sha512": "sha512-/pqkVwmVsMOePo58AlmpXCQOOsGTqMahgbANhmP7WZMd9PiXLnzVxU06R+HbW0u+YdZ4w4aBDvVg+vUpGKydJg==",
+      "path": "microsoft.entityframeworkcore.abstractions/8.0.27",
+      "hashPath": "microsoft.entityframeworkcore.abstractions.8.0.27.nupkg.sha512"
     },
     "Microsoft.EntityFrameworkCore.Design/8.0.0": {
       "type": "package",
