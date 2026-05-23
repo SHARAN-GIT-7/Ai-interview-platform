@@ -10,6 +10,8 @@ import CompanySecondarySidebar from "./components/CompanySecondarySidebar";
 import AddHRModal from "./components/AddHRModal";
 import HRList from "./components/HRList";
 import CreateTest from "./CreateTest";
+import CompanyProfile from "./components/CompanyProfile";
+import TestDashboard from "./components/TestDashboard";
 import { FiPlus } from "react-icons/fi";
 
 gsap.registerPlugin(useGSAP);
@@ -21,6 +23,7 @@ export default function CompanyDashboard() {
   const [isHRModalOpen, setIsHRModalOpen] = useState(false);
   const [hrRefreshKey, setHrRefreshKey] = useState(0);
   const [isCreatingTest, setIsCreatingTest] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
   
   const navigate = useNavigate();
   const containerRef = useRef(null);
@@ -95,7 +98,13 @@ export default function CompanyDashboard() {
   };
 
   const handleCreateTest = () => {
+    setSelectedTest(null);
     setIsCreatingTest(true);
+  };
+
+  const handleSelectTest = (test) => {
+    setIsCreatingTest(false);
+    setSelectedTest(test);
   };
 
   if (isLoading) {
@@ -125,9 +134,19 @@ export default function CompanyDashboard() {
 
         <div className="flex-1 flex overflow-hidden">
           {/* 3. Secondary Column Component */}
-          {activeTab === "home" && <CompanySecondarySidebar onCreateTest={handleCreateTest} isCreatingTest={isCreatingTest} />}
+          {activeTab === "home" && (
+            <CompanySecondarySidebar 
+              onCreateTest={handleCreateTest} 
+              isCreatingTest={isCreatingTest} 
+              selectedTestId={selectedTest?.testId}
+              onSelectTest={handleSelectTest}
+            />
+          )}
 
           {/* 4. Main Dashboard Area */}
+          {activeTab === "profile" ? (
+            <CompanyProfile />
+          ) : (
           <div className="content-anim flex-1 p-8 overflow-y-auto bg-[#EAF0F0]/60 relative">
             {activeTab === "hr" ? (
               <div className="flex flex-col h-full">
@@ -193,12 +212,15 @@ export default function CompanyDashboard() {
               </div>
             ) : activeTab === "home" && isCreatingTest ? (
                <CreateTest />
+            ) : activeTab === "home" && selectedTest ? (
+               <TestDashboard test={selectedTest} />
             ) : (
               <div className="max-w-5xl mx-auto h-full border-2 border-dashed border-gray-200/50 rounded-3xl flex items-center justify-center">
                  <p className="text-gray-300 font-bold uppercase tracking-[0.2em] text-sm">Dashboard Workspace</p>
               </div>
             )}
           </div>
+          )}
         </div>
       </div>
 

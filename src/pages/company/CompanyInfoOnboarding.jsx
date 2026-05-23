@@ -16,6 +16,7 @@ const CompanyInfoOnboarding = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAgreed, setIsAgreed] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
 
   const [formData, setFormData] = useState({
@@ -192,7 +193,7 @@ const CompanyInfoOnboarding = () => {
       case 2:
         return <BillingInfoStep formData={formData} handleInputChange={handleInputChange} />;
       case 3:
-        return <PaymentStep formData={formData} />;
+        return <PaymentStep formData={formData} isAgreed={isAgreed} onAgreeChange={setIsAgreed} />;
       default:
         return null;
     }
@@ -205,7 +206,7 @@ const CompanyInfoOnboarding = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col items-center py-12 px-6 md:px-12 overflow-y-auto custom-scrollbar">
-        <div className="max-w-2xl w-full">
+        <div className="max-w-4xl w-full">
           {/* Header Mobile Only */}
           <OnboardingHeader steps={steps} currentStep={currentStep} />
 
@@ -242,8 +243,8 @@ const CompanyInfoOnboarding = () => {
             ) : (
               <button 
                 onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex items-center gap-2 px-10 py-3.5 bg-brand-secondary text-brand-dark font-bold rounded-xl shadow-lg shadow-brand-secondary/20 hover:shadow-xl hover:shadow-brand-secondary/40 active:scale-95 transition-all disabled:opacity-70"
+                disabled={isSubmitting || (currentStep === 3 && !isAgreed)}
+                className="flex items-center gap-2 px-10 py-3.5 bg-brand-secondary text-brand-dark font-bold rounded-xl shadow-lg shadow-brand-secondary/20 hover:shadow-xl hover:shadow-brand-secondary/40 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Submitting..." : "Submit Profile"} <FaCheckCircle size={14}/>
               </button>

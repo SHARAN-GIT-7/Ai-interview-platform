@@ -8,6 +8,7 @@ import crypto from 'crypto';
 dotenv.config();
 
 const app = express();
+const PORT = 5001;
 app.use(cors());
 app.use(express.json());
 
@@ -15,10 +16,21 @@ app.use(express.json());
 const pendingVerifications = new Map();
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    pass: process.env.EMAIL_PASS?.replace(/\s/g, '')
+  }
+});
+
+// Verify connection configuration
+transporter.verify(function (error, success) {
+  if (error) {
+    console.log('Nodemailer verification error:', error);
+  } else {
+    console.log('Nodemailer is ready to take our messages');
   }
 });
 
@@ -154,7 +166,6 @@ app.get('/api/hr/list/:companyId', async (req, res) => {
   }
 });
 
-const PORT = 5001;
 app.listen(PORT, () => {
   console.log(`Company email verification server running on http://localhost:${PORT}`);
 });
