@@ -74,7 +74,23 @@ export default function CompanyLogin() {
   // Poll the backend to check if the user clicked the verification link
   useEffect(() => {
     let interval;
-    return () => {};
+    if (view === "verify" && email && !emailVerified) {
+      interval = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/check-verification/${email}`);
+          const data = await response.json();
+          if (data.verified) {
+            setEmailVerified(true);
+            setView("reset");
+            showMessage("Email verified! Please set your new password.", "success");
+            clearInterval(interval);
+          }
+        } catch (error) {
+          console.error("Verification check error:", error);
+        }
+      }, 3000); // Check every 3 seconds
+    }
+    return () => clearInterval(interval);
   }, [view, email, emailVerified]);
 
   const handleLogin = async (e) => {
@@ -176,10 +192,20 @@ export default function CompanyLogin() {
 
     setIsLoading(true);
     try {
-      // The new backend doesn't have an explicit 'send-verification' endpoint yet.
-      // We will skip this for now or implement once the backend provides it.
-      showMessage("Password reset functionality is being updated. Please contact support.", "error");
-      shakeForm();
+      const response = await fetch("/api/send-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, type: "reset" })
+      });
+
+      if (response.ok) {
+        showMessage("Reset link sent! Please check your email.", "success");
+        setView("verify");
+      } else {
+        const data = await response.json();
+        showMessage(data.error || "Failed to send reset link", "error");
+        shakeForm();
+      }
     } catch (error) {
       console.error("Forgot password error:", error);
       showMessage("Error connecting to verification server.", "error");

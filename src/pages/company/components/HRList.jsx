@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiMail, FiPhone, FiBriefcase, FiLayers, FiMoreVertical } from "react-icons/fi";
+import { FiMail, FiPhone, FiBriefcase, FiLayers, FiMoreVertical, FiTrash2 } from "react-icons/fi";
 
 export default function HRList({ refreshTrigger }) {
   const [hrList, setHrList] = useState([]);
@@ -47,6 +47,29 @@ export default function HRList({ refreshTrigger }) {
       .toUpperCase();
   };
 
+  const handleDelete = async (hrId) => {
+    if (!window.confirm("Are you sure you want to delete this HR?")) return;
+
+    try {
+      const token = localStorage.getItem("companyToken");
+      const response = await fetch(`/api/company/hr/delete/${hrId}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        // Refresh the list
+        setHrList(hrList.filter(hr => (hr.hrId || hr.id) !== hrId));
+      } else {
+        const errorMsg = await response.text();
+        alert("Failed to delete HR: " + errorMsg);
+      }
+    } catch (err) {
+      console.error("Error deleting HR:", err);
+      alert("Network error. Could not delete HR.");
+    }
+  };
+
   return (
     <div className="mt-4 bg-white rounded-lg shadow-sm border border-gray-100/50 overflow-hidden min-h-[500px]">
       {/* Header Row */}
@@ -57,6 +80,7 @@ export default function HRList({ refreshTrigger }) {
         <div className="flex-1">Phone no</div>
         <div className="flex-1">Department</div>
         <div className="w-32">Roll</div>
+        <div className="w-16">Action</div>
       </div>
 
       <div className="flex flex-col">
@@ -109,9 +133,19 @@ export default function HRList({ refreshTrigger }) {
                   {hr.department || "General"}
                 </div>
 
-                {/* Role/Designation Column */}
                 <div className="w-32 text-gray-600">
                   {hr.designation || "HR"}
+                </div>
+
+                {/* Action Column */}
+                <div className="w-16 flex justify-center">
+                  <button
+                    onClick={() => handleDelete(hr.hrId || hr.id)}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                    title="Delete HR"
+                  >
+                    <FiTrash2 size={16} />
+                  </button>
                 </div>
               </motion.div>
             ))}
