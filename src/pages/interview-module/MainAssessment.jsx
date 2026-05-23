@@ -4,17 +4,17 @@ import {
   FiPlay, FiSend, FiClock, FiChevronDown, FiCheckCircle,
   FiXCircle, FiAlertCircle, FiLoader, FiCode, FiZap,
   FiUser, FiFlag, FiMaximize2, FiMinimize2, FiRefreshCw,
-  FiTerminal, FiList, FiAward,
+  FiTerminal, FiList, FiAward, FiMoon, FiSun,
 } from 'react-icons/fi';
 import Editor from '@monaco-editor/react';
 import ProctorOverlay from '../../routes/ProctorOverlay';
 
-// ── API Base ──────────────────────────────────────────────────────────────────
-const API = 'https://supermagnificent-overoptimistically-misty.ngrok-free.dev';
 
-const NGROK_HEADERS = {
+// ── API Base ──────────────────────────────────────────────────────────────────
+const API = 'http://localhost:8000';
+
+const LOCAL_HEADERS = {
   'Content-Type': 'application/json',
-  'ngrok-skip-browser-warning': 'true',
 };
 
 // ── Supported languages (from backend languages.py) ───────────────────────────
@@ -49,13 +49,13 @@ const DIFF_STYLE = {
 };
 
 // ── Helper: api call ──────────────────────────────────────────────────────────
+// NOTE: The coding microservice is headless — no JWT auth required.
+// All requests go through the web envelope directly.
 async function apiCall(path, options = {}) {
-  const token = sessionStorage.getItem('coding_token');
   const res = await fetch(`${API}${path}`, {
     ...options,
     headers: {
-      ...NGROK_HEADERS,
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...LOCAL_HEADERS,
       ...(options.headers || {}),
     },
   });
@@ -64,42 +64,8 @@ async function apiCall(path, options = {}) {
   return json;
 }
 
-// ── Auth: register or login in the coding platform ───────────────────────────
-async function ensureCodingAuth(email, name) {
-  // Try cached token first
-  const cached = sessionStorage.getItem('coding_token');
-  if (cached) {
-    try {
-      const me = await apiCall('/auth/me');
-      sessionStorage.setItem('coding_user_id', me.data?.user_id || '');
-      return me.data?.user_id;
-    } catch { /* token stale, re-auth */ }
-  }
-
-  const password = `AIIP_${email}_secure`;
-
-  // Try login first (user may already exist)
-  try {
-    const login = await apiCall('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-    sessionStorage.setItem('coding_token', login.data.access_token);
-    sessionStorage.setItem('coding_user_id', login.data.user_id);
-    return login.data.user_id;
-  } catch {/* fall through to register */ }
-
-  // Register the user
-  const reg = await apiCall('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify({ email, password, name: name || email.split('@')[0] }),
-  });
-  sessionStorage.setItem('coding_token', reg.data.access_token);
-  sessionStorage.setItem('coding_user_id', reg.data.user_id);
-  return reg.data.user_id;
-}
-
-function ErrorDisplay({ status, output }) {
+function ErrorDisplay({ status, output, isDarkMode }) {
+  const t = (light, dark) => isDarkMode ? dark : light;
   if (!output) return null;
   const lines = output.trim().split('\n');
   const summary = lines[lines.length - 1]; // e.g. "SyntaxError: invalid syntax"
@@ -108,11 +74,11 @@ function ErrorDisplay({ status, output }) {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center gap-2 text-red-400">
+      <div className={`flex items-center gap-2 ${t('text-red-600', 'text-red-400')}`}>
         <FiAlertCircle className="shrink-0 text-lg" />
         <span className="text-[11px] font-black uppercase tracking-[0.2em]">{status || 'Error'}</span>
       </div>
-      <div className="bg-[#0d1117] border border-red-500/20 rounded-2xl overflow-hidden shadow-2xl">
+      <div className={`${t('bg-[#F8F8F8] border border-red-500/20', 'bg-[#0d1117] border border-red-500/20')} rounded-2xl overflow-hidden shadow-2xl`}>
         <div className="bg-red-500/10 px-5 py-4 border-b border-red-500/10">
           <h3 className="text-red-400 font-black text-sm mb-1">{summary}</h3>
           {lineInfo && (
@@ -121,9 +87,9 @@ function ErrorDisplay({ status, output }) {
             </div>
           )}
         </div>
-        <div className="p-5 bg-black/20">
-          <p className="text-white/20 text-[9px] font-black uppercase mb-3 tracking-[0.3em]">Full Stack Trace</p>
-          <pre className="text-white/40 font-mono text-[10px] sm:text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed no-scrollbar select-text">
+        <div className={`p-5 ${t('bg-black/5', 'bg-black/20')}`}>
+          <p className={`${t('text-[#AAAAAA]', 'text-white/20')} text-[9px] font-black uppercase mb-3 tracking-[0.3em]`}>Full Stack Trace</p>
+          <pre className={`${t('text-[#777777]', 'text-white/40')} font-mono text-[10px] sm:text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed no-scrollbar select-text`}>
             {output}
           </pre>
         </div>
@@ -132,7 +98,8 @@ function ErrorDisplay({ status, output }) {
   );
 }
 
-function RunResultsViewer({ data, activeQuestion, customStdin }) {
+function RunResultsViewer({ data, activeQuestion, customStdin, isDarkMode }) {
+  const t = (light, dark) => isDarkMode ? dark : light;
   const [selectedIdx, setSelectedIdx] = useState(0);
   const results = data?.results || [];
   const current = results[selectedIdx] || null;
@@ -148,24 +115,24 @@ function RunResultsViewer({ data, activeQuestion, customStdin }) {
   const displayInput = current?.input || getFallbackInput() || '(None)';
 
   return (
-    <div className="flex flex-col h-full bg-[#161b22]/30">
+    <div className={`flex flex-col h-full ${t('bg-white/60', 'bg-[#161b22]/30')}`}>
       {/* 1. Case Switcher + Status */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-white/8 bg-[#161b22]/50">
+      <div className={`flex items-center justify-between px-5 py-3 border-b ${t('border-black/8 bg-black/5', 'border-white/8 bg-[#161b22]/50')}`}>
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[70%]">
           {results.map((_, i) => (
             <button
               key={i}
               onClick={() => setSelectedIdx(i)}
               className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap border ${selectedIdx === i
-                ? 'bg-[#DAFF0C] text-[#0d1117] border-[#DAFF0C]'
-                : 'bg-white/5 text-white/40 border-white/10 hover:border-white/20'
+                ? `bg-[#DAFF0C] ${t('text-[#111111]', 'text-[#0d1117]')} border-[#DAFF0C]`
+                : `${t('bg-black/5 text-[#888888] border-black/10 hover:border-black/20', 'bg-white/5 text-white/40 border-white/10 hover:border-white/20')}`
                 }`}
             >
               Case {i + 1}
             </button>
           ))}
         </div>
-        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${isError ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${isError ? 'bg-red-500/10 text-red-400 border-red-500/20' : t('bg-emerald-500/10 text-emerald-600 border-emerald-500/20', 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20')
           }`}>
           {current?.status || 'Executed'}
         </div>
@@ -179,6 +146,7 @@ function RunResultsViewer({ data, activeQuestion, customStdin }) {
           <ErrorDisplay
             status={current.status || (current.compile_output ? 'Compilation Error' : 'Runtime Error')}
             output={current.compile_output || current.stderr}
+            isDarkMode={isDarkMode}
           />
         )}
 
@@ -186,8 +154,8 @@ function RunResultsViewer({ data, activeQuestion, customStdin }) {
         <div className="space-y-5">
           {/* Input */}
           <div className="space-y-2">
-            <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Input</p>
-            <div className="bg-[#0d1117] border border-white/5 rounded-xl px-3 py-2.5 text-white/80 font-mono text-xs shadow-inner whitespace-nowrap overflow-x-auto custom-scrollbar">
+            <p className={`${t('text-[#AAAAAA]', 'text-white/30')} text-[10px] font-black uppercase tracking-widest`}>Input</p>
+            <div className={`${t('bg-[#F8F8F8] border-black/5 text-[#222222]', 'bg-[#0d1117] border-white/5 text-white/80')} border rounded-xl px-3 py-2.5 font-mono text-xs shadow-inner whitespace-nowrap overflow-x-auto custom-scrollbar`}>
               {displayInput.replace(/\n/g, ' ')}
             </div>
           </div>
@@ -195,69 +163,70 @@ function RunResultsViewer({ data, activeQuestion, customStdin }) {
           {/* Output Comparison */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Output</p>
-              <pre className={`bg-[#0d1117] border border-white/8 rounded-xl p-3 font-mono text-xs min-h-[50px] ${isError ? 'text-red-400/70 border-red-500/10' : 'text-emerald-400'}`}>
+              <p className={`${t('text-[#AAAAAA]', 'text-white/30')} text-[10px] font-black uppercase tracking-widest`}>Output</p>
+              <pre className={`${t('bg-[#F8F8F8] border-black/8', 'bg-[#0d1117] border-white/8')} border rounded-xl p-3 font-mono text-xs min-h-[50px] ${isError ? 'text-red-400/70 border-red-500/10' : t('text-emerald-600', 'text-emerald-400')}`}>
                 {current?.stdout || '(No Output)'}
               </pre>
             </div>
             <div className="space-y-2">
-              <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Expected</p>
-              <pre className="bg-[#0d1117] border border-white/8 rounded-xl p-3 font-mono text-xs min-h-[50px] text-emerald-400">
+              <p className={`${t('text-[#AAAAAA]', 'text-white/30')} text-[10px] font-black uppercase tracking-widest`}>Expected</p>
+              <pre className={`${t('bg-[#F8F8F8] border-black/8', 'bg-[#0d1117] border-white/8')} border rounded-xl p-3 font-mono text-xs min-h-[50px] ${t('text-emerald-600', 'text-emerald-400')}`}>
                 {current?.expected_output || '(N/A)'}
               </pre>
             </div>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-white/5 flex items-center justify-between opacity-50">
-          <span className="text-[10px] text-white/20 uppercase font-black">Performance Metrics</span>
-          <span className="text-[10px] text-white/40 font-mono tracking-wider">EXEC_TIME: {current?.execution_time || 0}s</span>
+        <div className={`pt-4 border-t ${t('border-black/5', 'border-white/5')} flex items-center justify-between opacity-50`}>
+          <span className={`text-[10px] ${t('text-[#AAAAAA]', 'text-white/20')} uppercase font-black`}>Performance Metrics</span>
+          <span className={`text-[10px] ${t('text-[#777777]', 'text-white/40')} font-mono tracking-wider`}>EXEC_TIME: {current?.execution_time || 0}s</span>
         </div>
       </div>
     </div>
   );
 }
 
-function SubmitResultsViewer({ data }) {
+function SubmitResultsViewer({ data, isDarkMode }) {
+  const t = (light, dark) => isDarkMode ? dark : light;
   const [selectedIdx, setSelectedIdx] = useState(0);
   const tcResults = data?.test_case_results || [];
   const current = tcResults[selectedIdx] || null;
   const isAllPassed = data.status === 'Accepted';
 
   return (
-    <div className="flex flex-col h-full bg-[#161b22]/30">
+    <div className={`flex flex-col h-full ${t('bg-white/60', 'bg-[#161b22]/30')}`}>
       {/* 1. Global Performance Banner */}
-      <div className={`px-6 py-5 border-b border-white/10 ${isAllPassed ? 'bg-emerald-500/10' : 'bg-red-500/5'}`}>
+      <div className={`px-6 py-5 border-b ${t('border-black/10', 'border-white/10')} ${isAllPassed ? 'bg-emerald-500/10' : 'bg-red-500/5'}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl border ${isAllPassed ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'bg-red-500/10 border-red-400/30 text-red-400'
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl border ${isAllPassed ? `${t('bg-emerald-500/20 border-emerald-400/30 text-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.1)]', 'bg-emerald-500/20 border-emerald-400/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]')}` : 'bg-red-500/10 border-red-400/30 text-red-400'
               }`}>
               {isAllPassed ? <FiCheckCircle /> : <FiAlertCircle />}
             </div>
             <div>
-              <h2 className={`text-xl font-black ${isAllPassed ? 'text-emerald-400' : 'text-red-400'}`}>{data.status}</h2>
-              <p className="text-white/30 text-[9px] font-black uppercase tracking-[0.2em] mt-1">
+              <h2 className={`text-xl font-black ${isAllPassed ? t('text-emerald-600', 'text-emerald-400') : 'text-red-400'}`}>{data.status}</h2>
+              <p className={`${t('text-[#888888]', 'text-white/30')} text-[9px] font-black uppercase tracking-[0.2em] mt-1`}>
                 Score: {data.score}% · {data.passed_test_cases}/{data.total_test_cases} Passed
               </p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-white/20 text-[9px] font-black uppercase mb-1">Time Elapsed</p>
+            <p className={`${t('text-[#AAAAAA]', 'text-white/20')} text-[9px] font-black uppercase mb-1`}>Time Elapsed</p>
             <p className="text-[#DAFF0C] font-mono font-black">{data.execution_time || 0}ms</p>
           </div>
         </div>
       </div>
 
       {/* 2. Test Case Selection Grid */}
-      <div className="px-5 py-3 bg-[#1c2128] border-b border-white/5 flex items-center gap-3">
+      <div className={`px-5 py-3 ${t('bg-[#F0F0F0] border-black/5', 'bg-[#1c2128] border-white/5')} border-b flex items-center gap-3`}>
         <div className="flex flex-wrap gap-2">
           {tcResults.map((tc, i) => (
             <button
               key={i}
               onClick={() => setSelectedIdx(i)}
               className={`w-8 h-8 rounded-lg border transition-all duration-200 cursor-pointer flex items-center justify-center ${selectedIdx === i
-                ? 'border-[#DAFF0C] bg-[#DAFF0C]/10 text-[#DAFF0C] shadow-lg'
-                : 'border-white/5 bg-white/5 text-white/20 hover:border-white/20'
+                ? `border-[#DAFF0C] ${t('bg-[#DAFF0C]/20 text-[#7A9000]', 'bg-[#DAFF0C]/10 text-[#DAFF0C]')} shadow-lg`
+                : `${t('border-black/8 bg-black/5 text-[#AAAAAA] hover:border-black/20', 'border-white/5 bg-white/5 text-white/20 hover:border-white/20')}`
                 }`}
             >
               {tc.status === 'Accepted' ? <FiCheckCircle className="text-xs" /> : <FiXCircle className="text-xs" />}
@@ -271,14 +240,14 @@ function SubmitResultsViewer({ data }) {
         {current && (
           <div className="space-y-5">
             <div className="flex items-center gap-4">
-              <span className="text-white/30 text-[10px] font-black uppercase">Case {selectedIdx + 1} Detail</span>
-              {current.is_hidden && <span className="bg-white/5 px-2 py-0.5 rounded text-[8px] font-black uppercase text-white/30 italic tracking-widest border border-white/10">Private Case</span>}
+              <span className={`text-[10px] font-black uppercase ${t('text-[#AAAAAA]', 'text-white/30')}`}>Case {selectedIdx + 1} Detail</span>
+              {current.is_hidden && <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase italic tracking-widest border ${t('bg-black/5 text-[#888888] border-black/10', 'bg-white/5 text-white/30 border-white/10')}`}>Private Case</span>}
             </div>
 
             {current.is_hidden ? (
-              <div className="bg-[#0d1117] border border-dashed border-white/10 rounded-2xl p-10 flex flex-col items-center justify-center text-center">
-                <FiFlag className="text-white/10 text-3xl mb-3" />
-                <p className="text-white/30 text-xs font-medium max-w-[300px]">Hidden test case details are restricted to prevent answer leaking. All outputs are encrypted by the judge engine.</p>
+              <div className={`border border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center ${t('bg-[#F8F8F8] border-black/10', 'bg-[#0d1117] border-white/10')}`}>
+                <FiFlag className={`text-3xl mb-3 ${t('text-[#CCCCCC]', 'text-white/10')}`} />
+                <p className={`text-xs font-medium max-w-[300px] ${t('text-[#AAAAAA]', 'text-white/30')}`}>Hidden test case details are restricted to prevent answer leaking. All outputs are encrypted by the judge engine.</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -286,16 +255,17 @@ function SubmitResultsViewer({ data }) {
                   <ErrorDisplay
                     status={current.status}
                     output={current.compile_output || current.stderr}
+                    isDarkMode={isDarkMode}
                   />
                 )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Output</p>
-                    <pre className="bg-[#0d1117] border border-white/5 rounded-xl p-3 text-white/60 font-mono text-xs min-h-[40px]">{current.stdout || '(No Output)'}</pre>
+                    <p className={`text-[10px] font-black uppercase tracking-widest ${t('text-[#AAAAAA]', 'text-white/30')}`}>Output</p>
+                    <pre className={`border rounded-xl p-3 font-mono text-xs min-h-[40px] ${t('bg-[#F8F8F8] border-black/5 text-[#555555]', 'bg-[#0d1117] border-white/5 text-white/60')}`}>{current.stdout || '(No Output)'}</pre>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Status</p>
-                    <div className={`bg-[#0d1117] border border-white/5 rounded-xl p-3 font-mono font-black text-xs min-h-[40px] flex items-center ${current.status === 'Accepted' ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <p className={`text-[10px] font-black uppercase tracking-widest ${t('text-[#AAAAAA]', 'text-white/30')}`}>Status</p>
+                    <div className={`border rounded-xl p-3 font-mono font-black text-xs min-h-[40px] flex items-center ${t('bg-[#F8F8F8] border-black/5', 'bg-[#0d1117] border-white/5')} ${current.status === 'Accepted' ? t('text-emerald-600', 'text-emerald-400') : 'text-red-400'}`}>
                       {current.status}
                     </div>
                   </div>
@@ -313,14 +283,24 @@ function SubmitResultsViewer({ data }) {
 export default function MainAssessment() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // ── States ────────────────────────────────────────────────────────────────
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
+  const t = (light, dark) => isDarkMode ? dark : light;
+
+  useEffect(() => {
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
   const { uniqueId } = location.state || {};
   const editorRef = useRef(null);
   const pollRef = useRef(null);
 
-  // Auth / session
+  // Session
   const [userId, setUserId] = useState('');
   const [sessionId, setSessionId] = useState(null);
-  const [authError, setAuthError] = useState('');
 
   // Questions
   const [questions, setQuestions] = useState([]);
@@ -346,7 +326,6 @@ export default function MainAssessment() {
   const [submitError, setSubmitError] = useState('');
 
   // UI
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [showLangPanel, setShowLangPanel] = useState(false);
   const [panelCollapsed, setPanelCollapsed] = useState(false);
@@ -394,11 +373,9 @@ export default function MainAssessment() {
   useEffect(() => {
     const init = async () => {
       try {
-        // 1. Auth
-        setInitPhase('auth');
+        // 1. Derive candidate ID directly — no auth calls needed (headless backend)
         const email = localStorage.getItem('userEmail') || 'candidate@example.com';
-        const name = localStorage.getItem('userName') || email.split('@')[0];
-        const uid = await ensureCodingAuth(email, name);
+        const uid = email; // use email as stable candidate identifier
         setUserId(uid);
 
         // 2. Fetch questions
@@ -585,29 +562,20 @@ export default function MainAssessment() {
 
   const isTimeLow = timeLeft !== null && timeLeft < 300;
 
-  // ── Fullscreen toggle ────────────────────────────────────────────────────────
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => { });
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen().catch(() => { });
-      setIsFullscreen(false);
-    }
-  };
+
 
   // ── Loading / Error states ───────────────────────────────────────────────────
   if (initPhase !== 'ready' && initPhase !== 'error') {
-    const labels = { auth: 'Authenticating...', questions: 'Loading questions...' };
+    const labels = { auth: 'Connecting...', questions: 'Loading questions...' };
     return (
-      <div className="h-screen bg-[#0d1117] flex flex-col items-center justify-center font-sans gap-6">
+      <div className={`h-screen flex flex-col items-center justify-center font-sans gap-6 transition-colors duration-300 ${t('bg-[#F5F5F5]', 'bg-[#0d1117]')}`}>
         <div className="relative">
-          <div className="w-16 h-16 rounded-full border-4 border-[#144542]/20" />
+          <div className={`w-16 h-16 rounded-full border-4 ${t('border-[#DAFF0C]/20', 'border-[#DAFF0C]/10')}`} />
           <div className="w-16 h-16 rounded-full border-4 border-[#DAFF0C] border-t-transparent animate-spin absolute inset-0" />
         </div>
         <div className="text-center">
-          <p className="text-white font-black text-lg tracking-wide">{labels[initPhase] || 'Initializing...'}</p>
-          <p className="text-white/30 text-sm font-medium mt-1">Connecting to coding assessment engine</p>
+          <p className={`font-black text-lg tracking-wide ${t('text-[#111111]', 'text-white')}`}>{labels[initPhase] || 'Initializing...'}</p>
+          <p className={`${t('text-[#888888]', 'text-white/30')} text-sm font-medium mt-1`}>Connecting to coding assessment engine</p>
         </div>
       </div>
     );
@@ -615,23 +583,23 @@ export default function MainAssessment() {
 
   if (initPhase === 'error') {
     return (
-      <div className="h-screen bg-[#0d1117] flex items-center justify-center font-sans p-4">
-        <div className="bg-[#161b22] border border-red-500/20 rounded-2xl p-8 max-w-md text-center">
+      <div className={`h-screen flex items-center justify-center font-sans p-4 transition-colors duration-300 ${t('bg-[#F5F5F5]', 'bg-[#0d1117]')}`}>
+        <div className={`${t('bg-[#FFFFFF] border-black/8', 'bg-[#161b22] border-white/8')} border rounded-2xl p-8 max-w-md text-center shadow-xl`}>
           <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <FiAlertCircle className="text-red-500 text-3xl" />
           </div>
-          <h2 className="text-white text-xl font-black mb-2">Connection Failed</h2>
-          <p className="text-white/50 text-sm mb-6">{initError}</p>
+          <h2 className={`text-xl font-black mb-2 ${t('text-[#111111]', 'text-white')}`}>Connection Failed</h2>
+          <p className={`${t('text-[#555555]', 'text-white/40')} text-sm mb-6`}>{initError}</p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => window.location.reload()}
-              className="flex items-center gap-2 px-5 py-3 bg-[#DAFF0C] text-[#0d1117] font-black text-sm rounded-xl cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3 bg-[#DAFF0C] text-[#111111] font-black text-sm rounded-xl cursor-pointer"
             >
               <FiRefreshCw /> Retry
             </button>
             <button
               onClick={() => navigate('/user/dashboard')}
-              className="px-5 py-3 bg-white/5 text-white/70 font-bold text-sm rounded-xl cursor-pointer border border-white/10 hover:bg-white/10"
+              className={`px-5 py-3 font-bold text-sm rounded-xl cursor-pointer border ${t('bg-black/5 text-[#444444] border-black/10 hover:bg-black/8', 'bg-white/5 text-white/60 border-white/10 hover:bg-white/8')}`}
             >
               Go Back
             </button>
@@ -647,17 +615,17 @@ export default function MainAssessment() {
     : LANGUAGES;
 
   return (
-    <div className="flex flex-col h-screen bg-[#0d1117] font-sans overflow-hidden text-white select-none">
+    <div className={`flex flex-col h-screen font-sans overflow-hidden transition-colors duration-300 select-none ${t('bg-[#F5F5F5] text-[#111111]', 'bg-[#0d1117] text-white')}`}>
       <ProctorOverlay uniqueId={uniqueId} />
 
       {/* ── TOP NAV BAR ── */}
-      <nav className="flex items-center justify-between border-b border-white/8 bg-[#161b22] px-4 py-2.5 z-30 shrink-0">
+      <nav className={`flex items-center justify-between border-b px-4 py-2.5 z-30 shrink-0 ${t('border-black/8 bg-[#FFFFFF]', 'border-white/8 bg-[#161b22]')}`}>
 
         {/* Left: Logo + Question selector */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#DAFF0C]/10 border border-[#DAFF0C]/20 rounded-lg shrink-0">
+          <div className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg shrink-0 ${t('bg-[#DAFF0C]/20 border-[#DAFF0C]/40', 'bg-[#DAFF0C]/10 border-[#DAFF0C]/20')}`}>
             <FiZap className="text-[#DAFF0C] text-sm" />
-            <span className="text-[#DAFF0C] text-[10px] font-black uppercase tracking-[0.2em] hidden sm:block">
+            <span className={`text-[10px] font-black uppercase tracking-[0.2em] hidden sm:block ${t('text-[#111111]', 'text-white')}`}>
               Coding Assessment
             </span>
           </div>
@@ -665,8 +633,8 @@ export default function MainAssessment() {
           {/* Question title breadcrumb */}
           {activeQuestion && (
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-white/30">Problems /</span>
-              <span className="text-white font-semibold truncate max-w-[160px]">{activeQuestion.title}</span>
+              <span className={t('text-[#888888]', 'text-white/20')}>Problems /</span>
+              <span className={`font-semibold truncate max-w-[160px] ${t('text-[#111111]', 'text-white')}`}>{activeQuestion.title}</span>
               <span className={`hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-black border ${DIFF_STYLE[activeQuestion.difficulty] || DIFF_STYLE.Medium}`}>
                 {activeQuestion.difficulty}
               </span>
@@ -675,7 +643,7 @@ export default function MainAssessment() {
         </div>
 
         {/* Center: Timer */}
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-300 ${isTimeLow ? 'bg-red-500/10 border-red-500/30 text-red-400 animate-pulse' : 'bg-white/5 border-white/10 text-white'
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-300 ${isTimeLow ? 'bg-red-500/10 border-red-500/30 text-red-400 animate-pulse' : t('bg-black/5 border-black/10 text-[#111111]', 'bg-white/5 border-white/10 text-white')
           }`}>
           <FiClock className="text-base" />
           <span className="font-mono font-black text-base tracking-wider">{formatTime(timeLeft)}</span>
@@ -683,23 +651,27 @@ export default function MainAssessment() {
 
         {/* Right: User + controls */}
         <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/8">
-            <FiUser className="text-white/40 text-xs" />
-            <span className="text-white/50 text-xs font-medium truncate max-w-[120px]">
+          {/* Theme Toggle Button */}
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`p-2 rounded-lg border transition-all duration-200 group hover:scale-105 ${t('bg-black/5 border-black/10 text-[#888888]', 'bg-white/5 border-white/10 text-white/40')
+              }`}
+          >
+            {isDarkMode ? <FiSun className="text-sm group-hover:text-[#DAFF0C]" /> : <FiMoon className="text-sm group-hover:text-[#DAFF0C]" />}
+          </button>
+
+          <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border ${t('bg-black/5 border-black/8', 'bg-white/5 border-white/10')}`}>
+            <FiUser className={t('text-[#888888]', 'text-white/20')} />
+            <span className={`text-xs font-medium truncate max-w-[120px] ${t('text-[#666666]', 'text-white/60')}`}>
               {localStorage.getItem('userEmail')?.split('@')[0] || 'Candidate'}
             </span>
           </div>
 
-          <button
-            onClick={toggleFullscreen}
-            className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
-          >
-            {isFullscreen ? <FiMinimize2 className="text-sm" /> : <FiMaximize2 className="text-sm" />}
-          </button>
+
 
           <button
             onClick={() => setShowFinishModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#DAFF0C] text-[#0d1117] font-black text-xs uppercase tracking-[0.15em] rounded-xl hover:shadow-lg hover:shadow-[#DAFF0C]/20 transition-all duration-200 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-[#DAFF0C] text-[#111111] font-black text-xs uppercase tracking-[0.15em] rounded-xl hover:shadow-lg hover:shadow-[#DAFF0C]/20 transition-all duration-200 cursor-pointer"
           >
             <FiFlag className="text-sm" />
             <span className="hidden sm:block">Finish</span>
@@ -711,11 +683,11 @@ export default function MainAssessment() {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── LEFT: Question list sidebar ── */}
-        <div className="w-12 lg:w-56 bg-[#161b22] border-r border-white/8 flex flex-col overflow-hidden shrink-0 transition-all duration-300">
-          <div className="px-3 py-3 border-b border-white/8 hidden lg:flex items-center gap-2">
+        <div className={`w-12 lg:w-56 border-r flex flex-col overflow-hidden shrink-0 transition-all duration-300 ${t('bg-[#FFFFFF] border-black/8', 'bg-[#161b22] border-white/8')}`}>
+          <div className={`px-3 py-3 border-b hidden lg:flex items-center gap-2 ${t('border-black/8', 'border-white/8')}`}>
             <FiList className="text-[#DAFF0C] text-sm" />
-            <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Problems</span>
-            <span className="ml-auto bg-white/10 text-white/50 text-[9px] font-black px-1.5 py-0.5 rounded-full">{questions.length}</span>
+            <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${t('text-[#666666]', 'text-white/40')}`}>Problems</span>
+            <span className={`ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-full ${t('bg-black/8 text-[#666666]', 'bg-white/8 text-white/40')}`}>{questions.length}</span>
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -725,21 +697,21 @@ export default function MainAssessment() {
                 <button
                   key={q.id}
                   onClick={() => selectQuestion(q, language, userId)}
-                  className={`w-full text-left transition-all duration-200 cursor-pointer group ${isActive ? 'bg-[#DAFF0C]/10 border-r-2 border-[#DAFF0C]' : 'hover:bg-white/5 border-r-2 border-transparent'
+                  className={`w-full text-left transition-all duration-200 cursor-pointer group ${isActive ? `bg-[#DAFF0C]/20 border-r-2 border-[#DAFF0C] ${t('', 'bg-[#DAFF0C]/10')}` : `hover:bg-black/5 border-r-2 border-transparent ${t('', 'hover:bg-white/5')}`
                     }`}
                 >
                   {/* Collapsed (icon only) */}
                   <div className="lg:hidden flex items-center justify-center py-3">
-                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black ${isActive ? 'bg-[#DAFF0C] text-[#0d1117]' : 'bg-white/5 text-white/40'
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black ${isActive ? 'bg-[#DAFF0C] text-[#111111]' : t('bg-black/8 text-[#888888]', 'bg-white/5 text-white/30')
                       }`}>{i + 1}</span>
                   </div>
                   {/* Expanded */}
                   <div className="hidden lg:block px-3 py-3">
                     <div className="flex items-start gap-2.5">
-                      <span className={`shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-black mt-0.5 ${isActive ? 'bg-[#DAFF0C] text-[#0d1117]' : 'bg-white/5 text-white/30'
+                      <span className={`shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-black mt-0.5 ${isActive ? 'bg-[#DAFF0C] text-[#111111]' : t('bg-black/8 text-[#888888]', 'bg-white/5 text-white/30')
                         }`}>{i + 1}</span>
                       <div className="min-w-0">
-                        <p className={`text-xs font-semibold leading-tight truncate ${isActive ? 'text-white' : 'text-white/60 group-hover:text-white/80'}`}>
+                        <p className={`text-xs font-semibold leading-tight truncate ${isActive ? t('text-[#111111]', 'text-white') : t('text-[#444444] group-hover:text-[#222222]', 'text-white/40 group-hover:text-white/80')}`}>
                           {q.title}
                         </p>
                         <span className={`inline-block mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black border ${DIFF_STYLE[q.difficulty] || DIFF_STYLE.Medium}`}>
@@ -756,17 +728,17 @@ export default function MainAssessment() {
 
         {/* ── MIDDLE: Problem description ── */}
         <div
-          className={`bg-[#161b22] border-r border-white/8 flex flex-col overflow-hidden shrink-0 transition-[width] ${isResizingDesc.current ? 'duration-0' : 'duration-300'} ${panelCollapsed ? 'w-0 border-none' : ''}`}
+          className={`border-r flex flex-col overflow-hidden shrink-0 transition-[width] ${isResizingDesc.current ? 'duration-0' : 'duration-300'} ${panelCollapsed ? 'w-0 border-none' : ''} ${t('bg-[#FFFFFF] border-black/8', 'bg-[#0d1117] border-white/8')}`}
           style={{ width: panelCollapsed ? 0 : descriptionWidth }}
         >
           {!panelCollapsed && activeQuestion && (
             <>
-              <div className="flex items-center gap-3 px-5 py-3 border-b border-white/8">
+              <div className={`flex items-center gap-3 px-5 py-3 border-b ${t('border-black/8', 'border-white/8')}`}>
                 <FiCode className="text-[#DAFF0C] text-sm" />
-                <span className="text-white/50 text-[10px] font-black uppercase tracking-[0.2em]">Description</span>
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${t('text-[#666666]', 'text-white/40')}`}>Description</span>
                 <button
                   onClick={() => setPanelCollapsed(true)}
-                  className="ml-auto text-white/20 hover:text-white/50 text-xs cursor-pointer p-1 rounded"
+                  className={`ml-auto text-xs cursor-pointer p-1 rounded transition-colors ${t('text-[#AAAAAA] hover:text-[#555555]', 'text-white/20 hover:text-white/60')}`}
                   title="Collapse panel"
                 >
                   ‹‹
@@ -776,7 +748,7 @@ export default function MainAssessment() {
               <div className="flex-1 overflow-y-auto custom-scrollbar px-5 py-5 space-y-5">
                 {/* Title */}
                 <div>
-                  <h1 className="text-white text-xl font-black leading-snug mb-2">{activeQuestion.title}</h1>
+                  <h1 className={`text-xl font-black leading-snug mb-2 ${t('text-[#111111]', 'text-white')}`}>{activeQuestion.title}</h1>
                   <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-black border ${DIFF_STYLE[activeQuestion.difficulty] || DIFF_STYLE.Medium}`}>
                     {activeQuestion.difficulty}
                   </span>
@@ -784,31 +756,31 @@ export default function MainAssessment() {
 
                 {/* Description */}
                 <div>
-                  <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">{activeQuestion.description}</p>
+                  <p className={`text-sm leading-relaxed whitespace-pre-wrap ${t('text-[#444444]', 'text-white/60')}`}>{activeQuestion.description}</p>
                 </div>
 
                 {/* Examples */}
                 {activeQuestion.examples?.length > 0 && (
                   <div>
                     {activeQuestion.examples.map((ex, i) => (
-                      <div key={i} className="mb-4 bg-[#0d1117] rounded-xl p-4 border border-white/8">
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-3">Example {i + 1}</p>
+                      <div key={i} className={`mb-4 rounded-xl p-4 border transition-colors ${t('bg-[#F8F8F8] border-black/8', 'bg-white/5 border-white/5')}`}>
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-3 ${t('text-[#888888]', 'text-white/20')}`}>Example {i + 1}</p>
                         {ex.input !== undefined && (
                           <div className="mb-2">
-                            <span className="text-white/30 text-xs font-bold">Input: </span>
+                            <span className={`text-xs font-bold ${t('text-[#AAAAAA]', 'text-white/20')}`}>Input: </span>
                             <code className="text-[#DAFF0C] text-xs font-mono">{ex.input}</code>
                           </div>
                         )}
                         {ex.output !== undefined && (
                           <div className="mb-2">
-                            <span className="text-white/30 text-xs font-bold">Output: </span>
-                            <code className="text-emerald-400 text-xs font-mono">{ex.output}</code>
+                            <span className={`text-xs font-bold ${t('text-[#AAAAAA]', 'text-white/20')}`}>Output: </span>
+                            <code className={`${t('text-emerald-600', 'text-emerald-400')} text-xs font-mono`}>{ex.output}</code>
                           </div>
                         )}
                         {ex.explanation && (
-                          <div className="mt-2 pt-2 border-t border-white/8">
-                            <span className="text-white/30 text-xs font-bold">Explanation: </span>
-                            <span className="text-white/50 text-xs">{ex.explanation}</span>
+                          <div className={`mt-2 pt-2 border-t ${t('border-black/8', 'border-white/5')}`}>
+                            <span className={`text-xs font-bold ${t('text-[#AAAAAA]', 'text-white/20')}`}>Explanation: </span>
+                            <span className={`text-xs ${t('text-[#555555]', 'text-white/40')}`}>{ex.explanation}</span>
                           </div>
                         )}
                       </div>
@@ -819,11 +791,11 @@ export default function MainAssessment() {
                 {/* Constraints */}
                 {activeQuestion.constraints?.length > 0 && (
                   <div>
-                    <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-3">Constraints</p>
+                    <p className={`text-[10px] font-black uppercase tracking-widest mb-3 ${t('text-[#888888]', 'text-white/20')}`}>Constraints</p>
                     <ul className="space-y-1.5">
                       {activeQuestion.constraints.map((c, i) => (
-                        <li key={i} className="flex items-start gap-2 text-white/50 text-xs">
-                          <span className="text-[#DAFF0C]/50 mt-0.5">•</span>
+                        <li key={i} className={`flex items-start gap-2 text-xs ${t('text-[#555555]', 'text-white/60')}`}>
+                          <span className="text-[#DAFF0C]/70 mt-0.5">•</span>
                           <code className="font-mono">{c}</code>
                         </li>
                       ))}
@@ -834,13 +806,13 @@ export default function MainAssessment() {
                 {/* Sample test cases */}
                 {activeQuestion.sample_test_cases?.length > 0 && (
                   <div>
-                    <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-3">Sample Test Cases</p>
+                    <p className={`text-[10px] font-black uppercase tracking-widest mb-3 ${t('text-[#888888]', 'text-white/20')}`}>Sample Test Cases</p>
                     {activeQuestion.sample_test_cases.map((tc, i) => (
-                      <div key={i} className="mb-3 bg-[#0d1117] rounded-xl p-4 border border-white/8">
-                        <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mb-2">Case {i + 1}</p>
+                      <div key={i} className={`mb-3 rounded-xl p-4 border transition-colors ${t('bg-[#F8F8F8] border-black/8', 'bg-white/5 border-white/5')}`}>
+                        <p className={`text-[9px] font-black uppercase tracking-widest mb-2 ${t('text-[#AAAAAA]', 'text-white/20')}`}>Case {i + 1}</p>
                         <div className="text-xs font-mono">
-                          <p><span className="text-white/30">Input:  </span><span className="text-[#DAFF0C]">{tc.input}</span></p>
-                          <p><span className="text-white/30">Output: </span><span className="text-emerald-400">{tc.expected_output}</span></p>
+                          <p><span className={t('text-[#AAAAAA]', 'text-white/20')}>Input:  </span><span className="text-[#DAFF0C]">{tc.input}</span></p>
+                          <p><span className={t('text-[#AAAAAA]', 'text-white/20')}>Output: </span><span className={t('text-emerald-600', 'text-emerald-400')}>{tc.expected_output}</span></p>
                         </div>
                       </div>
                     ))}
@@ -853,7 +825,7 @@ export default function MainAssessment() {
           {/* No question selected */}
           {!panelCollapsed && !activeQuestion && (
             <div className="flex-1 flex items-center justify-center">
-              <p className="text-white/20 text-sm">No question selected</p>
+              <p className={t('text-[#AAAAAA]', 'text-white/20')}>No question selected</p>
             </div>
           )}
         </div>
@@ -863,7 +835,7 @@ export default function MainAssessment() {
           <button
             onClick={() => setPanelCollapsed(false)}
             style={{ left: 48 }}
-            className="absolute top-1/2 -translate-y-1/2 z-20 bg-[#161b22] border border-white/10 text-white/30 hover:text-white/60 text-xs px-1.5 py-3 rounded-r-lg cursor-pointer"
+            className="absolute top-1/2 -translate-y-1/2 z-20 bg-[#FFFFFF] border border-black/10 text-[#AAAAAA] hover:text-[#555555] text-xs px-1.5 py-3 rounded-r-lg cursor-pointer"
             title="Expand description"
           >
             ››
@@ -877,10 +849,10 @@ export default function MainAssessment() {
               isResizingDesc.current = true;
               document.body.style.cursor = 'col-resize';
             }}
-            className="w-1.5 hover:w-1.5 bg-transparent hover:bg-[#DAFF0C]/30 cursor-col-resize z-20 transition-colors group flex items-center justify-center"
+            className="w-1.5 hover:w-1.5 bg-transparent hover:bg-[#DAFF0C]/40 cursor-col-resize z-20 transition-colors group flex items-center justify-center"
             title="Drag to resize description"
           >
-            <div className="w-[1px] h-10 bg-white/10 group-hover:bg-[#DAFF0C]/50 rounded-full" />
+            <div className={`w-[1px] h-10 ${t('bg-black/15', 'bg-white/10')} group-hover:bg-[#DAFF0C]/50 rounded-full`} />
           </div>
         )}
 
@@ -888,27 +860,27 @@ export default function MainAssessment() {
         <div className="flex-1 flex flex-col overflow-hidden">
 
           {/* Editor toolbar */}
-          <div className="flex items-center justify-between px-4 py-2 bg-[#0d1117] border-b border-white/8 shrink-0">
+          <div className={`flex items-center justify-between px-4 py-2 border-b shrink-0 ${t('bg-[#F5F5F5] border-black/8', 'bg-[#1c2128] border-white/5')}`}>
             {/* Language selector */}
             <div className="relative">
               <button
                 onClick={() => setLangOpen(v => !v)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-[#161b22] border border-white/10 rounded-lg text-sm font-bold text-white hover:border-[#DAFF0C]/30 transition-all cursor-pointer"
+                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-sm font-bold transition-all cursor-pointer ${t('bg-[#FFFFFF] border-black/10 text-[#111111] hover:border-[#DAFF0C]/50', 'bg-white/5 border-white/10 text-white/80 hover:border-[#DAFF0C]/50')}`}
               >
                 <FiCode className="text-[#DAFF0C] text-xs" />
                 {LANGUAGES.find(l => l.key === language)?.display || language}
-                <FiChevronDown className={`text-white/40 text-xs transition-transform ${langOpen ? 'rotate-180' : ''}`} />
+                <FiChevronDown className={`${t('text-[#888888]', 'text-white/20')} text-xs transition-transform ${langOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {langOpen && (
-                <div className="absolute top-full left-0 mt-1 w-52 bg-[#1c2128] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+                <div className={`absolute top-full left-0 mt-1 w-52 border rounded-xl shadow-2xl z-50 overflow-hidden ${t('bg-[#FFFFFF] border-black/10', 'bg-[#1c2128] border-white/10')}`}>
                   {allowedLangs.map(lang => (
                     <button
                       key={lang.key}
                       onClick={() => handleLangChange(lang.key)}
                       className={`w-full text-left px-4 py-2.5 text-sm transition-all cursor-pointer ${language === lang.key
-                        ? 'bg-[#DAFF0C]/10 text-[#DAFF0C] font-bold'
-                        : 'text-white/60 hover:bg-white/5 hover:text-white'
+                        ? `bg-[#DAFF0C]/20 ${t('text-[#7A9000]', 'text-[#DAFF0C]')} font-bold`
+                        : `${t('text-[#444444] hover:bg-black/5 hover:text-[#111111]', 'text-white/40 hover:bg-white/5 hover:text-white')}`
                         }`}
                     >
                       {lang.display}
@@ -923,7 +895,7 @@ export default function MainAssessment() {
               <button
                 onClick={handleRun}
                 disabled={running || submitting || !activeQuestion}
-                className="flex items-center gap-2 px-4 py-2 bg-[#161b22] border border-white/10 text-white font-bold text-sm rounded-xl hover:border-white/20 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                className={`flex items-center gap-2 px-4 py-2 border font-bold text-sm rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer ${t('bg-[#FFFFFF] border-black/10 text-[#111111] hover:border-black/20 hover:bg-black/5', 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10')}`}
               >
                 {running ? <FiLoader className="animate-spin text-sm" /> : <FiPlay className="text-sm" fill="currentColor" />}
                 Run
@@ -931,7 +903,7 @@ export default function MainAssessment() {
               <button
                 onClick={handleSubmit}
                 disabled={running || submitting || !activeQuestion}
-                className="flex items-center gap-2 px-4 py-2 bg-[#DAFF0C] text-[#0d1117] font-black text-sm rounded-xl hover:shadow-lg hover:shadow-[#DAFF0C]/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 bg-[#DAFF0C] text-[#111111] font-black text-sm rounded-xl hover:shadow-lg hover:shadow-[#DAFF0C]/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95"
               >
                 {submitting ? <FiLoader className="animate-spin text-sm" /> : <FiSend className="text-sm" />}
                 Submit
@@ -943,7 +915,7 @@ export default function MainAssessment() {
           <div className="flex-1 overflow-hidden" onClick={() => { if (langOpen) setLangOpen(false); }}>
             <Editor
               height="100%"
-              theme="vs-dark"
+              theme={isDarkMode ? 'vs-dark' : 'vs'}
               language={LANGUAGES.find(l => l.key === language)?.monaco || 'python'}
               value={code}
               onChange={val => setCode(val || '')}
@@ -993,30 +965,30 @@ export default function MainAssessment() {
               isResizingConsole.current = true;
               document.body.style.cursor = 'row-resize';
             }}
-            className="h-1.5 hover:h-1.5 bg-transparent hover:bg-[#DAFF0C]/30 cursor-row-resize z-20 transition-colors group flex flex-col items-center justify-center shrink-0"
+            className="h-1.5 hover:h-1.5 bg-transparent hover:bg-[#DAFF0C]/40 cursor-row-resize z-20 transition-colors group flex flex-col items-center justify-center shrink-0"
             title="Drag to resize console"
           >
-            <div className="w-10 h-[1px] bg-white/10 group-hover:bg-[#DAFF0C]/50 rounded-full" />
+            <div className={`w-10 h-[1px] ${t('bg-black/15', 'bg-white/10')} group-hover:bg-[#DAFF0C]/50 rounded-full`} />
           </div>
 
           {/* ── Console / Results panel ── */}
           <div
-            className="bg-[#161b22] border-t border-white/8 flex flex-col shrink-0 overflow-hidden"
+            className={`border-t flex flex-col shrink-0 overflow-hidden ${t('bg-[#FFFFFF] border-black/8', 'bg-[#0d1117] border-white/8')}`}
             style={{ height: consoleHeight }}
           >
             {/* Console tabs */}
-            <div className="flex items-center justify-between px-4 pt-3 border-b border-white/8 shrink-0">
+            <div className={`flex items-center justify-between px-4 pt-3 border-b shrink-0 ${t('border-black/8', 'border-white/8')}`}>
               <div className="flex items-center gap-5">
                 <button
                   onClick={() => setActiveTab('testcase')}
-                  className={`pb-2.5 text-xs font-black uppercase tracking-widest transition-all cursor-pointer border-b-2 ${activeTab === 'testcase' ? 'border-[#DAFF0C] text-[#DAFF0C]' : 'border-transparent text-white/30 hover:text-white/60'
+                  className={`pb-2.5 text-xs font-black uppercase tracking-widest transition-all cursor-pointer border-b-2 ${activeTab === 'testcase' ? `border-[#DAFF0C] ${t('text-[#7A9000]', 'text-[#DAFF0C]')}` : `border-transparent ${t('text-[#AAAAAA] hover:text-[#555555]', 'text-white/20 hover:text-white/60')}`
                     }`}
                 >
                   <span className="flex items-center gap-1.5"><FiTerminal className="text-sm" /> Console</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('result')}
-                  className={`pb-2.5 text-xs font-black uppercase tracking-widest transition-all cursor-pointer border-b-2 ${activeTab === 'result' ? 'border-[#DAFF0C] text-[#DAFF0C]' : 'border-transparent text-white/30 hover:text-white/60'
+                  className={`pb-2.5 text-xs font-black uppercase tracking-widest transition-all cursor-pointer border-b-2 ${activeTab === 'result' ? `border-[#DAFF0C] ${t('text-[#7A9000]', 'text-[#DAFF0C]')}` : `border-transparent ${t('text-[#AAAAAA] hover:text-[#555555]', 'text-white/20 hover:text-white/60')}`
                     }`}
                 >
                   <span className="flex items-center gap-1.5"><FiAward className="text-sm" /> Testcase Results</span>
@@ -1025,7 +997,7 @@ export default function MainAssessment() {
               {(runResult || submitResult) && activeTab === 'result' && (
                 <button
                   onClick={() => { setRunResult(null); setSubmitResult(null); }}
-                  className="mb-2 text-[10px] font-black uppercase text-white/20 hover:text-white/50 transition-all flex items-center gap-1 cursor-pointer"
+                  className={`mb-2 text-[10px] font-black uppercase transition-all flex items-center gap-1 cursor-pointer ${t('text-[#AAAAAA] hover:text-[#555555]', 'text-white/20 hover:text-white/60')}`}
                 >
                   <FiRefreshCw className="text-[9px]" /> Clear
                 </button>
@@ -1037,15 +1009,15 @@ export default function MainAssessment() {
               {/* Testcase tab */}
               {activeTab === 'testcase' && (
                 <div className="p-4 space-y-3 h-full overflow-y-auto custom-scrollbar">
-                  <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Custom Input (stdin)</p>
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${t('text-[#AAAAAA]', 'text-white/20')}`}>Custom Input (stdin)</p>
                   <textarea
                     value={stdin}
                     onChange={e => setStdin(e.target.value)}
                     placeholder="Enter custom input here..."
                     rows={4}
-                    className="w-full bg-[#0d1117] border border-white/10 rounded-xl p-3 text-white/80 font-mono text-sm resize-none outline-none focus:border-[#DAFF0C]/30 placeholder:text-white/20 transition-all"
+                    className={`w-full border rounded-xl p-3 font-mono text-sm resize-none outline-none focus:border-[#DAFF0C]/60 transition-all ${t('bg-[#F8F8F8] border-black/10 text-[#222222] placeholder:text-[#CCCCCC]', 'bg-black/20 border-white/5 text-white/80 placeholder:text-white/10')}`}
                   />
-                  <p className="text-white/20 text-[10px]">This input will be passed to stdin when you click <span className="text-white/40 font-bold">Run</span>.</p>
+                  <p className={t('text-[#AAAAAA] text-[10px]', 'text-white/20 text-[10px]')}>This input will be passed to stdin when you click <span className={t('text-[#777777] font-bold', 'text-white/40 font-bold')}>Run</span>.</p>
                 </div>
               )}
 
@@ -1056,10 +1028,10 @@ export default function MainAssessment() {
                   {(running || submitting) && (
                     <div className="flex-1 flex flex-col items-center justify-center gap-3">
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-full border-2 border-[#DAFF0C]/10" />
+                        <div className={`w-10 h-10 rounded-full border-2 ${t('border-[#DAFF0C]/20', 'border-white/5')}`} />
                         <div className="w-10 h-10 rounded-full border-2 border-[#DAFF0C] border-t-transparent animate-spin absolute inset-0" />
                       </div>
-                      <p className="text-white/60 text-[10px] font-black uppercase tracking-widest animate-pulse">
+                      <p className={`text-[10px] font-black uppercase tracking-widest animate-pulse ${t('text-[#555555]', 'text-[#DAFF0C]')}`}>
                         {submitting ? 'Judging Submission...' : 'Executing Code...'}
                       </p>
                     </div>
@@ -1076,7 +1048,7 @@ export default function MainAssessment() {
                           </div>
                         </div>
                       ) : (
-                        <RunResultsViewer data={runResult} activeQuestion={activeQuestion} customStdin={stdin} />
+                        <RunResultsViewer data={runResult} activeQuestion={activeQuestion} customStdin={stdin} isDarkMode={isDarkMode} />
                       )}
                     </div>
                   )}
@@ -1084,7 +1056,7 @@ export default function MainAssessment() {
                   {/* Submit result Viewer */}
                   {!running && !submitting && submitResult && (
                     <div className="flex-1 overflow-hidden">
-                      <SubmitResultsViewer data={submitResult} />
+                      <SubmitResultsViewer data={submitResult} isDarkMode={isDarkMode} />
                     </div>
                   )}
 
@@ -1100,7 +1072,7 @@ export default function MainAssessment() {
 
                   {/* Idle state */}
                   {!running && !submitting && !runResult && !submitResult && !submitError && (
-                    <div className="flex-1 flex flex-col items-center justify-center opacity-20 gap-2">
+                    <div className={`flex-1 flex flex-col items-center justify-center gap-2 ${t('text-[#CCCCCC]', 'text-white/10')}`}>
                       <FiZap className="text-3xl" />
                       <p className="text-[10px] font-black uppercase tracking-[0.2em]">Ready to Execute</p>
                     </div>
@@ -1114,28 +1086,28 @@ export default function MainAssessment() {
 
       {/* ── FINISH CONFIRMATION MODAL ── */}
       {showFinishModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#161b22] border border-white/10 rounded-2xl shadow-2xl max-w-md w-full p-8">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className={`border rounded-2xl shadow-2xl max-w-md w-full p-8 ${t('bg-[#FFFFFF] border-black/10', 'bg-[#161b22] border-white/10')}`}>
             <div className="flex items-center justify-center mb-5">
-              <div className="w-16 h-16 bg-[#DAFF0C]/10 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-[#DAFF0C]/20 rounded-full flex items-center justify-center">
                 <FiFlag className="text-3xl text-[#DAFF0C]" />
               </div>
             </div>
-            <h2 className="text-white text-2xl font-black text-center mb-2 tracking-tight">Finish Assessment?</h2>
-            <p className="text-white/40 text-sm text-center font-medium mb-8 leading-relaxed">
+            <h2 className={`text-2xl font-black text-center mb-2 tracking-tight ${t('text-[#111111]', 'text-white')}`}>Finish Assessment?</h2>
+            <p className={`text-sm text-center font-medium mb-8 leading-relaxed ${t('text-[#777777]', 'text-white/40')}`}>
               Make sure you have submitted your solutions before finishing.
               You won't be able to return to the editor after this.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowFinishModal(false)}
-                className="flex-1 py-3.5 bg-white/5 border border-white/10 text-white/70 font-black text-sm uppercase tracking-widest rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                className={`flex-1 py-3.5 border font-black text-sm uppercase tracking-widest rounded-xl transition-colors cursor-pointer ${t('bg-black/5 border-black/10 text-[#555555] hover:bg-black/8', 'bg-white/5 border-white/10 text-white/60 hover:bg-white/8')}`}
               >
                 Continue
               </button>
               <button
                 onClick={handleFinishConfirm}
-                className="flex-1 py-3.5 bg-[#DAFF0C] text-[#0d1117] font-black text-sm uppercase tracking-widest rounded-xl hover:shadow-lg hover:shadow-[#DAFF0C]/20 transition-all cursor-pointer"
+                className="flex-1 py-3.5 bg-[#DAFF0C] text-[#111111] font-black text-sm uppercase tracking-widest rounded-xl hover:shadow-lg hover:shadow-[#DAFF0C]/20 transition-all cursor-pointer"
               >
                 Yes, Finish
               </button>

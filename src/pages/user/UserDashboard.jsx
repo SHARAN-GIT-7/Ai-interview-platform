@@ -1,72 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiClock, FiBook, FiLogOut, FiEdit, FiUser, FiMail, FiHome, FiLayout, FiUserCheck, FiCheckCircle, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiClock, FiBook, FiLogOut, FiEdit, FiUser, FiMail, FiHome, FiLayout, FiUserCheck, FiCheckCircle, FiChevronRight, FiActivity, FiAlertCircle, FiLoader } from 'react-icons/fi';
 
-import api from '../../services/api';
 import axios from 'axios';
 import EditProfileModal from './EditProfileModal.jsx';
 
-// Import Company Logos
-import googleLogo from '../../assets/company-logos/google.png';
-import amazonLogo from '../../assets/company-logos/amazon.png';
-import microsoftLogo from '../../assets/company-logos/microsoft.png';
-import ibmLogo from '../../assets/company-logos/ibm.png';
-import oracleLogo from '../../assets/company-logos/oracle.png';
-import salesforceLogo from '../../assets/company-logos/salesforce.png';
+const PYTHON_VERIFICATION_API = 'http://localhost:8003';
 
-
-// We'll use the imported 'api' service for auth and profile data
-// For profile and verification specifically, we can create instances with specific base paths if needed
-const userApi = axios.create({
-  baseURL: '/api/user',
+const verificationApi = axios.create({
+  baseURL: 'http://localhost:5280/api/user',
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Add a request interceptor to include the token automatically
-userApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem("authToken");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+const authApi = axios.create({
+  baseURL: 'http://localhost:5280/api/user',
+  headers: { 'Content-Type': 'application/json' },
 });
 
-const mockTests = [
-  { id: 'TXT-2024-AD', company: 'Google', testCode: 'TXT-2024-AD', testModule: 'Technical Interview', logo: googleLogo, bgColor: 'bg-white' },
-  { id: 'TXT-2024-TE', company: 'Amazon', testCode: 'TXT-2024-TE', testModule: 'Technical Interview', logo: amazonLogo, bgColor: 'bg-white' },
-  { id: 'TXT-2024-HR', company: 'Microsoft', testCode: 'TXT-2024-HR', testModule: 'HR Round', logo: microsoftLogo, bgColor: 'bg-white' },
-  { id: 'APTITUDE', company: 'IBM', testCode: 'Aptitude', testModule: 'Aptitude Test', logo: ibmLogo, bgColor: 'bg-white' },
-  { id: 'TXT-2024-FM', company: 'Oracle', testCode: 'TXT-2024-FM', testModule: 'Coding Challenge', logo: oracleLogo, bgColor: 'bg-white' },
-  { id: 'BEHAVIORAL', company: 'Salesforce', testCode: 'Behavioral', testModule: 'System Design', logo: salesforceLogo, bgColor: 'bg-white' },
-];
+/** Resolve which modules are active and return a readable summary string */
+function getActiveModulesSummary(testInfo) {
+  const modules = [];
+  if (testInfo.interviewModule) modules.push('AI Interview');
+  if (testInfo.aptitudeModule) modules.push('Aptitude');
+  if (testInfo.codingModule) modules.push('Coding');
+  if (testInfo.verbalModule) modules.push('Verbal');
+  return modules.join(' • ') || 'No modules configured';
+}
 
 
 const TestCard = ({ test, onClick }) => (
-  <button 
-    onClick={() => onClick(test.testCode)}
+  <button
+    onClick={() => onClick(test)}
     className="w-full flex items-center gap-6 p-5 bg-white border border-gray-100 hover:border-[#144542]/20 rounded-2xl transition-all duration-300 group hover:shadow-[0_15px_40px_rgba(20,69,66,0.06)] text-left relative overflow-hidden"
   >
     <div className="absolute top-0 right-0 w-32 h-32 bg-[#144542]/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-[#144542]/10 transition-colors"></div>
-    
-    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-lg border border-gray-100 ${test.bgColor}`}>
-      <img src={test.logo} alt={test.company} className="w-full h-full object-contain p-2" />
-    </div>
 
+    <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-lg border border-gray-100 bg-white">
+      <span className="text-[#144542] font-black text-xl uppercase">{(test.companyName || test.testCode)[0]}</span>
+    </div>
 
     <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 items-center">
       <div className="flex flex-col">
         <span className="text-gray-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5">Company Name</span>
-        <span className="text-[#144542] font-extrabold text-base md:text-lg tracking-tight">{test.company}</span>
+        <span className="text-[#144542] font-extrabold text-base md:text-lg tracking-tight">{test.companyName}</span>
       </div>
-      
+
       <div className="flex flex-col">
         <span className="text-gray-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5">Test Code</span>
         <span className="text-[#144542]/80 font-mono text-xs md:text-sm bg-[#144542]/5 px-2.5 py-1 rounded-lg border border-[#144542]/5 w-fit font-bold">{test.testCode}</span>
       </div>
 
       <div className="hidden md:flex flex-col">
-        <span className="text-gray-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5">Test Module</span>
-        <span className="text-[#144542]/60 font-semibold text-sm truncate">{test.testModule}</span>
+        <span className="text-gray-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5">Active Modules</span>
+        <span className="text-[#144542]/60 font-semibold text-xs truncate">{getActiveModulesSummary(test)}</span>
       </div>
     </div>
 
@@ -83,6 +69,9 @@ export default function UserDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [foundTest, setFoundTest] = useState(null); // stores looked-up test info
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -107,8 +96,10 @@ export default function UserDashboard() {
           return;
         }
 
-        // Step 1: Fetch auth data (name + email)
-        const authResponse = await userApi.get(`/auth/profile/${encodeURIComponent(email)}`);
+        // Step 1: Fetch auth data (name + email) from Port 5280
+        const authResponse = await authApi.get(`/auth/profile/${encodeURIComponent(email)}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         let profileData = {
           name: authResponse.data.name || "",
@@ -118,18 +109,21 @@ export default function UserDashboard() {
         // Step 2: Fetch profile data (college, dob, age, etc.)
         if (userId) {
           try {
-            const profileResponse = await userApi.get(`/profile/${userId}`);
+            const profileResponse = await verificationApi.get(`/profile/${userId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
             if (profileResponse.data) {
+              const d = profileResponse.data;
               profileData = {
                 ...profileData,
-                name: profileResponse.data.fullName || profileData.name,
-                college: profileResponse.data.college || "",
-                dob: profileResponse.data.dob || "",
-                age: profileResponse.data.age || "",
-                address: profileResponse.data.address || "",
-                phone: profileResponse.data.phone || "",
-                gender: profileResponse.data.gender || "",
-                photoUrl: profileResponse.data.photoUrl || "",
+                name: d.FullName || d.fullName || profileData.name,
+                college: d.College || d.college || "",
+                dob: d.Dob || d.dob || "",
+                age: d.Age || d.age || "",
+                address: d.Address || d.address || "",
+                phone: d.Phone || d.phone || "",
+                gender: d.Gender || d.gender || "",
+                photoUrl: d.PhotoUrl || d.photoUrl || "",
               };
             }
           } catch (profileError) {
@@ -137,10 +131,11 @@ export default function UserDashboard() {
               console.error("Error fetching profile:", profileError);
             }
           }
-
           // Step 3: Fetch verification status
           try {
-            const verifyRes = await userApi.get(`/verification/status`);
+            const verifyRes = await verificationApi.get(`/verification/status`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
             if (verifyRes.data && verifyRes.data.verified) {
               setIsVerified(true);
             }
@@ -177,22 +172,34 @@ export default function UserDashboard() {
     setUserData(newData);
   };
 
-  const handleTestClick = (testId) => {
-    navigate('/user/live-verification', { state: { testId } });
+  const handleTestClick = (testInfo) => {
+    // Store testInfo in localStorage for use throughout the test flow
+    localStorage.setItem('testInfo', JSON.stringify(testInfo));
+    navigate('/user/live-verification', { state: { testId: testInfo.testCode, testInfo } });
   };
 
-  const filteredTests = mockTests.filter(test => 
-    test.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    test.testCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    test.testModule.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleSearchKeyPress = async (e) => {
+    if (e.key !== 'Enter') return;
+    const code = searchQuery.trim();
+    if (!code) return;
 
-  const handleSearchKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      const match = mockTests.find(test => test.testCode.toLowerCase() === searchQuery.toLowerCase());
-      if (match) {
-        handleTestClick(match.testCode);
+    setIsSearching(true);
+    setSearchError('');
+    setFoundTest(null);
+
+    try {
+      const res = await fetch(`${PYTHON_VERIFICATION_API}/verification/test-lookup/${encodeURIComponent(code)}`);
+      if (res.status === 404) {
+        setSearchError(`No test found for code "${code}". Please double-check and try again.`);
+        return;
       }
+      if (!res.ok) throw new Error('Lookup failed');
+      const testInfo = await res.json();
+      setFoundTest(testInfo);
+    } catch (err) {
+      setSearchError('Could not connect to the test server. Please ensure the verification service is running.');
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -217,11 +224,11 @@ export default function UserDashboard() {
         <div className="relative z-10 bg-white/5 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/10 flex items-center gap-6 shadow-inner grow-0">
           <div className="relative group shrink-0">
             <div className="w-24 h-24 lg:w-32 lg:h-32 bg-white rounded-2xl shadow-2xl border-2 border-[#1b5b53] flex items-center justify-center overflow-hidden transition-transform duration-500 hover:scale-105">
-               {userData.photoUrl ? (
-                 <img src={userData.photoUrl} alt={userData.name} className="w-full h-full object-cover" />
-               ) : (
-                 <FiUser className="text-5xl text-[#144542]/20" />
-               )}
+              {userData.photoUrl ? (
+                <img src={userData.photoUrl} alt={userData.name} className="w-full h-full object-cover" />
+              ) : (
+                <FiUser className="text-5xl text-[#144542]/20" />
+              )}
             </div>
           </div>
 
@@ -247,14 +254,13 @@ export default function UserDashboard() {
         <div className="w-full flex flex-col gap-3 mt-auto mb-2 relative z-10 overflow-y-auto pr-1 custom-scrollbar">
           <button className="w-full flex items-center justify-between px-6 py-4 bg-white/5 hover:bg-[#DAFF0C]/10 border border-white/5 hover:border-[#DAFF0C]/20 text-white rounded-xl transition-all duration-300 group shadow-lg shrink-0">
             <div className="flex items-center gap-4">
-               <FiBook className="text-2xl text-[#DAFF0C] group-hover:rotate-12 transition-transform" />
-               <span className="font-bold text-lg tracking-wide">Guide for the test</span>
+              <FiBook className="text-2xl text-[#DAFF0C] group-hover:rotate-12 transition-transform" />
+              <span className="font-bold text-lg tracking-wide">Guide for the test</span>
             </div>
             <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#DAFF0C] transition-all duration-300">
               <div className="w-2 h-2 border-t-2 border-r-2 border-white group-hover:border-[#144542] rotate-45 ml-[-2px]"></div>
             </div>
           </button>
-
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-2 shrink-0">
             <button 
               onClick={handleLogout}
@@ -263,7 +269,7 @@ export default function UserDashboard() {
               <FiLogOut className="text-lg group-hover:-translate-x-1 transition-transform" />
               <span>Logout</span>
             </button>
-            <button 
+            <button
               onClick={() => setIsEditModalOpen(true)}
               className="flex cursor-pointer items-center justify-center gap-2 bg-[#DAFF0C] hover:bg-[#DAFF0C]/90 text-[#144542] py-4 rounded-xl transition-all duration-300 font-black tracking-widest uppercase text-[10px] shadow-[0_10px_20px_rgba(218,255,12,0.2)] hover:shadow-[0_15px_30px_rgba(218,255,12,0.3)] group"
             >
@@ -277,8 +283,8 @@ export default function UserDashboard() {
       {/* Right Content Area */}
       <div className="flex-1 flex flex-col py-2 max-w-[60%]">
         <div className="w-full relative bg-white rounded-2xl overflow-hidden flex items-center shadow-xl border border-gray-100 group transition-all duration-300 focus-within:ring-2 focus-within:ring-[#144542]/10 shrink-0">
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Enter Test code or Company name"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -295,41 +301,63 @@ export default function UserDashboard() {
           <div className="flex items-center justify-between mb-6">
             <div className="space-y-1">
               <h2 className="text-[#144542] text-2xl font-black tracking-tight uppercase">Interview Identity System</h2>
-              <p className="text-gray-500 font-medium">Candidate Dashboard • {filteredTests.length} Tests Available</p>
+              <p className="text-gray-500 font-medium">Candidate Dashboard • Enter your Test Code to begin</p>
             </div>
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery("")}
+            {(searchQuery || foundTest) && (
+              <button
+                onClick={() => { setSearchQuery(''); setFoundTest(null); setSearchError(''); }}
                 className="text-sm font-bold text-[#144542]/60 hover:text-red-500 transition-colors uppercase tracking-widest"
               >
-                Clear Search
+                Clear
               </button>
             )}
           </div>
 
           <div className="flex flex-col gap-4">
-            {filteredTests.length > 0 ? (
-              filteredTests.map((test) => (
-                <div key={test.id} className="animate-fade-in">
-                  <TestCard test={test} onClick={handleTestClick} />
+            {/* Searching state */}
+            {isSearching && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-10 flex flex-col items-center text-center shadow-sm">
+                <FiLoader className="text-4xl text-[#144542]/30 animate-spin mb-4" />
+                <p className="text-[#144542] font-bold">Looking up test code...</p>
+              </div>
+            )}
+
+            {/* Error state */}
+            {!isSearching && searchError && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-start gap-4">
+                <FiAlertCircle className="text-2xl text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-red-700 font-bold text-sm">{searchError}</p>
+                  <p className="text-red-400 text-xs mt-1">Press Enter to search again after correcting the code.</p>
                 </div>
-              ))
-            ) : (
+              </div>
+            )}
+
+            {/* Found test */}
+            {!isSearching && foundTest && (
+              <div className="animate-fade-in">
+                <p className="text-[#144542]/50 text-xs font-bold uppercase tracking-widest mb-3">Test Found — Click to Begin</p>
+                <TestCard test={foundTest} onClick={handleTestClick} />
+              </div>
+            )}
+
+            {/* Idle state — no search yet */}
+            {!isSearching && !searchError && !foundTest && (
               <div className="bg-white/50 backdrop-blur-sm border-2 border-dashed border-gray-200 rounded-3xl p-12 flex flex-col items-center text-center">
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                   <FiSearch className="text-4xl text-gray-300" />
                 </div>
-                <h3 className="text-[#144542] text-xl font-bold mb-1">No tests found</h3>
-                <p className="text-gray-500 max-w-xs">We couldn't find any test matching "{searchQuery}". Please check the test code and try again.</p>
+                <h3 className="text-[#144542] text-xl font-bold mb-1">Enter your Test Code</h3>
+                <p className="text-gray-500 max-w-xs text-sm">Type your test code in the search bar above and press <span className="font-black text-[#144542]">Enter</span> to look it up.</p>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <EditProfileModal 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
         userData={userData}
         onSave={handleSaveProfile}
       />

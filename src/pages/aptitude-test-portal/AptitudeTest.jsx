@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft, FiChevronRight, FiClock, FiCheck, FiAlertCircle, FiSend, FiLoader } from 'react-icons/fi';
 import { fetchQuestions, submitAnswers } from '../../services/aptitudeApi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import { submitModuleResult, markModuleCompleted, loadTestInfo, getNextModuleRoute, loadCompletedModules } from '../../utils/testFlowUtils';
+
 
 const TOTAL_TIME = 15 * 60;
 
@@ -54,21 +56,40 @@ export default function AptitudeTest() {
         answer: selectedAnswers[q.id] || null,
       }));
 
-      // Get user email from localStorage for attribution (common pattern in this project)
       const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('email');
 
-      await submitAnswers(answersPayload, userEmail);
+      const result = await submitAnswers(answersPayload, userEmail);
+
+      // ── Save aptitude result to consolidated DB ──
+      const testInfo = loadTestInfo();
+      await submitModuleResult('aptitude', {
+        aptitudeCode: testInfo?.aptitudeMapping?.aptitudeCode || '',
+        moduleTotalScore: questions.length,
+        moduleScoreSecured: result?.score || result?.correct || 0,
+        questions: questions.map(q => q.question),
+        userAnswers: answersPayload.map(a => a.answer),
+        correctAnswers: [],
+        topics: testInfo?.aptitudeMapping?.topics || [],
+        correct: result?.correct || 0,
+        incorrect: result?.wrong || 0,
+      });
+      markModuleCompleted('aptitude');
 
       setShowSuccess(true);
+      const completedModules = loadCompletedModules();
+      const nextRoute = getNextModuleRoute(testInfo, completedModules);
       setTimeout(() => {
-        navigate('/coding/instructions', { state: { uniqueId } });
+        navigate(nextRoute, { state: { uniqueId } });
       }, 3000);
     } catch (err) {
       console.error('Failed to submit:', err);
       // Still show success and redirect even if submit fails
       setShowSuccess(true);
+      const testInfo = loadTestInfo();
+      const completedModules = loadCompletedModules();
+      const nextRoute = getNextModuleRoute(testInfo, completedModules);
       setTimeout(() => {
-        navigate('/coding/instructions', { state: { uniqueId } });
+        navigate(nextRoute, { state: { uniqueId } });
       }, 3000);
     }
   }, [isSubmitting, questions, selectedAnswers, navigate]);

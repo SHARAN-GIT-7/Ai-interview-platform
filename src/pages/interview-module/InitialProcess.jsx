@@ -7,7 +7,7 @@ import {
 } from 'react-icons/fi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
 
-const CODING_MODULE_URL = 'https://supermagnificent-overoptimistically-misty.ngrok-free.dev';
+const CODING_MODULE_URL = 'http://localhost:8000';
 
 const stats = [
   { icon: <FiCode className="text-2xl" />, value: 'Code Problems', label: 'ASSESSMENT TYPE' },
@@ -24,13 +24,10 @@ const dos = [
   'Manage your time wisely across all problems.',
 ];
 
-const donts = [
-  'Do not switch browser tabs or open new windows.',
-  'Do not use AI coding tools or auto-complete extensions.',
-  'Do not copy-paste code from external sources.',
-  'Do not refresh or navigate away during the session.',
-  'Do not share your screen, test, or solutions with others.',
-  'Do not use multiple devices simultaneously.',
+const guidelines = [
+  'Stay focused on the coding challenge throughout the session.',
+  'Attempt all problems to demonstrate your problem-solving logic.',
+  'Your solutions are automatically saved as you write code.',
 ];
 
 const systemChecks = [
@@ -65,8 +62,8 @@ export default function InitialProcess() {
 
   return (
     <div className="min-h-screen bg-[#EAF0F0] font-sans overflow-x-hidden">
-      {/* Continuous Face Monitoring */}
-      <ProctorOverlay uniqueId={uniqueId} />
+      {/* Continuous Face Monitoring — paused on intro page */}
+      <ProctorOverlay uniqueId={uniqueId} paused={true} />
 
       {/* Fixed decorative blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -158,23 +155,23 @@ export default function InitialProcess() {
             </div>
           </div>
 
-          {/* Don'ts */}
+          {/* Guidelines */}
           <div className="bg-white border border-gray-100 rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-red-500 rounded-l-2xl" />
+            <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 rounded-l-2xl" />
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
-                <FiXCircle className="text-red-500 text-lg" />
+              <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
+                <FiInfo className="text-amber-600 text-lg" />
               </div>
               <div>
-                <h3 className="text-[#144542] text-base font-black uppercase tracking-wide">Don'ts</h3>
-                <p className="text-[#144542]/40 text-[10px] font-bold uppercase tracking-widest">Strictly prohibited</p>
+                <h3 className="text-[#144542] text-base font-black uppercase tracking-wide">Guidelines</h3>
+                <p className="text-[#144542]/40 text-[10px] font-bold uppercase tracking-widest">For a smooth experience</p>
               </div>
             </div>
             <div className="space-y-3">
-              {donts.map((item, i) => (
+              {guidelines.map((item, i) => (
                 <div key={i} className="flex items-start gap-3 group">
-                  <div className="w-5 h-5 mt-0.5 bg-red-100 rounded-full flex items-center justify-center shrink-0 group-hover:bg-red-500 transition-colors duration-200">
-                    <div className="w-2 h-2 bg-red-400 rounded-full group-hover:bg-white transition-colors duration-200" />
+                  <div className="w-5 h-5 mt-0.5 bg-amber-100 rounded-full flex items-center justify-center shrink-0 group-hover:bg-amber-500 transition-colors duration-200">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full group-hover:bg-white transition-colors duration-200" />
                   </div>
                   <p className="text-[#144542]/70 text-sm leading-relaxed font-medium">{item}</p>
                 </div>
@@ -234,8 +231,7 @@ export default function InitialProcess() {
               I have read and understood all the instructions above.
             </p>
             <p className="text-[#144542]/50 text-xs font-medium mt-1 leading-relaxed">
-              I agree to abide by the academic integrity policy. Any violation may result in
-              disqualification and reporting to the institution.
+              I agree to follow the assessment guidelines and complete the tasks fairly and independently.
             </p>
           </div>
         </div>
@@ -273,9 +269,9 @@ export default function InitialProcess() {
 
         {/* ── Disclaimer ── */}
         <div className="flex items-center justify-center gap-2 mt-8">
-          <FiAlertTriangle className="text-[#144542]/30 text-sm shrink-0" />
+          <FiShield className="text-[#144542]/30 text-sm shrink-0" />
           <p className="text-[#144542]/30 text-xs font-medium text-center">
-            This assessment is proctored. Your activity may be monitored for integrity compliance.
+            This assessment uses standard monitoring to ensure platform integrity and fairness.
           </p>
         </div>
       </div>

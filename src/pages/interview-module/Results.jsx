@@ -6,8 +6,9 @@ import {
   FiTarget, FiLoader,
 } from 'react-icons/fi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import { submitModuleResult, markModuleCompleted, loadTestInfo, getNextModuleRoute, loadCompletedModules } from '../../utils/testFlowUtils';
 
-const CODING_MODULE_URL = 'https://supermagnificent-overoptimistically-misty.ngrok-free.dev';
+const CODING_MODULE_URL = 'http://localhost:8000';
 
 // Fallback mock data used when the API is unreachable
 const MOCK_RESULTS = {
@@ -110,7 +111,6 @@ export default function Results() {
           try {
             const res = await fetch(url, {
               headers: {
-                'ngrok-skip-browser-warning': 'true',
                 'Accept': 'application/json',
               },
             });
@@ -125,7 +125,7 @@ export default function Results() {
 
         if (data) {
           // Normalize response shape — adapt field names as needed
-          setResults({
+          const normalized = {
             totalScore: data.totalScore ?? data.score ?? data.total_score ?? 0,
             maxScore: data.maxScore ?? data.max_score ?? data.totalMarks ?? 100,
             accuracy: data.accuracy ?? data.accuracyPercent ?? 0,
@@ -133,7 +133,20 @@ export default function Results() {
             problemsSolved: data.problemsSolved ?? data.solved ?? data.correct ?? 0,
             timeTaken: data.timeTaken ?? data.time_taken ?? data.duration ?? '—',
             problems: data.problems ?? data.submissions ?? data.problemList ?? [],
+          };
+          setResults(normalized);
+
+          // ── Save coding result to consolidated DB ──
+          const testInfo = loadTestInfo();
+          await submitModuleResult('coding', {
+            codingCode: testInfo?.codingMapping?.problemCodes?.join(',') || '',
+            moduleTotalScore: normalized.maxScore,
+            moduleScoreSecured: normalized.totalScore,
+            testcaseTotals: normalized.problems.map(p => p.maxScore ?? p.max_score ?? 10),
+            testcasePassed: normalized.problems.map(p => p.score ?? p.marks ?? 0),
+            answers: normalized.problems.map(p => ({ title: p.title || p.name, language: p.language || p.lang, status: p.status })),
           });
+          markModuleCompleted('coding');
         } else {
           // API unreachable — use mock so UI still renders
           setFetchError(true);
@@ -414,17 +427,22 @@ export default function Results() {
         {/* ── Action Buttons ── */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
-            onClick={() => navigate('/user/dashboard')}
+            onClick={() => {
+              const testInfo = loadTestInfo();
+              const completedModules = loadCompletedModules();
+              const nextRoute = getNextModuleRoute(testInfo, completedModules);
+              navigate(nextRoute, { state: { uniqueId } });
+            }}
             className="group px-10 py-4 bg-[#144542] text-white font-black text-sm uppercase tracking-[0.15em] rounded-xl shadow-lg shadow-[#144542]/20 hover:bg-[#1b5b53] hover:shadow-xl hover:shadow-[#144542]/30 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
           >
             <span className="flex items-center gap-2">
               <FiArrowLeft className="text-lg group-hover:-translate-x-1 transition-transform" />
-              Back to Dashboard
+              Continue to Next Module
             </span>
           </button>
 
           <a
-            href={CODING_MODULE_URL}
+            href={`${CODING_MODULE_URL}/docs`}
             target="_blank"
             rel="noopener noreferrer"
             className="group flex items-center gap-2 px-10 py-4 bg-white border-2 border-[#144542]/10 text-[#144542] font-black text-sm uppercase tracking-[0.15em] rounded-xl hover:border-[#144542]/30 hover:bg-[#144542]/5 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"

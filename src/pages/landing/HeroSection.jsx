@@ -43,9 +43,12 @@ export default function HeroSection() {
         >
           Take the Test
         </Link>
-        <button className="px-10 py-5 text-lg font-bold text-brand-dark bg-brand-secondary rounded-xl transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]">
+        <Link
+          to="/about"
+          className="px-10 py-5 text-lg font-bold text-brand-dark bg-brand-secondary rounded-xl transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
+        >
           Learn More
-        </button>
+        </Link>
       </motion.div>
     </section>
   );

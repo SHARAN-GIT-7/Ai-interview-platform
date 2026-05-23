@@ -2,13 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiArrowLeft, FiShield, FiCheckCircle, FiAlertCircle, FiLoader, FiEye } from 'react-icons/fi';
+import { loadTestInfo, getNextModuleRoute } from '../../utils/testFlowUtils';
 
 // API base URLs — both now served by New-AI-verification-module FastAPI (port 8000)
-const PYTHON_API = 'http://localhost:8000';
-const DOTNET_API = 'http://localhost:5006/api';
+const PYTHON_API = 'http://localhost:8003';
+const DOTNET_API = 'http://localhost:5280/api/user';
 
-// Proctoring backend (proctor.py) — separate port
-const PROCTOR_API = 'http://localhost:8001';
+// Proctoring backend (continuous monitoring bridge) — port 8004
+const PROCTOR_API = 'http://localhost:8004';
 
 const UploadDetails = () => {
   const navigate = useNavigate();
@@ -138,7 +139,10 @@ const UploadDetails = () => {
     try {
       const completeRes = await fetch(`${DOTNET_API}/verification/complete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
         body: JSON.stringify({
           uniqueId: uniqueId,
           passportPhotoUrl: photoUrl || '',
@@ -178,8 +182,15 @@ const UploadDetails = () => {
 
       setIsSuccess(true);
       setTimeout(() => {
+        // Reset completedModules for this fresh run
+        localStorage.setItem('completedModules', JSON.stringify([]));
+
+        // Determine first enabled module dynamically from testInfo
+        const testInfo = loadTestInfo();
+        const firstRoute = getNextModuleRoute(testInfo, []); // no modules completed yet
+
         // Pass uniqueId forward so ProctorOverlay can identify the session
-        navigate('/interview/resume-parser', { state: { verified: true, uniqueId } });
+        navigate(firstRoute, { state: { verified: true, uniqueId } });
       }, 2500);
 
     } catch (err) {

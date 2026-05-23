@@ -31,7 +31,7 @@ export default function StartingTest() {
 
   return (
     <div className="min-h-screen bg-[#EAF0F0] flex items-center justify-center p-4 md:p-8 font-sans">
-      <ProctorOverlay uniqueId={uniqueId} />
+      <ProctorOverlay uniqueId={uniqueId} paused={true} />
       {/* Background decorative elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#144542]/5 rounded-full blur-3xl"></div>

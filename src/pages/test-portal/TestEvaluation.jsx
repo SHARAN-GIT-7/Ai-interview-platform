@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fi';
 import { evaluateAnswers } from '../../services/interviewApi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import { submitModuleResult, markModuleCompleted, loadTestInfo, getNextModuleRoute } from '../../utils/testFlowUtils';
 
 const CircularProgress = ({ score, size = 160, strokeWidth = 12 }) => {
   const [animatedScore, setAnimatedScore] = useState(0);
@@ -90,6 +91,22 @@ export default function TestEvaluation() {
       try {
         const result = await evaluateAnswers(sessionId, answersPayload);
         setEvaluationData(result);
+
+        // ── Save interview result to the consolidated DB ──
+        const totalScore = result.max_score || (questions.length * 10);
+        const secured = result.total_score || 0;
+        const testInfo = loadTestInfo();
+        await submitModuleResult('interview', {
+          aiCode: testInfo?.aiInterviewMapping?.aiInterviewCode || '',
+          moduleTotalScore: totalScore,
+          moduleScoreSecured: secured,
+          questions: questions.map(q => q.question),
+          answers: answersPayload.map(a => a.candidate_answer),
+          correctAnswers: (result.results || []).map(r => r.feedback),
+          correct: (result.results || []).filter(r => r.score >= 7).length,
+          wrong: (result.results || []).filter(r => r.score < 7).length,
+        });
+        markModuleCompleted('interview');
       } catch (err) {
         console.error('Evaluation error:', err);
         setEvalError(err.message || 'Evaluation failed. Please try again.');
@@ -320,10 +337,17 @@ export default function TestEvaluation() {
             Download PDF Report
           </button>
           <button
-            onClick={() => navigate('/aptitude/start', { state: { uniqueId } })}
+            onClick={() => {
+              submitModuleResult('interview', data);
+              markModuleCompleted('interview');
+              const testInfo = loadTestInfo();
+              const completedModules = JSON.parse(localStorage.getItem('completedModules') || '[]');
+              const nextRoute = getNextModuleRoute(testInfo, completedModules);
+              navigate(nextRoute, { state: { uniqueId } });
+            }}
             className="flex-[1.5] bg-brand-dark text-white py-5 rounded-3xl font-black text-base flex items-center justify-center gap-3 transition-all hover:scale-[1.02] shadow-2xl active:scale-95 cursor-pointer"
           >
-            Complete Process & Go to Aptitude Test
+            Continue to Next Module
             <FiArrowRight />
           </button>
         </div>
