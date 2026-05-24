@@ -16,20 +16,20 @@ export default function TestDashboard({ test }) {
   // Deep-dive scorecard tab
   const [activeScorecardTab, setActiveScorecardTab] = useState("overview");
 
-  // Fetch all results for the company
+  // Fetch all results for this test from the Python Verification API (port 8003)
+  // which holds the real Supabase results stored during the candidate test sessions.
   useEffect(() => {
     const fetchResults = async () => {
       setIsLoading(true);
       try {
-        const token = localStorage.getItem("companyToken");
-        const response = await fetch("/api/company/results", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
+        const response = await fetch(
+          `http://localhost:8003/verification/test-results/${test.testId}`
+        );
         if (response.ok) {
           const data = await response.json();
-          // Filter results matching this specific testId
-          const filtered = data.filter(r => r.testId === test.testId);
-          setResults(filtered);
+          setResults(data);
+        } else {
+          console.error("Error fetching test results:", response.status);
         }
       } catch (error) {
         console.error("Error fetching test results:", error);
@@ -42,6 +42,7 @@ export default function TestDashboard({ test }) {
       fetchResults();
     }
   }, [test]);
+
 
   // Helper: check if student completed ALL enabled modules
   const checkCompletionStatus = (studentResult) => {
