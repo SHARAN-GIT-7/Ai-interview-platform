@@ -12,7 +12,7 @@ public class IdentityVerification
     public int Id { get; set; }
 
     [Column("user_id")]
-    public int? UserId { get; set; }
+    public string? UserId { get; set; }
 
     [Column("unique_id")]
     public string? UniqueId { get; set; }
@@ -32,6 +32,5 @@ public class IdentityVerification
     [Column("share_code")]
     public string? ShareCode { get; set; }
 
-    // Navigation property for FK enforcement
-    public User? User { get; set; }
+    // Note: UserId stores a text value from the Python verification module (not a FK to users.id)
 }

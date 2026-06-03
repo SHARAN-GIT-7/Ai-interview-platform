@@ -28,5 +28,5 @@ public class User
     // Navigation properties for FK enforcement
     public Company? Company { get; set; }
     public UserProfile? Profile { get; set; }
-    public ICollection<IdentityVerification> IdentityVerifications { get; set; } = new List<IdentityVerification>();
+    // Note: IdentityVerifications are linked by text user_id (not a typed FK)
 }

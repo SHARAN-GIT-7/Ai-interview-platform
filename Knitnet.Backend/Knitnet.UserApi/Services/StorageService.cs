@@ -38,9 +38,23 @@ public class SupabaseStorageService : IStorageService
         content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
             file.ContentType ?? "application/octet-stream");
 
+        // x-upsert: true tells Supabase to overwrite if the object already exists
+        // (avoids 400 on duplicate-name uploads)
+        content.Headers.TryAddWithoutValidation("x-upsert", "true");
+
         var url = $"{_settings.Url}/storage/v1/object/{bucket}/{objectPath}";
-        var response = await _http.PostAsync(url, content);
-        response.EnsureSuccessStatusCode();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+        request.Headers.TryAddWithoutValidation("x-upsert", "true");
+
+        var response = await _http.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"Supabase Storage upload failed [{(int)response.StatusCode}]: {body}");
+        }
 
         return GetPublicUrl(bucket, objectPath);
     }

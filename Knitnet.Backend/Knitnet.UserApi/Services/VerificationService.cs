@@ -29,8 +29,9 @@ public class VerificationService : IVerificationService
 
     public async Task<VerificationStatusDto> GetStatusAsync(int userId)
     {
+        var userIdStr = userId.ToString();
         var v = await _db.IdentityVerifications
-            .Where(x => x.UserId == userId && !string.IsNullOrEmpty(x.PassportPhotoUrl))
+            .Where(x => x.UserId == userIdStr && !string.IsNullOrEmpty(x.PassportPhotoUrl))
             .OrderByDescending(x => x.Id)
             .FirstOrDefaultAsync();
 
@@ -44,7 +45,7 @@ public class VerificationService : IVerificationService
         var uniqueId = Guid.NewGuid().ToString();
         _db.IdentityVerifications.Add(new IdentityVerification
         {
-            UserId = userId, UserName = dto.UserName,
+            UserId = userId.ToString(), UserName = dto.UserName,
             AadhaarLast4 = dto.AadhaarLast4, AadhaarZipUrl = dto.AadhaarZipUrl,
             PassportPhotoUrl = dto.PassportPhotoUrl, UniqueId = uniqueId, ShareCode = dto.ShareCode
         });

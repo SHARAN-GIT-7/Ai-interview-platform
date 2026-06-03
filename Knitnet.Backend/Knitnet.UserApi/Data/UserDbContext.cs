@@ -34,12 +34,8 @@ public class UserDbContext : DbContext
             .HasForeignKey<UserProfile>(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Users → IdentityVerifications (1:many)
-        m.Entity<User>()
-            .HasMany(u => u.IdentityVerifications)
-            .WithOne(v => v.User)
-            .HasForeignKey(v => v.UserId)
-            .OnDelete(DeleteBehavior.SetNull);
+        // Note: identity_verifications.user_id is 'text' type (set by Python verification module),
+        // so no typed FK relationship to users.id (integer) is configured here.
 
         // Users → Company (1:1)
         m.Entity<User>()
