@@ -3,9 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUpload, FiImage, FiCheckCircle, FiArrowLeft, FiAlertCircle, FiLoader, FiFileText } from 'react-icons/fi';
 
-const PYTHON_API = 'http://localhost:8003';
-const DOTNET_API = 'http://localhost:5280/api/user';
-const DOTNET_PROFILE_API = 'http://localhost:5280/api/user';
+const PYTHON_API = '/api/verification';
+const DOTNET_API = '/api/user';
+const DOTNET_PROFILE_API = '/api/user';
 
 const LiveVerification = () => {
   const navigate = useNavigate();

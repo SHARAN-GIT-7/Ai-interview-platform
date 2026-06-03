@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft, FiChevronRight, FiClock, FiCheck, FiSend, FiLoader } from 'react-icons/fi';
 import { submitScreeningAnswers } from '../../services/screeningApi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import ScreenProctor from '../../routes/ScreenProctor';
 import { markModuleCompleted, loadTestInfo, getNextModuleRoute, loadCompletedModules } from '../../utils/testFlowUtils';
 
 
@@ -37,7 +38,7 @@ export default function MainScreeningTest() {
       if (!userId) return;
 
       try {
-        const response = await fetch(`http://localhost:5280/api/user/profile/${userId}`, {
+        const response = await fetch(`/api/user/profile/${userId}`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
         });
         if (response.ok) {
@@ -180,6 +181,7 @@ export default function MainScreeningTest() {
   // ── Main Test UI (Light/Gold Theme) ──
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex flex-col font-sans">
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} />
       
       {/* Top Header Bar */}

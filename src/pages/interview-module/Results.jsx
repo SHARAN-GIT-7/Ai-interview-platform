@@ -6,9 +6,10 @@ import {
   FiTarget, FiLoader,
 } from 'react-icons/fi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import ScreenProctor from '../../routes/ScreenProctor';
 import { submitModuleResult, markModuleCompleted, loadTestInfo, getNextModuleRoute, loadCompletedModules } from '../../utils/testFlowUtils';
 
-const CODING_MODULE_URL = 'http://localhost:8000';
+const CODING_MODULE_URL = '/api/coding';
 
 // Fallback mock data used when the API is unreachable
 const MOCK_RESULTS = {
@@ -96,69 +97,132 @@ export default function Results() {
     const fetchResults = async () => {
       const userId = localStorage.getItem('userId') || '';
       const userEmail = localStorage.getItem('userEmail') || '';
+      const codingCandidateId = userEmail || userId || 'candidate@example.com';
+      const testInfo = loadTestInfo();
+      const problemCodes = testInfo?.codingMapping?.problemCodes || [];
 
       try {
-        // Try multiple common result endpoint patterns
-        const endpoints = [
-          `${CODING_MODULE_URL}/api/results?userId=${encodeURIComponent(userId)}`,
-          `${CODING_MODULE_URL}/api/user/results/${encodeURIComponent(userId)}`,
-          `${CODING_MODULE_URL}/api/submissions?email=${encodeURIComponent(userEmail)}`,
-        ];
-
-        let data = null;
-
-        for (const url of endpoints) {
-          try {
-            const res = await fetch(url, {
-              headers: {
-                'Accept': 'application/json',
-              },
-            });
-            if (res.ok) {
-              data = await res.json();
-              break;
-            }
-          } catch {
-            // Try next endpoint
+        // 1. Fetch questions to map IDs to titles
+        let allQuestions = [];
+        try {
+          const qRes = await fetch(`${CODING_MODULE_URL}/question/`);
+          if (qRes.ok) {
+            const qJson = await qRes.json();
+            allQuestions = qJson.data || [];
           }
+        } catch (err) {
+          console.error('[Results] Failed to fetch questions:', err);
         }
 
-        if (data) {
-          // Normalize response shape — adapt field names as needed
-          const normalized = {
-            totalScore: data.totalScore ?? data.score ?? data.total_score ?? 0,
-            maxScore: data.maxScore ?? data.max_score ?? data.totalMarks ?? 100,
-            accuracy: data.accuracy ?? data.accuracyPercent ?? 0,
-            problemsAttempted: data.problemsAttempted ?? data.attempted ?? data.total_problems ?? 0,
-            problemsSolved: data.problemsSolved ?? data.solved ?? data.correct ?? 0,
-            timeTaken: data.timeTaken ?? data.time_taken ?? data.duration ?? '—',
-            problems: data.problems ?? data.submissions ?? data.problemList ?? [],
-          };
-          setResults(normalized);
+        // 2. Fetch candidate submissions from the correct endpoint
+        let candidateSubmissions = [];
+        try {
+          const subRes = await fetch(`${CODING_MODULE_URL}/submit/candidate/${encodeURIComponent(codingCandidateId)}`);
+          if (subRes.ok) {
+            const subJson = await subRes.json();
+            candidateSubmissions = subJson.data || [];
+          }
+        } catch (err) {
+          console.error('[Results] Failed to fetch candidate submissions:', err);
+        }
 
-          // ── Save coding result to consolidated DB ──
-          const testInfo = loadTestInfo();
-          await submitModuleResult('coding', {
-            codingCode: testInfo?.codingMapping?.problemCodes?.join(',') || '',
-            moduleTotalScore: normalized.maxScore,
-            moduleScoreSecured: normalized.totalScore,
-            testcaseTotals: normalized.problems.map(p => p.maxScore ?? p.max_score ?? 10),
-            testcasePassed: normalized.problems.map(p => p.score ?? p.marks ?? 0),
-            answers: normalized.problems.map(p => ({ title: p.title || p.name, language: p.language || p.lang, status: p.status })),
+        // Get local submitted codes/drafts (saved by MainAssessment on submit or change)
+        const localSubmissions = JSON.parse(localStorage.getItem('coding_submissions') || '{}');
+        const localDrafts = JSON.parse(localStorage.getItem('coding_draft_codes') || '{}');
+
+        // 4. Group by question_id and find the best submission (highest score) submitted in the current session
+        const bestSubmissionsMap = {};
+        candidateSubmissions.forEach(sub => {
+          const qId = sub.question_id;
+          // Check if they explicitly submitted this question in the current session
+          const currentCode = localSubmissions[qId];
+          if (!currentCode) return; 
+
+          const existing = bestSubmissionsMap[qId];
+          if (!existing || sub.score > existing.score) {
+            bestSubmissionsMap[qId] = sub;
+          }
+        });
+
+        const problemsData = [];
+        let moduleTotalScore = 0;
+        let moduleScoreSecured = 0;
+        const testcaseTotals = [];
+        const testcasePassed = [];
+        const answers = [];
+
+        // Determine which questions were assigned
+        const targetQuestions = problemCodes.length > 0 
+          ? problemCodes 
+          : (allQuestions.length > 0 ? allQuestions.map(q => q.id) : Object.keys(bestSubmissionsMap));
+
+        targetQuestions.forEach(qId => {
+          const bestSub = bestSubmissionsMap[qId];
+          const qMeta = allQuestions.find(q => q.id === qId);
+          const title = qMeta?.title || `Problem ${qId}`;
+          
+          const totalCases = bestSub?.total_test_cases ?? 10;
+          const passedCases = bestSub?.passed_test_cases ?? 0;
+          const scoreSecured = bestSub?.score ?? 0; // out of 100
+          
+          moduleTotalScore += 100;
+          moduleScoreSecured += scoreSecured;
+
+          testcaseTotals.push(totalCases);
+          testcasePassed.push(passedCases);
+
+          // Retrieve source code of submission
+          // 1. check coding_submissions (explicitly submitted)
+          // 2. check coding_draft_codes (saved draft)
+          // 3. fallback to empty
+          const sourceCode = localSubmissions[qId] || localDrafts[qId] || "";
+          answers.push(sourceCode);
+
+          problemsData.push({
+            title,
+            name: title,
+            maxScore: 100,
+            max_score: 100,
+            score: scoreSecured,
+            marks: scoreSecured,
+            language: bestSub?.language || 'python',
+            lang: bestSub?.language || 'python',
+            status: bestSub?.status || 'Failed',
           });
-          markModuleCompleted('coding');
-        } else {
-          // API unreachable — use mock so UI still renders
-          setFetchError(true);
-          setResults(MOCK_RESULTS);
-        }
-      } catch {
+        });
+
+        const normalized = {
+          totalScore: moduleScoreSecured,
+          maxScore: moduleTotalScore,
+          accuracy: moduleTotalScore > 0 ? Math.round((moduleScoreSecured / moduleTotalScore) * 100) : 0,
+          problemsAttempted: targetQuestions.length,
+          problemsSolved: Object.values(bestSubmissionsMap).filter(s => s.status === 'Accepted').length,
+          timeTaken: '—',
+          problems: problemsData,
+        };
+
+        setResults(normalized);
+
+        // ── Save coding result to consolidated DB ──
+        await submitModuleResult('coding', {
+          codingCode: targetQuestions.join(','),
+          moduleTotalScore,
+          moduleScoreSecured,
+          testcaseTotals,
+          testcasePassed,
+          answers,
+        });
+        markModuleCompleted('coding');
+      } catch (err) {
+        console.error('[Results] Error processing/saving results:', err);
         setFetchError(true);
         setResults(MOCK_RESULTS);
       } finally {
         setIsLoading(false);
-        // Trigger number animations after a brief delay
-        setTimeout(() => setAnimateScore(true), 200);
+        // Automatically route to next module after submission
+        const completedModules = loadCompletedModules();
+        const nextRoute = getNextModuleRoute(testInfo, completedModules);
+        navigate(nextRoute, { state: { uniqueId }, replace: true });
       }
     };
 
@@ -228,6 +292,7 @@ export default function Results() {
 
   return (
     <div className="min-h-screen bg-[#EAF0F0] font-sans overflow-x-hidden">
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} />
 
       {/* Background Decorative */}

@@ -9,7 +9,8 @@ import {
 } from 'react-icons/fi';
 import { evaluateAnswers } from '../../services/interviewApi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
-import { submitModuleResult, markModuleCompleted, loadTestInfo, getNextModuleRoute } from '../../utils/testFlowUtils';
+import ScreenProctor from '../../routes/ScreenProctor';
+import { submitModuleResult, markModuleCompleted, loadTestInfo, getNextModuleRoute, loadCompletedModules } from '../../utils/testFlowUtils';
 
 const CircularProgress = ({ score, size = 160, strokeWidth = 12 }) => {
   const [animatedScore, setAnimatedScore] = useState(0);
@@ -83,8 +84,13 @@ export default function TestEvaluation() {
   useEffect(() => {
     const runEvaluation = async () => {
       if (!sessionId || !answersPayload.length) {
-        setEvalError('No session or answers found. Please complete the interview first.');
+        console.warn('No session or answers found. Marking completed and redirecting to next module.');
+        markModuleCompleted('interview');
         setIsLoading(false);
+        const testInfo = loadTestInfo();
+        const completedModules = loadCompletedModules();
+        const nextRoute = getNextModuleRoute(testInfo, completedModules);
+        navigate(nextRoute, { state: { uniqueId }, replace: true });
         return;
       }
 
@@ -106,12 +112,34 @@ export default function TestEvaluation() {
           correct: (result.results || []).filter(r => r.score >= 7).length,
           wrong: (result.results || []).filter(r => r.score < 7).length,
         });
-        markModuleCompleted('interview');
       } catch (err) {
         console.error('Evaluation error:', err);
         setEvalError(err.message || 'Evaluation failed. Please try again.');
+
+        // ── Save fallback interview result to the consolidated DB ──
+        try {
+          const testInfo = loadTestInfo();
+          const totalScore = questions.length * 10;
+          await submitModuleResult('interview', {
+            aiCode: testInfo?.aiInterviewMapping?.aiInterviewCode || '',
+            moduleTotalScore: totalScore,
+            moduleScoreSecured: 0,
+            questions: questions.map(q => q.question),
+            answers: answersPayload.map(a => a.candidate_answer),
+            correctAnswers: questions.map(() => `Evaluation failed: ${err.message || err.toString()}`),
+            correct: 0,
+            wrong: questions.length,
+          });
+        } catch (dbErr) {
+          console.error('Failed to submit fallback result:', dbErr);
+        }
       } finally {
+        markModuleCompleted('interview');
         setIsLoading(false);
+        const testInfo = loadTestInfo();
+        const completedModules = loadCompletedModules();
+        const nextRoute = getNextModuleRoute(testInfo, completedModules);
+        navigate(nextRoute, { state: { uniqueId }, replace: true });
       }
     };
 
@@ -211,6 +239,7 @@ export default function TestEvaluation() {
   return (
     <div className="min-h-screen bg-brand-light font-sans pb-20">
       {/* Continuous Face Monitoring */}
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} />
       {/* Hero Header Section */}
       <div className="bg-brand-dark relative overflow-hidden">
@@ -338,8 +367,6 @@ export default function TestEvaluation() {
           </button>
           <button
             onClick={() => {
-              submitModuleResult('interview', data);
-              markModuleCompleted('interview');
               const testInfo = loadTestInfo();
               const completedModules = JSON.parse(localStorage.getItem('completedModules') || '[]');
               const nextRoute = getNextModuleRoute(testInfo, completedModules);

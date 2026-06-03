@@ -23,7 +23,7 @@ export default function TestDashboard({ test }) {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:8003/verification/test-results/${test.testId}`
+          `/api/verification/verification/test-results/${test.testId}`
         );
         if (response.ok) {
           const data = await response.json();

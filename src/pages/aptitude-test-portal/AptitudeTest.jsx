@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft, FiChevronRight, FiClock, FiCheck, FiAlertCircle, FiSend, FiLoader } from 'react-icons/fi';
-import { fetchQuestions, submitAnswers } from '../../services/aptitudeApi';
+import { fetchQuestions, submitAnswers, fetchResults } from '../../services/aptitudeApi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import ScreenProctor from '../../routes/ScreenProctor';
 import { submitModuleResult, markModuleCompleted, loadTestInfo, getNextModuleRoute, loadCompletedModules } from '../../utils/testFlowUtils';
 
 
@@ -22,7 +23,7 @@ export default function AptitudeTest() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState(null);
   const timerRef = useRef(null);
-  
+
   useEffect(() => {
     const loadQuestions = async () => {
       try {
@@ -60,18 +61,36 @@ export default function AptitudeTest() {
 
       const result = await submitAnswers(answersPayload, userEmail);
 
+      // Fetch actual scores evaluated by backend using the result_id
+      let score = 0;
+      let correct = 0;
+      let incorrect = 0;
+      if (result?.result_id) {
+        try {
+          const resultsList = await fetchResults();
+          const matchingResult = resultsList.find(r => r.id === result.result_id);
+          if (matchingResult) {
+            score = matchingResult.score ?? matchingResult.correct ?? 0;
+            correct = matchingResult.correct ?? 0;
+            incorrect = matchingResult.wrong ?? 0;
+          }
+        } catch (fetchErr) {
+          console.error('[Aptitude] Failed to fetch verified score from results:', fetchErr);
+        }
+      }
+
       // ── Save aptitude result to consolidated DB ──
       const testInfo = loadTestInfo();
       await submitModuleResult('aptitude', {
         aptitudeCode: testInfo?.aptitudeMapping?.aptitudeCode || '',
         moduleTotalScore: questions.length,
-        moduleScoreSecured: result?.score || result?.correct || 0,
+        moduleScoreSecured: score,
         questions: questions.map(q => q.question),
         userAnswers: answersPayload.map(a => a.answer),
         correctAnswers: [],
         topics: testInfo?.aptitudeMapping?.topics || [],
-        correct: result?.correct || 0,
-        incorrect: result?.wrong || 0,
+        correct: correct,
+        incorrect: incorrect,
       });
       markModuleCompleted('aptitude');
 
@@ -83,6 +102,9 @@ export default function AptitudeTest() {
       }, 3000);
     } catch (err) {
       console.error('Failed to submit:', err);
+      // Mark as completed so the candidate can proceed even if DB submission failed
+      markModuleCompleted('aptitude');
+      
       // Still show success and redirect even if submit fails
       setShowSuccess(true);
       const testInfo = loadTestInfo();
@@ -219,6 +241,7 @@ export default function AptitudeTest() {
   return (
     <div className="min-h-screen bg-[#EAF0F0] flex flex-col font-sans">
       {/* Continuous Face Monitoring */}
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} />
       {/* Top Header Bar */}
       <div className="bg-[#144542] px-6 md:px-10 py-4 flex items-center justify-between shadow-lg shadow-[#144542]/20 relative z-20">
@@ -232,11 +255,10 @@ export default function AptitudeTest() {
         </div>
 
         {/* Timer */}
-        <div className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl border transition-all duration-300 ${
-          isTimeLow 
-            ? 'bg-red-500/10 border-red-500/30 text-red-400' 
+        <div className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl border transition-all duration-300 ${isTimeLow
+            ? 'bg-red-500/10 border-red-500/30 text-red-400'
             : 'bg-white/5 border-white/10 text-white'
-        }`}>
+          }`}>
           <FiClock className={`text-lg ${isTimeLow ? 'animate-pulse' : ''}`} />
           <span className="font-mono font-bold text-lg tracking-wider">{formatTime(timeLeft)}</span>
         </div>
@@ -276,7 +298,7 @@ export default function AptitudeTest() {
               {/* Question Card */}
               <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex-1 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full bg-[#144542]"></div>
-                
+
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-[#144542] rounded-full flex items-center justify-center shrink-0 shadow-lg">
                     <span className="text-[#DAFF0C] text-sm font-black">{currentIndex + 1}</span>
@@ -301,18 +323,16 @@ export default function AptitudeTest() {
                     <button
                       key={key}
                       onClick={() => handleSelectAnswer(currentQuestion.id, key)}
-                      className={`w-full flex items-center gap-4 p-4 md:p-5 rounded-2xl border-2 transition-all duration-300 text-left group cursor-pointer ${
-                        isSelected
+                      className={`w-full flex items-center gap-4 p-4 md:p-5 rounded-2xl border-2 transition-all duration-300 text-left group cursor-pointer ${isSelected
                           ? 'bg-[#144542] border-[#144542] text-white shadow-xl shadow-[#144542]/20 scale-[1.02]'
                           : 'bg-white border-gray-100 text-[#144542] hover:border-[#144542]/20 hover:shadow-md'
-                      }`}
+                        }`}
                     >
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-sm transition-all duration-300 ${
-                          isSelected
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-sm transition-all duration-300 ${isSelected
                             ? 'bg-[#DAFF0C] text-[#144542]'
                             : 'bg-[#144542]/5 text-[#144542]/60 group-hover:bg-[#144542]/10'
-                        }`}
+                          }`}
                       >
                         {key}
                       </div>
@@ -343,18 +363,17 @@ export default function AptitudeTest() {
             {questions.map((q, i) => {
               const isAnswered = !!selectedAnswers[q.id];
               const isCurrent = i === currentIndex;
-              
+
               return (
                 <button
                   key={q.id}
                   onClick={() => setCurrentIndex(i)}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all duration-300 cursor-pointer ${
-                    isCurrent
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all duration-300 cursor-pointer ${isCurrent
                       ? 'ring-2 ring-offset-2 ring-[#144542] bg-[#144542] text-[#DAFF0C] scale-110 shadow-lg'
                       : isAnswered
                         ? 'bg-green-500 text-white shadow-md shadow-green-500/20 hover:scale-105'
                         : 'bg-[#144542] text-white/80 hover:bg-[#1b5b53] hover:text-white'
-                  }`}
+                    }`}
                 >
                   {String(i + 1).padStart(2, '0')}
                 </button>
@@ -372,10 +391,10 @@ export default function AptitudeTest() {
               <span className="text-[#144542]/40 text-[10px] font-bold uppercase tracking-widest">Not Attended</span>
               <span className="text-[#144542] text-sm font-black tracking-tight">{questions.length - answeredCount}</span>
             </div>
-            
+
             <div className="pt-2">
               <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-green-500 transition-all duration-500 ease-out"
                   style={{ width: `${(answeredCount / questions.length) * 100}%` }}
                 ></div>

@@ -4,7 +4,7 @@ import { FiX, FiCamera, FiCheckCircle } from "react-icons/fi";
 import axios from "axios";
 
 const profileApi = axios.create({
-  baseURL: "http://localhost:5280/api/user",
+  baseURL: "/api/user",
   headers: { "Content-Type": "application/json" },
 });
 

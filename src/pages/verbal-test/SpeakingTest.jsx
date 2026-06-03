@@ -5,6 +5,7 @@ import { FiMic, FiSkipForward, FiCheck, FiClock, FiPlay, FiUser, FiInfo, FiExter
 import axios from 'axios';
 import { getSpeakingQuestions, evaluateSpeakingClip } from '../../services/communicationApi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import ScreenProctor from '../../routes/ScreenProctor';
 
 // CircularTimer Component
 const CircularTimer = ({ duration, size = 320, strokeWidth = 16, status, active, onComplete }) => {
@@ -166,7 +167,7 @@ const SpeakingTest = () => {
 
         if (email && token) {
           try {
-            const authRes = await axios.get(`http://localhost:5280/api/user/auth/profile/${encodeURIComponent(email)}`, {
+            const authRes = await axios.get(`/api/user/auth/profile/${encodeURIComponent(email)}`, {
               headers: { Authorization: `Bearer ${token}` }
             });
             if (authRes.data?.name) {
@@ -177,7 +178,7 @@ const SpeakingTest = () => {
 
         if (userId) {
           try {
-            const profileRes = await axios.get(`http://localhost:5280/api/user/profile/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+            const profileRes = await axios.get(`/api/user/profile/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
             if (profileRes.data) {
               const d = profileRes.data;
               setCandidateInfo({
@@ -289,6 +290,7 @@ const SpeakingTest = () => {
 
   return (
     <div className="min-h-screen bg-white text-[#144542] flex font-primary">
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} />
 
       {/* LEFT SIDEBAR */}

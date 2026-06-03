@@ -33,20 +33,13 @@ function Navbar({ theme = "dark" }) {
         }`}
     >
       <div
-        className={`container mx-10 px-2 flex items-center  justify-between transition-all duration-500 ${scrolled ? "py-5" : "py-6"
+        className={`container mx-20 px-2 flex items-center  justify-between transition-all duration-500 ${scrolled ? "py-5" : "py-6"
           }`}
       >
         <Link to="/" className="flex items-center gap-2 group">
-          <div className={`w-10 h-10 mr-3 ${isDarkText ? "bg-brand-dark" : "bg-white"} rounded-[5px] flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-105 group-active:scale-95 shadow-lg ${isDarkText ? "shadow-brand-dark/10" : "shadow-white/10"}`}>
-            <img src="/logo.jpg" alt="Knitnet Logo" className="w-full h-full object-cover" />
-          </div>
           <div className={`text-2xl font-black tracking-tighter ${isDarkText ? "text-brand-dark" : "text-white"}`}>
-            <span className={`text-transparent bg-clip-text bg-gradient-to-r ${isDarkText ? "from-brand-dark to-brand-dark/100" : "from-white to-white/90"}`}>
-              KNIT
-            </span>
-            NET
+            <img src="/intervista full logo 4.svg" className="w-[180px] h-80px object-cover"></img>
           </div>
-        
         </Link>
 
         <div className="hidden md:flex items-center gap-8">

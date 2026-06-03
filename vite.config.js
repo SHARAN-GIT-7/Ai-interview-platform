@@ -28,6 +28,46 @@ export default defineConfig({
       '/api/verify': {
         target: 'http://localhost:5000',
         changeOrigin: true,
+      },
+      '/api/verification': {
+        target: 'http://localhost:8003',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/verification/, '')
+      },
+      '/api/coding': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/coding/, '')
+      },
+      '/api/interview': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/interview/, '')
+      },
+      '/api/communication': {
+        target: 'http://localhost:8002',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/communication/, '')
+      },
+      '/api/aptitude': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/aptitude/, '')
+      },
+      '/api/screening': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/screening/, '')
+      },
+      '/api/proctor/face': {
+        target: 'http://localhost:8004',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/proctor\/face/, '')
+      },
+      '/api/proctor/live': {
+        target: 'http://localhost:8005',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/proctor\/live/, '')
       }
     }
   }

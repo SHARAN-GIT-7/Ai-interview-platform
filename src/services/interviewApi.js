@@ -2,7 +2,7 @@
 // All endpoints served from a single FastAPI backend (module2_server.py)
 // Resume Parser + Interview Engine (questions, evaluation, STT, TTS)
 
-const BACKEND_URL = 'http://localhost:8001';
+const BACKEND_URL = '/api/interview';
 
 // ── Helper ──
 function cleanUrl(base) {

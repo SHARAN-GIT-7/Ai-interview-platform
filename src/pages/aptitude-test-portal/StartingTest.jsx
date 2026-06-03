@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiClock, FiCheckCircle, FiAward, FiWifi, FiCpu, FiInfo, FiArrowLeft, FiZap } from 'react-icons/fi';
+import { FiClock, FiCheckCircle, FiAward, FiWifi, FiCpu, FiInfo, FiArrowLeft, FiZap, FiLoader } from 'react-icons/fi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import ScreenProctor from '../../routes/ScreenProctor';
 
 export default function StartingTest() {
   const navigate = useNavigate();
   const location = useLocation();
   const { uniqueId } = location.state || {};
+  const [prepTimeLeft, setPrepTimeLeft] = useState(60);
+
+  useEffect(() => {
+    if (prepTimeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setPrepTimeLeft(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [prepTimeLeft]);
 
   const stats = [
     { icon: <FiCheckCircle className="text-2xl" />, value: '15 Questions', label: 'TOTAL VOLUME' },
@@ -31,6 +41,7 @@ export default function StartingTest() {
 
   return (
     <div className="min-h-screen bg-[#EAF0F0] flex items-center justify-center p-4 md:p-8 font-sans">
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} paused={true} />
       {/* Background decorative elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -97,17 +108,65 @@ export default function StartingTest() {
           </div>
         </div>
 
+        {/* ── Preparation Timer ── */}
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-8 text-center shadow-xl shadow-[#144542]/5 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[#144542]/2 pointer-events-none" />
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            {prepTimeLeft > 0 ? (
+              <>
+                <div className="relative w-16 h-16 flex items-center justify-center mb-3">
+                  <div className="absolute inset-0 border-4 border-[#144542]/10 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-[#144542] border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[#144542] text-xl font-black">{prepTimeLeft}s</span>
+                </div>
+                <h3 className="text-[#144542] text-sm font-black uppercase tracking-wide mb-1">Preparation Time Active</h3>
+                <p className="text-[#144542]/50 text-xs font-semibold max-w-sm">
+                  Please use this time to carefully review the guidelines and prepare yourself. The start button will activate shortly.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-full flex items-center justify-center text-emerald-500 mb-3 animate-bounce">
+                  <FiCheckCircle className="text-2xl" />
+                </div>
+                <h3 className="text-emerald-700 text-sm font-black uppercase tracking-wide mb-1">Preparation Complete</h3>
+                <p className="text-emerald-600/70 text-xs font-semibold max-w-sm">
+                  You are ready! Click "Start Test" below to begin.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex items-center justify-center gap-4">
           <button
-            onClick={() => navigate('/aptitude/test', { state: { uniqueId } })}
-            className="group border border-gray-300 cursor-pointer relative px-10 py-4 bg-[#DAFF0C] text-[#144542] font-black text-sm uppercase tracking-[0.15em] rounded-xl shadow-lg shadow-[#DAFF0C]/30 hover:shadow-xl hover:shadow-[#DAFF0C]/40 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden"
+            onClick={() => {
+              try {
+                if (document.documentElement.requestFullscreen) {
+                  document.documentElement.requestFullscreen().catch((err) => {
+                    console.warn("Fullscreen request failed:", err);
+                  });
+                }
+              } catch (err) {
+                console.warn("Fullscreen error:", err);
+              }
+              navigate('/aptitude/test', { state: { uniqueId } });
+            }}
+            disabled={prepTimeLeft > 0}
+            className={`group border cursor-pointer relative px-10 py-4 font-black text-sm uppercase tracking-[0.15em] rounded-xl transition-all duration-300 ${
+              prepTimeLeft > 0
+                ? 'bg-gray-200 border-gray-150 text-gray-400 cursor-not-allowed shadow-none'
+                : 'border-gray-300 bg-[#DAFF0C] text-[#144542] shadow-lg shadow-[#DAFF0C]/30 hover:shadow-xl hover:shadow-[#DAFF0C]/40 hover:-translate-y-0.5'
+            } overflow-hidden`}
           >
             <span className="relative z-10 flex items-center gap-2">
               <FiZap className="text-lg" />
-              Start Test
+              {prepTimeLeft > 0 ? `Start Test (${prepTimeLeft}s)` : 'Start Test'}
             </span>
-            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            {prepTimeLeft === 0 && (
+              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            )}
           </button>
 
           <button

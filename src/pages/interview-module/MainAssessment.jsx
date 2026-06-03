@@ -8,10 +8,12 @@ import {
 } from 'react-icons/fi';
 import Editor from '@monaco-editor/react';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import { loadTestInfo, loadCompletedModules, getNextModuleRoute, markModuleCompleted } from '../../utils/testFlowUtils';
+import ScreenProctor from '../../routes/ScreenProctor';
 
 
 // ── API Base ──────────────────────────────────────────────────────────────────
-const API = 'http://localhost:8000';
+const API = '/api/coding';
 
 const LOCAL_HEADERS = {
   'Content-Type': 'application/json',
@@ -397,6 +399,11 @@ export default function MainAssessment() {
           });
           const sid = sRes.data?.session_id || sRes.data?.id;
           setSessionId(sid);
+          if (sid) {
+            localStorage.setItem('coding_session_id', sid);
+          } else {
+            localStorage.removeItem('coding_session_id');
+          }
 
           // Start countdown once
           const endTime = new Date(sRes.data?.end_time).getTime();
@@ -408,6 +415,7 @@ export default function MainAssessment() {
           }, 1000);
         } catch {
           // If session creation fails, show a local 60-min countdown
+          localStorage.removeItem('coding_session_id');
           setTimeLeft(60 * 60);
           if (timerRef.current) clearInterval(timerRef.current);
           timerRef.current = setInterval(() => {
@@ -433,6 +441,17 @@ export default function MainAssessment() {
     };
   }, []); // eslint-disable-line
 
+  // Auto-save draft code to localStorage when code changes
+  useEffect(() => {
+    if (activeQuestion && code) {
+      const savedDrafts = JSON.parse(localStorage.getItem('coding_draft_codes') || '{}');
+      if (savedDrafts[activeQuestion.id] !== code) {
+        savedDrafts[activeQuestion.id] = code;
+        localStorage.setItem('coding_draft_codes', JSON.stringify(savedDrafts));
+      }
+    }
+  }, [code, activeQuestion]);
+
   // ── Select / switch question ─────────────────────────────────────────────────
   const selectQuestion = async (q, lang, uid) => {
     setActiveQuestion(q);
@@ -440,6 +459,13 @@ export default function MainAssessment() {
     setSubmitResult(null);
     setSubmitError('');
     setActiveTab('testcase');
+
+    // 1. Check if we have a saved draft in localStorage for this question
+    const savedDrafts = JSON.parse(localStorage.getItem('coding_draft_codes') || '{}');
+    if (savedDrafts[q.id]) {
+      setCode(savedDrafts[q.id]);
+      return;
+    }
 
     // Try to get boilerplate from backend, fall back to defaults
     try {
@@ -518,6 +544,11 @@ export default function MainAssessment() {
           session_id: sessionId || undefined,
         }),
       });
+
+      // Save code submission to localStorage so it is available in Results.jsx
+      const savedSubmissions = JSON.parse(localStorage.getItem('coding_submissions') || '{}');
+      savedSubmissions[activeQuestion.id] = code;
+      localStorage.setItem('coding_submissions', JSON.stringify(savedSubmissions));
 
       const submissionId = res.data?.submission_id || res.data?.id;
       // Poll for status
@@ -616,6 +647,7 @@ export default function MainAssessment() {
 
   return (
     <div className={`flex flex-col h-screen font-sans overflow-hidden transition-colors duration-300 select-none ${t('bg-[#F5F5F5] text-[#111111]', 'bg-[#0d1117] text-white')}`}>
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} />
 
       {/* ── TOP NAV BAR ── */}

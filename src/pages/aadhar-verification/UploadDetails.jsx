@@ -5,11 +5,11 @@ import { FiArrowLeft, FiShield, FiCheckCircle, FiAlertCircle, FiLoader, FiEye } 
 import { loadTestInfo, getNextModuleRoute } from '../../utils/testFlowUtils';
 
 // API base URLs — both now served by New-AI-verification-module FastAPI (port 8000)
-const PYTHON_API = 'http://localhost:8003';
-const DOTNET_API = 'http://localhost:5280/api/user';
+const PYTHON_API = '/api/verification';
+const DOTNET_API = '/api/user';
 
 // Proctoring backend (continuous monitoring bridge) — port 8004
-const PROCTOR_API = 'http://localhost:8004';
+const PROCTOR_API = '/api/proctor/face';
 
 const UploadDetails = () => {
   const navigate = useNavigate();

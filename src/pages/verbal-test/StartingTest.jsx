@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiMic, FiHeadphones, FiCheckCircle, FiChevronRight, FiVolume2, FiInfo } from 'react-icons/fi';
+import { FiMic, FiHeadphones, FiCheckCircle, FiChevronRight, FiVolume2, FiInfo, FiLoader } from 'react-icons/fi';
 import { MdOutlineSecurity } from 'react-icons/md'; // For the shield-like icon if needed, but we'll stick to FiCheckCircle for now as it's safe and standard.
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import ScreenProctor from '../../routes/ScreenProctor';
 
 const StartingTest = () => {
   const navigate = useNavigate();
@@ -11,8 +12,26 @@ const StartingTest = () => {
 
   // Read uniqueId forwarded from the previous module (screening → verbal)
   const { uniqueId } = location.state || {};
+  const [prepTimeLeft, setPrepTimeLeft] = useState(60);
+
+  useEffect(() => {
+    if (prepTimeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setPrepTimeLeft(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [prepTimeLeft]);
 
   const startTest = () => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.warn("Fullscreen request failed:", err);
+        });
+      }
+    } catch (err) {
+      console.warn("Fullscreen error:", err);
+    }
     // Pass uniqueId forward so SpeakingTest and ListeningTest can use it
     navigate('/verbal/speaking', { state: { uniqueId } });
   };
@@ -27,6 +46,7 @@ const StartingTest = () => {
   return (
     <div className="min-h-screen bg-[#FAFBFA] text-[#144542] flex flex-col items-center py-16 px-4 md:px-8 font-primary">
       {/* Monitoring paused while reading instructions — camera stays visible */}
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} paused={true} />
 
       <motion.div 
@@ -131,15 +151,50 @@ const StartingTest = () => {
           </div>
         </motion.div>
 
+        {/* ── Preparation Timer ── */}
+        <div className="bg-white border border-gray-100 rounded-[24px] p-6 mb-8 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-[#144542]/2 pointer-events-none" />
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            {prepTimeLeft > 0 ? (
+              <>
+                <div className="relative w-16 h-16 flex items-center justify-center mb-3">
+                  <div className="absolute inset-0 border-4 border-[#144542]/10 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-[#144542] border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[#144542] text-xl font-black">{prepTimeLeft}s</span>
+                </div>
+                <h3 className="text-[#144542] text-sm font-black uppercase tracking-wide mb-1">Preparation Time Active</h3>
+                <p className="text-[#144542]/50 text-xs font-semibold max-w-sm">
+                  Please use this time to carefully review the guidelines and prepare yourself. The start button will activate shortly.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-full flex items-center justify-center text-emerald-500 mb-3 animate-bounce">
+                  <FiCheckCircle className="text-2xl" />
+                </div>
+                <h3 className="text-emerald-700 text-sm font-black uppercase tracking-wide mb-1">Preparation Complete</h3>
+                <p className="text-emerald-600/70 text-xs font-semibold max-w-sm">
+                  You are ready! Click "Begin Assessment" below to start.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+
         {/* Action Button & Footer */}
         <div className="flex flex-col items-center text-center">
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={prepTimeLeft === 0 ? { scale: 1.02 } : {}}
+            whileTap={prepTimeLeft === 0 ? { scale: 0.98 } : {}}
             onClick={startTest}
-            className="flex items-center gap-3 bg-[#DAFF0C] hover:bg-[#C6F53C] text-[#144542] px-12 py-5 rounded-full font-bold text-[17px] shadow-[0_10px_30px_rgba(218,255,12,0.3)] transition-all mb-16 cursor-pointer"
+            disabled={prepTimeLeft > 0}
+            className={`flex items-center gap-3 px-12 py-5 rounded-full font-bold text-[17px] transition-all mb-16 cursor-pointer ${
+              prepTimeLeft > 0
+                ? 'bg-gray-200 border border-gray-150 text-gray-400 cursor-not-allowed shadow-none'
+                : 'bg-[#DAFF0C] hover:bg-[#C6F53C] text-[#144542] shadow-[0_10px_30px_rgba(218,255,12,0.3)]'
+            }`}
           >
-            Begin Assessment
+            {prepTimeLeft > 0 ? `Begin Assessment (${prepTimeLeft}s)` : 'Begin Assessment'}
             <FiChevronRight className="text-xl" strokeWidth={3} />
           </motion.button>
 

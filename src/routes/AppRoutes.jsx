@@ -18,6 +18,7 @@ import HowItWorks from "../pages/Intervista-pages/HowItWorks";
 
 import UserDashboard from "../pages/user/UserDashboard";
 import SubmitProfile from "../pages/user/SubmitProfile";
+import Guidelines from "../pages/user/Guidelines";
 import LiveVerification from "../pages/aadhar-verification/LiveVerification";
 import UploadDetails from "../pages/aadhar-verification/UploadDetails";
 import CompanyDashboard from "../pages/company/CompanyDashboard";
@@ -72,6 +73,7 @@ export default function AppRoutes() {
         {/* User Dashboard */}
         <Route path="/user/dashboard" element={<UserDashboard />} />
         <Route path="/user/submit-profile" element={<SubmitProfile />} />
+        <Route path="/user/guidelines" element={<Guidelines />} />
         <Route path="/user/live-verification" element={<LiveVerification />} />
         <Route path="/user/upload-details" element={<UploadDetails />} />
 

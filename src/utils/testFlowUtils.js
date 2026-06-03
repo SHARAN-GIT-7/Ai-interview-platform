@@ -6,7 +6,7 @@
  * to determine the next enabled module and navigate accordingly.
  */
 
-const PYTHON_VERIFICATION_API = 'http://localhost:8003';
+const PYTHON_VERIFICATION_API = '/api/verification';
 
 /**
  * Returns an ordered list of module route entries based on the testInfo flags.

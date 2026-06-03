@@ -7,6 +7,7 @@ import {
   FiGlobe, FiStar, FiTrendingUp, FiAlertCircle
 } from 'react-icons/fi';
 import { uploadResume, generateQuestions } from '../../services/interviewApi';
+import ScreenProctor from '../../routes/ScreenProctor';
 
 // ── Steps for the AI Concierge ──
 const PARSE_STEPS = [
@@ -276,6 +277,15 @@ export default function ResumeParser() {
   };
 
   const handleStartInterview = () => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.warn("Fullscreen request failed:", err);
+        });
+      }
+    } catch (err) {
+      console.warn("Fullscreen error:", err);
+    }
     navigate('/interview/test-portal', {
       state: {
         parsedData: parsedData,
@@ -294,6 +304,7 @@ export default function ResumeParser() {
 
   return (
     <div className="min-h-screen bg-brand-light font-sans">
+      <ScreenProctor />
 
       {/* Header */}
       <div className="max-w-6xl mx-auto px-6 pt-10 pb-6">

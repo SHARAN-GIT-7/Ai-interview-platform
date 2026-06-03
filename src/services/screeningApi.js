@@ -1,7 +1,7 @@
 // ── Backend API Service for Screening Module ──
 // Connects to the local Node.js screening backend on port 5001
 
-const SCREENING_API_URL = 'http://localhost:5001';
+const SCREENING_API_URL = '/api/screening';
 
 function cleanUrl(base) {
   return base.replace(/\/+$/, '');

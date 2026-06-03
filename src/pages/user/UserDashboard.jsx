@@ -5,15 +5,15 @@ import { FiSearch, FiClock, FiBook, FiLogOut, FiEdit, FiUser, FiMail, FiHome, Fi
 import axios from 'axios';
 import EditProfileModal from './EditProfileModal.jsx';
 
-const PYTHON_VERIFICATION_API = 'http://localhost:8003';
+const PYTHON_VERIFICATION_API = '/api/verification';
 
 const verificationApi = axios.create({
-  baseURL: 'http://localhost:5280/api/user',
+  baseURL: '/api/user',
   headers: { 'Content-Type': 'application/json' },
 });
 
 const authApi = axios.create({
-  baseURL: 'http://localhost:5280/api/user',
+  baseURL: '/api/user',
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -46,8 +46,8 @@ const TestCard = ({ test, onClick }) => (
       </div>
 
       <div className="flex flex-col">
-        <span className="text-gray-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5">Test Code</span>
-        <span className="text-[#144542]/80 font-mono text-xs md:text-sm bg-[#144542]/5 px-2.5 py-1 rounded-lg border border-[#144542]/5 w-fit font-bold">{test.testCode}</span>
+        <span className="text-gray-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5">Test ID</span>
+        <span className="text-[#144542]/80 font-mono text-xs md:text-sm bg-[#144542]/5 px-2.5 py-1 rounded-lg border border-[#144542]/5 w-fit font-bold">{test.testId}</span>
       </div>
 
       <div className="hidden md:flex flex-col">
@@ -72,6 +72,8 @@ export default function UserDashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [foundTest, setFoundTest] = useState(null); // stores looked-up test info
+  const [availableTests, setAvailableTests] = useState([]);
+  const [isLoadingTests, setIsLoadingTests] = useState(false);
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -161,6 +163,44 @@ export default function UserDashboard() {
     fetchUserDetails();
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchAvailableTests = async () => {
+      setIsLoadingTests(true);
+      try {
+        const testIds = Array.from({ length: 20 }, (_, i) => `TEST-${String(i + 1).padStart(2, '0')}`);
+        const promises = testIds.map(async (id) => {
+          try {
+            const res = await fetch(`${PYTHON_VERIFICATION_API}/verification/test-lookup/${encodeURIComponent(id)}`);
+            if (res.ok) {
+              return await res.json();
+            }
+          } catch (e) {
+            // ignore
+          }
+          return null;
+        });
+        const results = await Promise.all(promises);
+        const validTests = results.filter(t => t !== null && t.testId);
+        setAvailableTests(validTests);
+      } catch (err) {
+        console.error("Error fetching available tests:", err);
+      } finally {
+        setIsLoadingTests(false);
+      }
+    };
+    fetchAvailableTests();
+  }, []);
+
+  const filteredTests = availableTests.filter(t => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+    return (
+      t.testId.toLowerCase().includes(query) ||
+      t.companyName.toLowerCase().includes(query) ||
+      (t.testCode && t.testCode.toLowerCase().includes(query))
+    );
+  });
+
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userEmail");
@@ -190,7 +230,7 @@ export default function UserDashboard() {
     try {
       const res = await fetch(`${PYTHON_VERIFICATION_API}/verification/test-lookup/${encodeURIComponent(code)}`);
       if (res.status === 404) {
-        setSearchError(`No test found for code "${code}". Please double-check and try again.`);
+        setSearchError(`No test found for ID "${code}". Please double-check and try again.`);
         return;
       }
       if (!res.ok) throw new Error('Lookup failed');
@@ -252,7 +292,10 @@ export default function UserDashboard() {
 
         {/* Action Buttons */}
         <div className="w-full flex flex-col gap-3 mt-auto mb-2 relative z-10 overflow-y-auto pr-1 custom-scrollbar">
-          <button className="w-full flex items-center justify-between px-6 py-4 bg-white/5 hover:bg-[#DAFF0C]/10 border border-white/5 hover:border-[#DAFF0C]/20 text-white rounded-xl transition-all duration-300 group shadow-lg shrink-0">
+          <button
+            onClick={() => navigate('/user/guidelines')}
+            className="w-full flex items-center justify-between px-6 py-4 bg-white/5 hover:bg-[#DAFF0C]/10 border border-white/5 hover:border-[#DAFF0C]/20 text-white rounded-xl transition-all duration-300 group shadow-lg shrink-0"
+          >
             <div className="flex items-center gap-4">
               <FiBook className="text-2xl text-[#DAFF0C] group-hover:rotate-12 transition-transform" />
               <span className="font-bold text-lg tracking-wide">Guide for the test</span>
@@ -285,7 +328,7 @@ export default function UserDashboard() {
         <div className="w-full relative bg-white rounded-2xl overflow-hidden flex items-center shadow-xl border border-gray-100 group transition-all duration-300 focus-within:ring-2 focus-within:ring-[#144542]/10 shrink-0">
           <input
             type="text"
-            placeholder="Enter Test code or Company name"
+            placeholder="Enter Test ID or Test code to start your test"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleSearchKeyPress}
@@ -301,7 +344,7 @@ export default function UserDashboard() {
           <div className="flex items-center justify-between mb-6">
             <div className="space-y-1">
               <h2 className="text-[#144542] text-2xl font-black tracking-tight uppercase">Interview Identity System</h2>
-              <p className="text-gray-500 font-medium">Candidate Dashboard • Enter your Test Code to begin</p>
+              <p className="text-gray-500 font-medium">Candidate Dashboard • Enter your Test ID to begin</p>
             </div>
             {(searchQuery || foundTest) && (
               <button
@@ -318,7 +361,7 @@ export default function UserDashboard() {
             {isSearching && (
               <div className="bg-white rounded-2xl border border-gray-100 p-10 flex flex-col items-center text-center shadow-sm">
                 <FiLoader className="text-4xl text-[#144542]/30 animate-spin mb-4" />
-                <p className="text-[#144542] font-bold">Looking up test code...</p>
+                <p className="text-[#144542] font-bold">Looking up test ID...</p>
               </div>
             )}
 
@@ -328,7 +371,7 @@ export default function UserDashboard() {
                 <FiAlertCircle className="text-2xl text-red-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-red-700 font-bold text-sm">{searchError}</p>
-                  <p className="text-red-400 text-xs mt-1">Press Enter to search again after correcting the code.</p>
+                  <p className="text-red-400 text-xs mt-1">Press Enter to search again after correcting the ID.</p>
                 </div>
               </div>
             )}
@@ -341,14 +384,33 @@ export default function UserDashboard() {
               </div>
             )}
 
-            {/* Idle state — no search yet */}
+            {/* Idle state — show active/available test sessions under the search bar */}
             {!isSearching && !searchError && !foundTest && (
-              <div className="bg-white/50 backdrop-blur-sm border-2 border-dashed border-gray-200 rounded-3xl p-12 flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <FiSearch className="text-4xl text-gray-300" />
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[#144542]/50 text-xs font-bold uppercase tracking-widest">
+                    {isLoadingTests ? "Loading available test sessions..." : `Available Test Sessions (${filteredTests.length})`}
+                  </p>
+                  {isLoadingTests && <FiLoader className="animate-spin text-[#144542]/50" />}
                 </div>
-                <h3 className="text-[#144542] text-xl font-bold mb-1">Enter your Test Code</h3>
-                <p className="text-gray-500 max-w-xs text-sm">Type your test code in the search bar above and press <span className="font-black text-[#144542]">Enter</span> to look it up.</p>
+
+                {filteredTests.length > 0 ? (
+                  <div className="flex flex-col gap-4">
+                    {filteredTests.map((test) => (
+                      <TestCard key={test.testId} test={test} onClick={handleTestClick} />
+                    ))}
+                  </div>
+                ) : !isLoadingTests ? (
+                  <div className="bg-white/50 backdrop-blur-sm border-2 border-dashed border-gray-200 rounded-3xl p-12 flex flex-col items-center text-center">
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                      <FiSearch className="text-4xl text-gray-300" />
+                    </div>
+                    <h3 className="text-[#144542] text-xl font-bold mb-1">No test sessions found</h3>
+                    <p className="text-gray-500 max-w-xs text-sm">
+                      We couldn't find any test sessions matching your search.
+                    </p>
+                  </div>
+                ) : null}
               </div>
             )}
           </div>

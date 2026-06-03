@@ -2,8 +2,8 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // ─── Backend URLs ─────────────────────────────────────────────────────────────
-const FACE_API = 'http://localhost:8004';   // Face Identity (faceverification/)
-const MONITOR_API = 'http://localhost:8005';   // Gaze + Device  (Live_Monitor/)
+const FACE_API = '/api/proctor/face';   // Face Identity (faceverification/)
+const MONITOR_API = '/api/proctor/live';   // Gaze + Device  (Live_Monitor/)
 
 // ─── Timing ───────────────────────────────────────────────────────────────────
 const POLL_MS = 2_000;   // how often to poll each backend

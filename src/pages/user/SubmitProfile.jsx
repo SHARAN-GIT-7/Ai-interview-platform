@@ -5,7 +5,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const profileApi = axios.create({
-  baseURL: "http://localhost:5280/api/user",
+  baseURL: "/api/user",
 });
 
 const SubmitProfile = () => {

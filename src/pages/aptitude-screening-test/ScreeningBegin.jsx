@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiClock, FiCheckCircle, FiAward, FiWifi, FiCpu, FiInfo, FiArrowLeft, FiCompass } from 'react-icons/fi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import ScreenProctor from '../../routes/ScreenProctor';
 
 export default function ScreeningBegin() {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ export default function ScreeningBegin() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FAFAFA] to-[#F3F4F6] flex flex-col items-center justify-center p-4 md:p-8 font-sans">
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} paused={true} />
       
       <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-12 items-center">
@@ -55,7 +57,18 @@ export default function ScreeningBegin() {
 
           <div className="mt-12 flex items-center justify-start gap-4">
              <button
-              onClick={() => navigate('/screening/test', { state: { uniqueId } })}
+              onClick={() => {
+                try {
+                  if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch((err) => {
+                      console.warn("Fullscreen request failed:", err);
+                    });
+                  }
+                } catch (err) {
+                  console.warn("Fullscreen error:", err);
+                }
+                navigate('/screening/test', { state: { uniqueId } });
+              }}
               className="px-8 py-4 bg-gradient-to-r from-[#876602] to-[#D4A30B] text-white font-bold text-base rounded-lg shadow-[0_4px_15px_rgba(212,163,11,0.3)] hover:shadow-[0_6px_20px_rgba(212,163,11,0.4)] transition-all duration-300 hover:-translate-y-0.5"
             >
               Start Assessment →

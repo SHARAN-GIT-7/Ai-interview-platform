@@ -14,6 +14,8 @@ import {
   aggregateSpeakingScore,
 } from '../../services/communicationApi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import { loadTestInfo, loadCompletedModules, getNextModuleRoute, markModuleCompleted, submitModuleResult } from '../../utils/testFlowUtils';
+import ScreenProctor from '../../routes/ScreenProctor';
 
 // ─────────────────────────────────────────────────────────────
 // Waveform bar visualiser
@@ -75,7 +77,7 @@ const ListeningTest = () => {
 
         if (email && token) {
           try {
-            const authRes = await axios.get(`http://localhost:5280/api/user/auth/profile/${encodeURIComponent(email)}`, {
+            const authRes = await axios.get(`/api/user/auth/profile/${encodeURIComponent(email)}`, {
               headers: { Authorization: `Bearer ${token}` }
             });
             if (authRes.data?.name) {
@@ -87,8 +89,8 @@ const ListeningTest = () => {
         if (userId) {
           try {
             const [profileRes, statusRes] = await Promise.all([
-              axios.get(`http://localhost:5280/api/user/profile/${userId}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
-              axios.get(`http://localhost:5280/api/user/verification/status`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null)
+              axios.get(`/api/user/profile/${userId}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
+              axios.get(`/api/user/verification/status`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null)
             ]);
 
             setCandidateInfo(prev => {
@@ -278,14 +280,7 @@ const ListeningTest = () => {
         }
       }
 
-      navigate('/verbal/results', {
-        state: {
-          listeningResults: listeningAggregated,
-          speakingResults: speakingAggregated,
-          sessionId: session.session_id,
-          uniqueId
-        }
-      });
+      navigate('/verbal/results', { state: { speakingResults: speakingAggregated, listeningResults: listeningAggregated, uniqueId } });
     } catch (err) {
       console.error('Submission failed', err);
       setSubmitError('Submission failed. Please try again.');
@@ -315,6 +310,7 @@ const ListeningTest = () => {
   // ── Main render ─────────────────────────────────────────
   return (
     <div className="min-h-screen bg-white text-[#144542] flex font-primary">
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} />
 
       {/* LEFT SIDEBAR */}

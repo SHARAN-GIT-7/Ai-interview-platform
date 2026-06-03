@@ -77,7 +77,7 @@ export default function UserLogin() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5280/api/user/auth/login", {
+      const response = await fetch("/api/user/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -103,7 +103,7 @@ export default function UserLogin() {
 
         // Check if profile exists to determine redirect target
         try {
-          const profileApiResponse = await fetch(`http://localhost:5280/api/user/profile/${data.userId}`, {
+          const profileApiResponse = await fetch(`/api/user/profile/${data.userId}`, {
             headers: { "Authorization": `Bearer ${data.token}` }
           });
           if (profileApiResponse.ok) {
@@ -178,7 +178,7 @@ export default function UserLogin() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5280/api/user/auth/reset-password", {
+      const response = await fetch("/api/user/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

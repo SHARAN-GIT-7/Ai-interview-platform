@@ -1,7 +1,7 @@
 // ── Backend API Service for Aptitude Test Module ──
 // Connects to the AptitudeIQ backend
 
-const APTITUDE_API_URL = 'http://localhost:5000';
+const APTITUDE_API_URL = '/api/aptitude';
 
 function cleanUrl(base) {
   return base.replace(/\/+$/, '');

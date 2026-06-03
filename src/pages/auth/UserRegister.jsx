@@ -84,7 +84,7 @@ export default function UserRegister() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/send-verification", {
+      const response = await fetch("/api/send-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
@@ -97,7 +97,7 @@ export default function UserRegister() {
         // Start polling for verification status
         const pollInterval = setInterval(async () => {
           try {
-            const checkRes = await fetch(`http://localhost:5000/api/check-verification/${email}`);
+            const checkRes = await fetch(`/api/check-verification/${email}`);
             const data = await checkRes.json();
             
             if (data.verified) {
@@ -143,7 +143,7 @@ export default function UserRegister() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5280/api/user/auth/signup/student", {
+      const response = await fetch("/api/user/auth/signup/student", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

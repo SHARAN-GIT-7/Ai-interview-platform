@@ -6,8 +6,9 @@ import {
   FiAlertTriangle, FiShield, FiCpu, FiInfo,
 } from 'react-icons/fi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
+import ScreenProctor from '../../routes/ScreenProctor';
 
-const CODING_MODULE_URL = 'http://localhost:8000';
+const CODING_MODULE_URL = '/api/coding';
 
 const stats = [
   { icon: <FiCode className="text-2xl" />, value: 'Code Problems', label: 'ASSESSMENT TYPE' },
@@ -44,6 +45,15 @@ export default function InitialProcess() {
   const [userName, setUserName] = useState('Candidate');
   const [agreed, setAgreed] = useState(false);
   const [pulse, setPulse] = useState(false);
+  const [prepTimeLeft, setPrepTimeLeft] = useState(60);
+
+  useEffect(() => {
+    if (prepTimeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setPrepTimeLeft(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [prepTimeLeft]);
 
   useEffect(() => {
     const name = localStorage.getItem('userName') || localStorage.getItem('userEmail') || 'Candidate';
@@ -57,12 +67,25 @@ export default function InitialProcess() {
   }, []);
 
   const handleStart = () => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.warn("Fullscreen request failed:", err);
+        });
+      }
+    } catch (err) {
+      console.warn("Fullscreen error:", err);
+    }
+    localStorage.removeItem('coding_draft_codes');
+    localStorage.removeItem('coding_submissions');
+    localStorage.removeItem('coding_session_id');
     navigate('/coding/assessment', { state: { uniqueId } });
   };
 
   return (
     <div className="min-h-screen bg-[#EAF0F0] font-sans overflow-x-hidden">
       {/* Continuous Face Monitoring — paused on intro page */}
+      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} paused={true} />
 
       {/* Fixed decorative blobs */}
@@ -210,6 +233,36 @@ export default function InitialProcess() {
           </div>
         </div>
 
+        {/* ── Preparation Timer ── */}
+        <div className="bg-white border border-gray-100 rounded-3xl p-6 mb-8 text-center shadow-xl shadow-[#144542]/5 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[#144542]/2 pointer-events-none" />
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            {prepTimeLeft > 0 ? (
+              <>
+                <div className="relative w-16 h-16 flex items-center justify-center mb-3">
+                  <div className="absolute inset-0 border-4 border-[#144542]/10 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-[#144542] border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[#144542] text-xl font-black">{prepTimeLeft}s</span>
+                </div>
+                <h3 className="text-[#144542] text-sm font-black uppercase tracking-wide mb-1">Preparation Time Active</h3>
+                <p className="text-[#144542]/50 text-xs font-semibold max-w-sm">
+                  Please use this time to carefully review the guidelines and prepare yourself. The start button will activate shortly.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-full flex items-center justify-center text-emerald-500 mb-3 animate-bounce">
+                  <FiCheckCircle className="text-2xl" />
+                </div>
+                <h3 className="text-emerald-700 text-sm font-black uppercase tracking-wide mb-1">Preparation Complete</h3>
+                <p className="text-emerald-600/70 text-xs font-semibold max-w-sm">
+                  You are ready! Check the agreement box below and click "Start Test" to begin.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+
         {/* ── Academic Integrity Checkbox ── */}
         <div
           onClick={() => setAgreed(!agreed)}
@@ -240,18 +293,18 @@ export default function InitialProcess() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             onClick={handleStart}
-            disabled={!agreed}
+            disabled={!agreed || prepTimeLeft > 0}
             className={`group relative cursor-pointer px-12 py-4 font-black text-sm uppercase tracking-[0.15em] rounded-xl transition-all duration-300 overflow-hidden ${
-              agreed
+              agreed && prepTimeLeft === 0
                 ? 'bg-[#DAFF0C] text-[#144542] shadow-lg shadow-[#DAFF0C]/30 hover:shadow-xl hover:shadow-[#DAFF0C]/40 hover:-translate-y-0.5'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
             <span className="relative z-10 flex items-center gap-2">
               <FiZap className="text-lg" />
-              Start Test
+              {prepTimeLeft > 0 ? `Start Test (${prepTimeLeft}s)` : 'Start Test'}
             </span>
-            {agreed && (
+            {agreed && prepTimeLeft === 0 && (
               <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             )}
           </button>
