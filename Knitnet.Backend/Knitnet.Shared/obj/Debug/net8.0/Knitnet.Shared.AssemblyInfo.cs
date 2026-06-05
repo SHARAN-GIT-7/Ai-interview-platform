@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Knitnet.Shared")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cae9f39e80bec345fb268f1b06e00e48e14b86d8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7750bc39ecb50851253c835450ac466c4b6c1c67")]
 [assembly: System.Reflection.AssemblyProductAttribute("Knitnet.Shared")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Knitnet.Shared")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
