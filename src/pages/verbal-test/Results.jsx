@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -120,10 +120,14 @@ const Results = () => {
 
   // ── No real data yet (navigated directly to page) ────────────────────────────
   const hasRealData = !!(listening || speaking);
+  const submissionStartedRef = useRef(false);
 
   // ── Save verbal result to DB (once, when real data is present) ───────────────
   useEffect(() => {
     if (!hasRealData) return;
+    if (submissionStartedRef.current) return;
+    submissionStartedRef.current = true;
+
     const testInfo = loadTestInfo();
     submitModuleResult('verbal', {
       verbalCode: testInfo?.verbalMapping?.verbalCode || '',

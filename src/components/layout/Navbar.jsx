@@ -38,7 +38,14 @@ function Navbar({ theme = "dark" }) {
       >
         <Link to="/" className="flex items-center gap-2 group">
           <div className={`text-2xl font-black tracking-tighter ${isDarkText ? "text-brand-dark" : "text-white"}`}>
-            <img src="/intervista full logo 4.svg" className="w-[180px] h-80px object-cover"></img>
+            <img
+              src="/intervista full logo 4.svg"
+              className={`w-[180px] h-[80px] object-contain transition-all duration-500 ${
+                isDarkText
+                  ? "brightness-100 drop-shadow-none"
+                  : "brightness-0 invert drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]"
+              }`}
+            />
           </div>
         </Link>
 
@@ -63,12 +70,32 @@ function Navbar({ theme = "dark" }) {
             Pricing
             <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] ${isDarkText ? "bg-brand-dark" : "bg-white"} transition-all duration-300 ease-out group-hover:w-full`}></span>
           </Link>
+
+          {/* ── Take Test Button ── */}
           <Link
             to="/login"
-            className={`relative px-6 shadow-2xl py-2.5 text-sm tracking-wider ${isDarkText ? "text-brand-secondary bg-black border-black" : "text-brand-dark bg-white border-white"} rounded-lg transition-all duration-300 active:scale-95 overflow-hidden group border`}
+            className={`relative px-6 py-2.5 text-sm font-bold tracking-wider rounded-lg border overflow-hidden group
+              active:scale-95 transition-all duration-300 hover:scale-[1.04] hover:shadow-lg
+              ${isDarkText
+                ? "bg-brand-dark text-brand-secondary border-brand-dark hover:shadow-brand-dark/30"
+                : "bg-white text-brand-dark border-white hover:shadow-white/20"
+              }`}
           >
-            <span className="absolute inset-y-0 left-0 w-0 bg-brand-light/98 backdrop-blur-[8px] shadow-sm transition-all duration-500 ease-out group-hover:w-full z-0"></span>
-            <span className={`relative z-10 transition-colors duration-500 group-hover:text-black`}>Take Test</span>
+            {/* sliding fill */}
+            <span
+              className={`absolute inset-0 w-0 transition-all duration-500 ease-out group-hover:w-full z-0
+                ${isDarkText ? "bg-white" : "bg-brand-dark"}`}
+            />
+            {/* label — flips colour on hover */}
+            <span
+              className={`relative z-10 transition-colors duration-500
+                ${isDarkText
+                  ? "text-brand-secondary group-hover:text-brand-dark"
+                  : "text-brand-dark group-hover:text-brand-secondary"
+                }`}
+            >
+              Take Test
+            </span>
           </Link>
         </div>
       </div>

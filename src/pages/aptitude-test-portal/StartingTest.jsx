@@ -20,7 +20,7 @@ export default function StartingTest() {
 
   const stats = [
     { icon: <FiCheckCircle className="text-2xl" />, value: '15 Questions', label: 'TOTAL VOLUME' },
-    { icon: <FiClock className="text-2xl" />, value: '15:00 Minutes', label: 'TIMED DURATION' },
+    { icon: <FiClock className="text-2xl" />, value: '30 Minutes', label: 'TIMED DURATION' },
     { icon: <FiAward className="text-2xl" />, value: '1 Point', label: 'PER QUESTION' },
   ];
 

@@ -54,3 +54,17 @@ export async function fetchResults() {
   if (!res.ok) throw new Error(`Failed to fetch results (HTTP ${res.status}): ${text}`);
   return JSON.parse(text);
 }
+
+/**
+ * Fetch detailed answer evaluations for a specific test result.
+ * Returns: [{ question_id, question, user_answer, correct_answer, is_correct }, ...]
+ */
+export async function fetchResultAnswers(resultId) {
+  const res = await fetch(`${cleanUrl(APTITUDE_API_URL)}/api/results/${resultId}/answers`, {
+    method: 'GET',
+  });
+
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Failed to fetch result answers (HTTP ${res.status}): ${text}`);
+  return JSON.parse(text);
+}

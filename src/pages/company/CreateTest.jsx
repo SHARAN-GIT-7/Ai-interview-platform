@@ -12,7 +12,7 @@ const modules = [
   { name: "Aptitude", cost: 50, time: 30, icon: FiTrendingUp, bgClass: "bg-[#fcdcb6]", textClass: "text-[#c26804]", key: "aptitudeModule" },
 ];
 
-export default function CreateTest() {
+export default function CreateTest({ onCancel }) {
   const [selectedModules, setSelectedModules] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -484,12 +484,18 @@ export default function CreateTest() {
               </div>
             </div>
             
-            {/* Submit Button */}
-            <div className="flex flex-col justify-end">
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-6 mt-2">
+              <button 
+                onClick={onCancel}
+                className="px-10 py-4 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-4"
+              >
+                Cancel
+              </button>
               <button 
                 onClick={handleCreateTest}
                 disabled={isSubmitting || testIdStatus === "taken" || selectedModules.length === 0}
-                className="w-full py-3.5 bg-[#144542] text-white text-sm font-bold rounded-xl shadow-md hover:bg-[#144542]/90 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 max-w-[250px] py-3.5 bg-[#144542] text-white text-sm font-bold rounded-xl shadow-md hover:bg-[#144542]/90 transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <><FiLoader className="animate-spin" /> Creating...</>

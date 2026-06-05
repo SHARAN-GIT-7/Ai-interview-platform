@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FiArrowLeft, FiAward, FiCode, FiCheckCircle, FiXCircle,
@@ -92,8 +92,12 @@ export default function Results() {
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
   const [animateScore, setAnimateScore] = useState(false);
+  const submissionStartedRef = useRef(false);
 
   useEffect(() => {
+    if (submissionStartedRef.current) return;
+    submissionStartedRef.current = true;
+
     const fetchResults = async () => {
       const userId = localStorage.getItem('userId') || '';
       const userEmail = localStorage.getItem('userEmail') || '';

@@ -168,18 +168,21 @@ export default function UserDashboard() {
       setIsLoadingTests(true);
       try {
         const testIds = Array.from({ length: 20 }, (_, i) => `TEST-${String(i + 1).padStart(2, '0')}`);
-        const promises = testIds.map(async (id) => {
+        const results = [];
+
+        // Fetch sequentially to avoid overloading the Supabase connection pool limit of 15
+        for (const id of testIds) {
           try {
             const res = await fetch(`${PYTHON_VERIFICATION_API}/verification/test-lookup/${encodeURIComponent(id)}`);
             if (res.ok) {
-              return await res.json();
+              const data = await res.json();
+              results.push(data);
             }
           } catch (e) {
             // ignore
           }
-          return null;
-        });
-        const results = await Promise.all(promises);
+        }
+
         const validTests = results.filter(t => t !== null && t.testId);
         setAvailableTests(validTests);
       } catch (err) {
@@ -305,7 +308,7 @@ export default function UserDashboard() {
             </div>
           </button>
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-2 shrink-0">
-            <button 
+            <button
               onClick={handleLogout}
               className="flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 border border-red-500/20 text-red-500 hover:text-white py-4 rounded-xl transition-all duration-300 font-black tracking-widest uppercase text-[10px] group shadow-lg"
             >

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronLeft, FiChevronRight, FiClock, FiCheck, FiAlertCircle, FiSend, FiLoader } from 'react-icons/fi';
-import { fetchQuestions, submitAnswers, fetchResults } from '../../services/aptitudeApi';
+import { fetchQuestions, submitAnswers, fetchResults, fetchResultAnswers } from '../../services/aptitudeApi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
 import ScreenProctor from '../../routes/ScreenProctor';
 import { submitModuleResult, markModuleCompleted, loadTestInfo, getNextModuleRoute, loadCompletedModules } from '../../utils/testFlowUtils';
 
 
-const TOTAL_TIME = 15 * 60;
+const TOTAL_TIME = 30 * 60;
 
 export default function AptitudeTest() {
   const navigate = useNavigate();
@@ -65,6 +65,7 @@ export default function AptitudeTest() {
       let score = 0;
       let correct = 0;
       let incorrect = 0;
+      let correctAnswersList = [];
       if (result?.result_id) {
         try {
           const resultsList = await fetchResults();
@@ -74,8 +75,15 @@ export default function AptitudeTest() {
             correct = matchingResult.correct ?? 0;
             incorrect = matchingResult.wrong ?? 0;
           }
+
+          // Fetch correct solutions details to store them in consolidated database
+          const answersDetails = await fetchResultAnswers(result.result_id);
+          correctAnswersList = questions.map((q) => {
+            const detail = answersDetails.find(a => a.question_id === q.id);
+            return detail ? detail.correct_answer : '';
+          });
         } catch (fetchErr) {
-          console.error('[Aptitude] Failed to fetch verified score from results:', fetchErr);
+          console.error('[Aptitude] Failed to fetch verified score or solutions:', fetchErr);
         }
       }
 
@@ -87,7 +95,7 @@ export default function AptitudeTest() {
         moduleScoreSecured: score,
         questions: questions.map(q => q.question),
         userAnswers: answersPayload.map(a => a.answer),
-        correctAnswers: [],
+        correctAnswers: correctAnswersList,
         topics: testInfo?.aptitudeMapping?.topics || [],
         correct: correct,
         incorrect: incorrect,

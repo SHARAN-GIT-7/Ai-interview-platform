@@ -54,6 +54,10 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/aptitude/, '')
       },
+      '/api/contact': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
       '/api/screening': {
         target: 'http://localhost:5001',
         changeOrigin: true,

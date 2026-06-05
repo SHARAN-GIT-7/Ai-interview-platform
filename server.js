@@ -136,6 +136,109 @@ app.get('/api/check-verification/:email', (req, res) => {
   }
 });
 
+// ── Contact Form ─────────────────────────────────────────────────────────────
+app.post('/api/contact', async (req, res) => {
+  const {
+    firstName, lastName, email, company,
+    employees, industry, country, phone,
+    jobTitle, description, newsletter
+  } = req.body;
+
+  if (!firstName || !email) {
+    return res.status(400).json({ error: 'First name and email are required.' });
+  }
+
+  try {
+    // 1) Notify the Intervista team
+    await transporter.sendMail({
+      from: `"Intervista Contact Form" <${process.env.EMAIL_USER}>`,
+      to: 'team@intervista.in',
+      replyTo: email,
+      subject: `New Contact Form Submission — ${firstName} ${lastName || ''} (${company || 'N/A'})`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+          </style>
+        </head>
+        <body style="font-family:'Inter',Arial,sans-serif;background:#EAF0F0;padding:40px 20px;">
+          <div style="max-width:560px;margin:0 auto;background:#ffffff;padding:40px;border-radius:24px;box-shadow:0 4px 20px rgba(20,69,66,0.08);">
+            <div style="background:#144542;color:#DAFF0C;font-size:28px;font-weight:900;letter-spacing:-1px;padding:16px 24px;border-radius:14px;display:inline-block;margin-bottom:28px;">
+              Intervista
+            </div>
+            <h2 style="color:#144542;font-size:22px;font-weight:900;margin:0 0 8px;">New Contact Form Submission</h2>
+            <p style="color:#9B9B9B;font-size:14px;margin:0 0 28px;">Received from the Intervista contact page.</p>
+
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              ${[
+                ['Name',        `${firstName} ${lastName || ''}`],
+                ['Email',       email],
+                ['Company',     company        || '—'],
+                ['Employees',   employees      || '—'],
+                ['Industry',    industry       || '—'],
+                ['Country',     country        || '—'],
+                ['Phone',       phone          || '—'],
+                ['Job Title',   jobTitle       || '—'],
+                ['Newsletter',  newsletter ? 'Yes' : 'No'],
+              ].map(([label, value]) => `
+                <tr>
+                  <td style="padding:10px 0;color:#9B9B9B;font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:0.1em;width:140px;vertical-align:top;border-bottom:1px solid #EAF0F0;">${label}</td>
+                  <td style="padding:10px 0;color:#144542;font-weight:600;border-bottom:1px solid #EAF0F0;">${value}</td>
+                </tr>
+              `).join('')}
+            </table>
+
+            ${description ? `
+            <div style="margin-top:24px;padding:20px;background:#f8fafa;border-radius:12px;border-left:4px solid #DAFF0C;">
+              <p style="color:#9B9B9B;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Message / Description</p>
+              <p style="color:#144542;font-size:14px;line-height:1.7;margin:0;">${description}</p>
+            </div>` : ''}
+
+            <p style="color:#9B9B9B;font-size:12px;margin-top:36px;border-top:1px solid #EAF0F0;padding-top:20px;">
+              This message was submitted via the Intervista contact form. Reply directly to this email to reach the sender.
+            </p>
+          </div>
+        </body>
+        </html>
+      `
+    });
+
+    // 2) Auto-reply to the sender
+    await transporter.sendMail({
+      from: `"Intervista Team" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'We received your message — Intervista',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family:'Inter',Arial,sans-serif;background:#EAF0F0;padding:40px 20px;text-align:center;">
+          <div style="max-width:500px;margin:0 auto;background:#ffffff;padding:40px;border-radius:24px;box-shadow:0 4px 20px rgba(20,69,66,0.06);">
+            <div style="background:#144542;color:#DAFF0C;font-size:26px;font-weight:900;letter-spacing:-1px;padding:14px 22px;border-radius:14px;display:inline-block;margin-bottom:28px;">
+              Intervista
+            </div>
+            <h2 style="color:#144542;font-size:24px;font-weight:900;margin:0 0 14px;">Thanks for reaching out, ${firstName}!</h2>
+            <p style="color:#9B9B9B;font-size:15px;line-height:1.7;margin:0 0 32px;">
+              We've received your message and our team will get back to you within <strong style="color:#144542;">1–2 business days</strong>.
+            </p>
+            <p style="color:#9B9B9B;font-size:13px;border-top:1px solid #EAF0F0;padding-top:20px;margin:0;">
+              If you have an urgent query, reach us directly at
+              <a href="mailto:team@intervista.in" style="color:#144542;font-weight:700;">team@intervista.in</a>
+            </p>
+          </div>
+        </body>
+        </html>
+      `
+    });
+
+    res.json({ success: true, message: 'Message sent successfully.' });
+  } catch (err) {
+    console.error('Contact form email error:', err);
+    res.status(500).json({ error: 'Failed to send message. Please try again.' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Email verification server running on http://localhost:${PORT}`);
 });

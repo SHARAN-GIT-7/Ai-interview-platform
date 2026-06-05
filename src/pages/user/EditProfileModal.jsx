@@ -18,6 +18,7 @@ profileApi.interceptors.request.use((config) => {
 
 const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
   const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
   const [formData, setFormData] = useState({
     name: userData.name || "",
     email: userData.email || "",
@@ -29,6 +30,13 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
     gender: userData.gender || "",
     photo: null,
   });
+
+  // Clear message when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setMessage({ text: "", type: "" });
+    }
+  }, [isOpen]);
 
   // Sync with userData when it changes or modal opens
   React.useEffect(() => {
@@ -62,13 +70,14 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
+    setMessage({ text: "", type: "" });
 
     try {
       const userId = localStorage.getItem("userId");
       const token = localStorage.getItem("authToken");
 
       if (!userId || !token) {
-        alert("Session expired. Please login again.");
+        setMessage({ text: "Session expired. Please login again.", type: "error" });
         return;
       }
 
@@ -108,7 +117,7 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
         },
       });
 
-      alert("Profile updated successfully!");
+      setMessage({ text: "Profile updated successfully!", type: "success" });
 
       const updatedData = {
         ...formData,
@@ -117,7 +126,11 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
       delete updatedData.photo;
 
       onSave(updatedData);
-      onClose();
+      
+      // Delay closing to show the success message
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (error) {
       console.error("Error saving profile:", error);
       let errorMsg = "Failed to save profile";
@@ -133,7 +146,7 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
           errorMsg = JSON.stringify(error.response.data, null, 2);
         }
       }
-      alert(errorMsg);
+      setMessage({ text: errorMsg, type: "error" });
     } finally {
       setIsSaving(false);
     }
@@ -173,6 +186,27 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSave }) => {
                 <FiX className="text-xl" />
               </button>
             </div>
+
+            {/* Animated Message Banner */}
+            <AnimatePresence>
+              {message.text && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="px-6 md:px-8 pt-4 pb-0"
+                >
+                  <div className={`p-4 rounded-xl font-bold text-sm flex items-center gap-3 ${
+                    message.type === "success" 
+                      ? "bg-green-100 text-green-800 border border-green-200" 
+                      : "bg-red-100 text-red-800 border border-red-200"
+                  }`}>
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${message.type === "success" ? "bg-green-600" : "bg-red-600"}`}></div>
+                    {message.text}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Form Content */}
             <form onSubmit={handleSubmit} className="p-6 md:p-8 overflow-y-auto custom-scrollbar grow">

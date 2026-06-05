@@ -51,6 +51,48 @@ export default function TestPortal() {
 
   const question = backendQuestions[currentQuestion] || {};
 
+  // Overall session timer (20 minutes)
+  const [sessionTimeLeft, setSessionTimeLeft] = useState(20 * 60);
+  const overallTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (!backendQuestions.length) return;
+
+    overallTimerRef.current = setInterval(() => {
+      setSessionTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(overallTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (overallTimerRef.current) clearInterval(overallTimerRef.current);
+    };
+  }, [backendQuestions.length]);
+
+  // Auto-submit when overall timer runs out
+  useEffect(() => {
+    if (sessionTimeLeft === 0 && backendQuestions.length > 0) {
+      // Build the answers payload for the evaluation page
+      const answerPayload = backendQuestions.map((q, i) => ({
+        question_id: q.id,
+        candidate_answer: answers[i] || '(no answer)',
+      }));
+
+      navigate('/interview/evaluation', {
+        state: {
+          sessionId,
+          answers: answerPayload,
+          questions: backendQuestions,
+          uniqueId
+        }
+      });
+    }
+  }, [sessionTimeLeft, backendQuestions, answers, sessionId, uniqueId, navigate]);
+
   // Recording timer
   useEffect(() => {
     if (isRecording) {
@@ -277,9 +319,17 @@ export default function TestPortal() {
             <span className="text-[0.7rem] font-extrabold text-gray-500 uppercase tracking-widest">
               Interview Progress
             </span>
-            <span className="text-[0.8rem] font-bold text-brand-dark">
-              Question {currentQuestion + 1} of {totalQuestions}
-            </span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-1 bg-brand-light/35 border border-brand-dark/10 rounded-lg text-brand-dark">
+                <FiClock className={sessionTimeLeft < 60 ? "animate-pulse text-red-500" : ""} size={14} />
+                <span className="text-xs font-bold font-mono">
+                  {Math.floor(sessionTimeLeft / 60)}:{(sessionTimeLeft % 60).toString().padStart(2, '0')}
+                </span>
+              </div>
+              <span className="text-[0.8rem] font-bold text-brand-dark">
+                Question {currentQuestion + 1} of {totalQuestions}
+              </span>
+            </div>
           </div>
           <div className="h-[5px] bg-gray-200 rounded-full overflow-hidden">
             <motion.div

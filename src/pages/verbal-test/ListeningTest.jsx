@@ -62,6 +62,61 @@ const ListeningTest = () => {
   const streamRef = useRef(null);
   const recTimerRef = useRef(null);
 
+  // Overall Listening session timer (15 minutes)
+  const [listeningTimeLeft, setListeningTimeLeft] = useState(15 * 60);
+  const overallTimerRef = useRef(null);
+  // Prevents auto-submit from firing before the timer has had at least one
+  // proper tick in this session (avoids instant-zero on mount when
+  // listening_start_time is stale from a previous session).
+  const timerReadyRef = useRef(false);
+  const autoSubmitCalledRef = useRef(false);
+
+  useEffect(() => {
+    // Always reset the listening start time on mount so the Speaking module's
+    // elapsed time does not bleed into this session's 15-minute countdown.
+    localStorage.setItem('listening_start_time', Date.now().toString());
+    timerReadyRef.current = false;
+    autoSubmitCalledRef.current = false;
+
+    const updateTime = () => {
+      const startTimeStr = localStorage.getItem('listening_start_time');
+      if (startTimeStr) {
+        const elapsed = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+        const remaining = Math.max(0, 15 * 60 - elapsed);
+        setListeningTimeLeft(remaining);
+        // Mark timer as properly initialized after the first real tick
+        timerReadyRef.current = true;
+        if (remaining <= 0) {
+          if (overallTimerRef.current) clearInterval(overallTimerRef.current);
+        }
+      }
+    };
+
+    // Delay first tick by 1 s so state is settled before any auto-submit check
+    overallTimerRef.current = setInterval(updateTime, 1000);
+
+    return () => {
+      if (overallTimerRef.current) clearInterval(overallTimerRef.current);
+    };
+  }, []);
+
+  // Auto-submit when time is up — only after the timer has had a real tick
+  useEffect(() => {
+    if (
+      listeningTimeLeft === 0 &&
+      timerReadyRef.current &&
+      !autoSubmitCalledRef.current &&
+      phase !== 'loading' &&
+      session &&
+      phase !== 'submitting'
+    ) {
+      autoSubmitCalledRef.current = true;
+      submitAll(audioBlobs);
+    }
+  }, [listeningTimeLeft, phase, session, audioBlobs]);
+
+
+
   // ── Load clips & profile on mount ─────────────────────────────────
   useEffect(() => {
     (async () => {
@@ -204,6 +259,34 @@ const ListeningTest = () => {
     }
   }, [handleRecordingStop]);
 
+  // 10-Second Remembering timer
+  const [rememberTimeLeft, setRememberTimeLeft] = useState(10);
+  const rememberTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (phase === 'remembering') {
+      rememberTimerRef.current = setInterval(() => {
+        setRememberTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(rememberTimerRef.current);
+            startRecording();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (rememberTimerRef.current) {
+        clearInterval(rememberTimerRef.current);
+      }
+    }
+    return () => {
+      if (rememberTimerRef.current) {
+        clearInterval(rememberTimerRef.current);
+      }
+    };
+  }, [phase, startRecording]);
+
   // ── Play the clip audio ─────────────────────────────────
   const playAudio = () => {
     if (!currentClip?.audio_b64) return;
@@ -220,7 +303,8 @@ const ListeningTest = () => {
     audio.onended = () => {
       setIsPlaying(false);
       setPlayProgress(100);
-      startRecording(); // Automatically start recording when audio finishes
+      setPhase('remembering');
+      setRememberTimeLeft(10);
     };
     audio.onerror = () => {
       setIsPlaying(false);
@@ -325,6 +409,16 @@ const ListeningTest = () => {
               <div className="font-bold text-sm text-[#144542] truncate max-w-[150px]">{candidateInfo.name}</div>
               <div className="text-[10px] text-[#9B9B9B]">ID: {candidateInfo.id}</div>
             </div>
+          </div>
+        </div>
+
+        <div className="mt-[-15px]">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9B9B9B] mb-3">Listening Time Left</h3>
+          <div className="flex items-center gap-2.5 bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
+            <FiClock className={listeningTimeLeft < 60 ? "text-red-500 animate-pulse" : "text-[#144542]"} size={18} />
+            <span className="font-mono font-extrabold text-sm text-[#144542]">
+              {Math.floor(listeningTimeLeft / 60)}:{(listeningTimeLeft % 60).toString().padStart(2, '0')}
+            </span>
           </div>
         </div>
 
@@ -487,6 +581,21 @@ const ListeningTest = () => {
                 </p>
                 <button disabled className="px-8 py-3 rounded-xl font-bold text-sm bg-gray-100 text-gray-400 flex items-center gap-2 cursor-not-allowed border border-gray-200">
                   <FiMic size={16} /> Start recording
+                </button>
+              </div>
+            ) : phase === 'remembering' ? (
+              <div className="flex flex-col items-center">
+                <div className="relative w-20 h-20 flex items-center justify-center mb-4">
+                  <div className="absolute inset-0 border-4 border-[#144542]/10 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-[#DAFF0C] border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[#144542] text-2xl font-black">{rememberTimeLeft}s</span>
+                </div>
+                <h4 className="font-bold text-lg text-[#144542] mb-2">Prepare Response</h4>
+                <p className="text-xs text-[#9B9B9B] max-w-[280px] text-center mb-6">
+                  Taking 10 seconds to remember the audio. Recording will start automatically...
+                </p>
+                <button onClick={startRecording} className="px-8 py-3 rounded-xl font-bold text-sm bg-[#DAFF0C] text-[#144542] flex items-center gap-2 hover:scale-105 transition-transform shadow-md">
+                  <FiMic size={16} /> Skip and start recording
                 </button>
               </div>
             ) : phase === 'ready_to_prepare' ? (

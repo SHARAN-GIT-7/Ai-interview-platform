@@ -32,6 +32,8 @@ const StartingTest = () => {
     } catch (err) {
       console.warn("Fullscreen error:", err);
     }
+    // Set the overall Speaking test start time
+    localStorage.setItem('speaking_start_time', Date.now().toString());
     // Pass uniqueId forward so SpeakingTest and ListeningTest can use it
     navigate('/verbal/speaking', { state: { uniqueId } });
   };

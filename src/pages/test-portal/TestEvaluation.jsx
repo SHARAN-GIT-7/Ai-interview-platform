@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -80,8 +80,12 @@ export default function TestEvaluation() {
   const answersPayload = location.state?.answers || [];
   const questions = location.state?.questions || [];
   const uniqueId = location.state?.uniqueId;
+  const evaluationStartedRef = useRef(false);
 
   useEffect(() => {
+    if (evaluationStartedRef.current) return;
+    evaluationStartedRef.current = true;
+
     const runEvaluation = async () => {
       if (!sessionId || !answersPayload.length) {
         console.warn('No session or answers found. Marking completed and redirecting to next module.');

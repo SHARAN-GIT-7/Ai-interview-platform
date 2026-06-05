@@ -211,7 +211,7 @@ export default function CompanyDashboard() {
                 </div>
               </div>
             ) : activeTab === "home" && isCreatingTest ? (
-               <CreateTest />
+               <CreateTest onCancel={() => setIsCreatingTest(false)} />
             ) : activeTab === "home" && selectedTest ? (
                <TestDashboard test={selectedTest} />
             ) : (

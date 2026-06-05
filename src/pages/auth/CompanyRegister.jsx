@@ -91,6 +91,16 @@ export default function CompanyRegister() {
   // Simple email regex validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  // Password requirements (6-9 characters, at least 1 number, at least 1 symbol from [@#$], 1 upper and 1 lower case)
+  const passwordRules = [
+    { id: "length",    label: "6 to 9 characters",                    test: (p) => p.length >= 6 && p.length <= 9 },
+    { id: "number",    label: "At least 1 number",                     test: (p) => /[0-9]/.test(p) },
+    { id: "symbol",    label: "At least 1 symbol (@, #, $)",           test: (p) => /[@#$]/.test(p) },
+    { id: "case",      label: "At least 1 uppercase & 1 lowercase",    test: (p) => /[A-Z]/.test(p) && /[a-z]/.test(p) },
+  ];
+
+  const isPasswordValid = (p) => passwordRules.every((r) => r.test(p));
+
   const handleVerifyEmail = async () => {
     setMessage({ text: "", type: "" });
     if (!email) {
@@ -140,8 +150,14 @@ export default function CompanyRegister() {
       return;
     }
 
+    if (!isPasswordValid(password)) {
+      showMessage("Password does not meet all requirements.", "error");
+      shakeForm();
+      return;
+    }
+
     if (password !== confirmPassword) {
-      showMessage("Passwords do not match", "error");
+      showMessage("Passwords do not match.", "error");
       shakeForm();
       return;
     }
@@ -369,6 +385,36 @@ export default function CompanyRegister() {
                         {showPassword ? <FaEye /> : <FaEyeSlash />}
                       </button>
                     </div>
+
+                    {/* Live Password Requirements Checklist */}
+                    {password.length > 0 && (
+                      <div className="mt-3 p-3.5 bg-gray-50 border border-gray-100 rounded-xl space-y-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Password Requirements</p>
+                        {passwordRules.map((rule) => {
+                          const passed = rule.test(password);
+                          return (
+                            <div key={rule.id} className="flex items-center gap-2.5">
+                              <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                                passed ? "bg-green-500" : "bg-gray-200"
+                              }`}>
+                                {passed ? (
+                                  <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                ) : (
+                                  <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                                )}
+                              </div>
+                              <span className={`text-xs font-semibold transition-colors duration-300 ${
+                                passed ? "text-green-600" : "text-gray-400"
+                              }`}>
+                                {rule.label}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   <div className="gsap-fade-in">

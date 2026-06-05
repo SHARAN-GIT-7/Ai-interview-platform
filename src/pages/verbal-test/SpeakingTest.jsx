@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMic, FiSkipForward, FiCheck, FiClock, FiPlay, FiUser, FiInfo, FiExternalLink, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import axios from 'axios';
-import { getSpeakingQuestions, evaluateSpeakingClip } from '../../services/communicationApi';
+import { getSpeakingQuestions, evaluateSpeakingClip, aggregateSpeakingScore } from '../../services/communicationApi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
 import ScreenProctor from '../../routes/ScreenProctor';
 
@@ -101,6 +101,51 @@ const SpeakingTest = () => {
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
   const streamRef = useRef(null);
+
+  // Overall Speaking session timer (15 minutes)
+  const [speakingTimeLeft, setSpeakingTimeLeft] = useState(15 * 60);
+  const overallTimerRef = useRef(null);
+
+  useEffect(() => {
+    const updateTime = () => {
+      const startTimeStr = localStorage.getItem('speaking_start_time');
+      if (startTimeStr) {
+        const elapsed = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+        const remaining = Math.max(0, 15 * 60 - elapsed);
+        setSpeakingTimeLeft(remaining);
+        if (remaining <= 0) {
+          if (overallTimerRef.current) clearInterval(overallTimerRef.current);
+        }
+      }
+    };
+
+    updateTime();
+    overallTimerRef.current = setInterval(updateTime, 1000);
+
+    return () => {
+      if (overallTimerRef.current) clearInterval(overallTimerRef.current);
+    };
+  }, []);
+
+  // Auto-submit and go to listening when Speaking time is up
+  useEffect(() => {
+    const handleTimeUp = async () => {
+      if (speakingTimeLeft === 0 && phase !== 'loading' && session) {
+        // Stop any active timer
+        if (overallTimerRef.current) clearInterval(overallTimerRef.current);
+
+        // Go to listening test carrying whatever clip results we have
+        navigate('/verbal/listening', {
+          state: { 
+            sessionId: session.session_id, 
+            uniqueId, 
+            speakingClipResults: clipResults 
+          }
+        });
+      }
+    };
+    handleTimeUp();
+  }, [speakingTimeLeft, phase, session, clipResults, navigate, uniqueId]);
 
   // Real-time Mic Volume Analyzer Effect
   useEffect(() => {
@@ -305,6 +350,16 @@ const SpeakingTest = () => {
               <div className="font-bold text-sm text-[#144542] truncate max-w-[150px]">{candidateInfo.name}</div>
               <div className="text-[10px] text-[#9B9B9B]">ID: {candidateInfo.id}</div>
             </div>
+          </div>
+        </div>
+
+        <div className="mt-[-15px]">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9B9B9B] mb-3">Speaking Time Left</h3>
+          <div className="flex items-center gap-2.5 bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
+            <FiClock className={speakingTimeLeft < 60 ? "text-red-500 animate-pulse" : "text-[#144542]"} size={18} />
+            <span className="font-mono font-extrabold text-sm text-[#144542]">
+              {Math.floor(speakingTimeLeft / 60)}:{(speakingTimeLeft % 60).toString().padStart(2, '0')}
+            </span>
           </div>
         </div>
 

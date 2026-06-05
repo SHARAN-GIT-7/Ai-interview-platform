@@ -147,9 +147,9 @@ export default function PrivacypolicyPage() {
                 <p className="text-xs text-gray-600 mb-5 leading-relaxed">
                   Have questions regarding your personal data or compliance? Our team is here to assist.
                 </p>
-                <button className="w-full bg-[#3b3dbf] hover:bg-[#3234A3] text-white font-bold text-xs py-2.5 rounded-lg transition-colors">
+                <Link to="/contact" className="block w-full bg-[#3b3dbf] hover:bg-[#3234A3] text-white font-bold text-xs py-2.5 rounded-lg transition-colors text-center">
                   Contact Here
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -318,12 +318,20 @@ export default function PrivacypolicyPage() {
                 For any questions or concerns regarding this policy or our data practices, please reach out to our legal team directly.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <button className="flex items-center gap-2 bg-[#3b3dbf] hover:bg-[#3234A3] text-white text-sm font-medium py-2.5 px-6 rounded-lg transition-colors w-full sm:w-auto justify-center">
+                <a
+                  href="https://mail.google.com/mail/?view=cm&to=teams@intervista.in&su=Privacy+Policy+Inquiry"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 bg-[#3b3dbf] hover:bg-[#3234A3] text-white text-sm font-medium py-2.5 px-6 rounded-lg transition-colors w-full sm:w-auto justify-center"
+                >
                   <FiMail className="w-4 h-4" /> teams@intervista.in
-                </button>
-                <button className="flex items-center gap-2 bg-white text-[#3b3dbf] text-sm font-medium py-2.5 px-6 rounded-lg transition-colors w-full sm:w-auto justify-center border border-gray-200 hover:bg-gray-50">
+                </a>
+                <Link
+                  to="/contact"
+                  className="flex items-center gap-2 bg-white text-[#3b3dbf] text-sm font-medium py-2.5 px-6 rounded-lg transition-colors w-full sm:w-auto justify-center border border-gray-200 hover:bg-gray-50"
+                >
                   Legal Help Center <FiExternalLink className="w-4 h-4" />
-                </button>
+                </Link>
               </div>
             </div>
 

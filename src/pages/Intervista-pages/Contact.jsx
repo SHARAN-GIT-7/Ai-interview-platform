@@ -1,21 +1,56 @@
-import React, { useEffect } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Lenis from "lenis";
-import { motion } from "framer-motion";
-import { FiMail, FiPhone, FiMapPin, FiChevronRight, FiHelpCircle, FiBriefcase, FiUsers, FiTarget, FiHexagon, FiBox, FiAperture, FiLayers } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiMail, FiPhone, FiMapPin, FiChevronRight, FiHelpCircle, FiBriefcase, FiUsers, FiTarget, FiHexagon, FiBox, FiAperture, FiLayers, FiCheckCircle, FiAlertCircle, FiLoader } from "react-icons/fi";
 import Navbar from "../../components/layout/Navbar";
 import FooterSection from "../landing/FooterSection";
 
 export default function Contact() {
-  // Initialize smooth scrolling
+  // â”€â”€ Smooth scroll â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
-    const lenis = new Lenis({
-      autoRaf: true,
-    });
-    return () => {
-      lenis.destroy();
-    };
+    const lenis = new Lenis({ autoRaf: true });
+    return () => lenis.destroy();
   }, []);
+
+  // â”€â”€ Form state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const [form, setForm] = useState({
+    firstName: '', lastName: '', email: '', company: '',
+    employees: '', industry: '', country: 'IN', phone: '',
+    jobTitle: '', description: '', newsletter: false,
+  });
+  const [status, setStatus] = useState('idle'); // idle | loading | success | error
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const set = (field) => (e) =>
+    setForm(prev => ({ ...prev, [field]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.firstName.trim() || !form.email.trim()) {
+      setErrorMsg('Please fill in at least your first name and email.');
+      setStatus('error');
+      return;
+    }
+    setStatus('loading');
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+      setStatus('success');
+      setForm({ firstName: '', lastName: '', email: '', company: '', employees: '', industry: '', country: 'IN', phone: '', jobTitle: '', description: '', newsletter: false });
+    } catch (err) {
+      setErrorMsg(err.message);
+      setStatus('error');
+    }
+  };
+
+
 
   const fadeIn = {
     hidden: { opacity: 0, y: 30 },
@@ -78,7 +113,7 @@ export default function Contact() {
             </h2>
 
             <p className="text-gray-600 text-[15px] leading-relaxed mb-12 max-w-[400px]">
-              Intervista Embedded is the easiest way to embed video calls directly into your app, website, or anywhere else you need beautiful, custom video chat – that just works.
+              Intervista Embedded is the easiest way to embed video calls directly into your app, website, or anywhere else you need beautiful, custom video chat â€“ that just works.
             </p>
 
             <div className="w-full max-w-[400px] h-px bg-gray-100 mb-10"></div>
@@ -117,7 +152,7 @@ export default function Contact() {
                   <address className="text-[15px] font-semibold text-[#1a1a1a] not-italic leading-relaxed max-w-[200px]">
                     Suburayan 4th Street;<br />
                     TNHB Colony, Purasaiwakkam;<br />
-                    Chennai – 600012;<br />
+                    Chennai â€“ 600012;<br />
                     India.
                   </address>
                 </div>
@@ -144,41 +179,60 @@ export default function Contact() {
             initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
             className="bg-white rounded-[2rem] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 relative"
           >
-            {/* Avatar */}
-            <div className="absolute top-8 right-8 w-12 h-12">
-              <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" alt="Sales Representative" className="w-full h-full rounded-full object-cover" />
-              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
-            </div>
-
             <h3 className="text-[22px] font-bold text-[#1a1a1a] mb-2">Let's talk.</h3>
             <p className="text-[13px] text-gray-500 mb-8">Fill out the form and we'll be in touch shortly.</p>
 
-            <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+            {/* â”€â”€ Success banner â”€â”€ */}
+            <AnimatePresence>
+              {status === 'success' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-5 py-4 mb-6 text-sm font-semibold"
+                >
+                  <FiCheckCircle className="shrink-0 mt-0.5" size={18} />
+                  <div>
+                    <p className="font-bold">Message sent successfully!</p>
+                    <p className="font-normal text-green-600 text-xs mt-0.5">We'll get back to you within 1â€“2 business days. Check your inbox for a confirmation email.</p>
+                  </div>
+                </motion.div>
+              )}
+              {status === 'error' && errorMsg && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-600 rounded-xl px-5 py-4 mb-6 text-sm font-semibold"
+                >
+                  <FiAlertCircle className="shrink-0" size={18} />
+                  {errorMsg}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">First Name*</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
+                  <input type="text" required value={form.firstName} onChange={set('firstName')} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Last Name*</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Last Name</label>
+                  <input type="text" value={form.lastName} onChange={set('lastName')} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Work Email*</label>
-                <input type="email" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
+                <input type="email" required value={form.email} onChange={set('email')} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Company Name*</label>
-                <input type="text" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Company Name</label>
+                <input type="text" value={form.company} onChange={set('company')} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Number of Employees*</label>
-                  <select className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm text-gray-600 appearance-none bg-white">
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Number of Employees</label>
+                  <select value={form.employees} onChange={set('employees')} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm text-gray-600 appearance-none bg-white">
                     <option value="">Please Select</option>
                     <option value="1-10">1-10</option>
                     <option value="11-50">11-50</option>
@@ -187,8 +241,8 @@ export default function Contact() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Industry*</label>
-                  <select className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm text-gray-600 appearance-none bg-white">
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Industry</label>
+                  <select value={form.industry} onChange={set('industry')} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm text-gray-600 appearance-none bg-white">
                     <option value="">Please Select</option>
                     <option value="tech">Technology</option>
                     <option value="healthcare">Healthcare</option>
@@ -202,7 +256,7 @@ export default function Contact() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Country</label>
-                  <select className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm text-gray-600 appearance-none bg-white">
+                  <select value={form.country} onChange={set('country')} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm text-gray-600 appearance-none bg-white">
                     <option value="IN">India (+91)</option>
                     <option value="US">USA (+1)</option>
                     <option value="UK">UK (+44)</option>
@@ -210,29 +264,43 @@ export default function Contact() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Phone Number</label>
-                  <input type="tel" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
+                  <input type="tel" value={form.phone} onChange={set('phone')} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Job Title</label>
-                <input type="text" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
+                <input type="text" value={form.jobTitle} onChange={set('jobTitle')} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
               </div>
 
               <div>
                 <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Description</label>
-                <input type="text" className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm" />
+                <textarea rows={3} value={form.description} onChange={set('description')} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#d93025] focus:ring-1 focus:ring-[#d93025] outline-none transition-all text-sm resize-none" />
               </div>
 
               <div className="flex items-start gap-3 pt-3">
-                <input type="checkbox" id="newsletter" className="mt-1 border-gray-300 text-[#d93025] focus:ring-[#d93025] rounded" />
+                <input type="checkbox" id="newsletter" checked={form.newsletter} onChange={set('newsletter')} className="mt-1 border-gray-300 text-[#d93025] focus:ring-[#d93025] rounded" />
                 <label htmlFor="newsletter" className="text-[12px] text-gray-500 leading-relaxed">
                   I'd like to occasionally receive other communications from Intervista, such as content and product news.
                 </label>
               </div>
 
-              <button type="submit" className="w-full bg-[#d93025] hover:bg-[#b8261e] text-white font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 mt-2 shadow-lg shadow-red-500/20">
-                Send Message <FiChevronRight />
+              <button
+                type="submit"
+                disabled={status === 'loading'}
+                className="w-full bg-[#d93025] hover:bg-[#b8261e] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 mt-2 shadow-lg shadow-red-500/20 hover:scale-[1.01] active:scale-95"
+              >
+                {status === 'loading' ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Sendingâ€¦
+                  </>
+                ) : (
+                  <>Send Message <FiChevronRight /></>
+                )}
               </button>
 
               <p className="text-[9px] text-gray-400 text-center leading-relaxed mt-4 px-4">
