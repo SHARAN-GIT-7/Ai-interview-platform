@@ -6,7 +6,6 @@ import {
   FiAlertTriangle, FiShield, FiCpu, FiInfo,
 } from 'react-icons/fi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
-import ScreenProctor from '../../routes/ScreenProctor';
 
 const CODING_MODULE_URL = '/api/coding';
 
@@ -83,9 +82,8 @@ export default function InitialProcess() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EAF0F0] font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[#EAF0F0] font-sans overflow-x-hidden overflow-y-auto">
       {/* Continuous Face Monitoring — paused on intro page */}
-      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} paused={true} />
 
       {/* Fixed decorative blobs */}

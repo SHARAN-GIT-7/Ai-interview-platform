@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { FiMic, FiHeadphones, FiCheckCircle, FiChevronRight, FiVolume2, FiInfo, FiLoader } from 'react-icons/fi';
 import { MdOutlineSecurity } from 'react-icons/md'; // For the shield-like icon if needed, but we'll stick to FiCheckCircle for now as it's safe and standard.
 import ProctorOverlay from '../../routes/ProctorOverlay';
-import ScreenProctor from '../../routes/ScreenProctor';
 
 const StartingTest = () => {
   const navigate = useNavigate();
@@ -46,9 +45,8 @@ const StartingTest = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAFBFA] text-[#144542] flex flex-col items-center py-16 px-4 md:px-8 font-primary">
+    <div className="min-h-screen bg-[#FAFBFA] text-[#144542] flex flex-col items-center py-16 px-4 md:px-8 font-primary overflow-y-auto">
       {/* Monitoring paused while reading instructions — camera stays visible */}
-      <ScreenProctor />
       <ProctorOverlay uniqueId={uniqueId} paused={true} />
 
       <motion.div 

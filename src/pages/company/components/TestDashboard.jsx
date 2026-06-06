@@ -64,6 +64,10 @@ export default function TestDashboard({ test }) {
   const [expandedInterviewQuestion, setExpandedInterviewQuestion] = useState(null);
   const [isOverallDownloading, setIsOverallDownloading] = useState(null); // 'pdf' or 'excel' or null
 
+  // Leaderboard state
+  const [leaderboardModule, setLeaderboardModule] = useState(null); // null | 'aptitude' | 'coding' | 'aiInterview' | 'verbal'
+  const [showLeaderboardDropdown, setShowLeaderboardDropdown] = useState(false);
+
   // Fetch candidate photo when selectedCandidate changes
   useEffect(() => {
     setExpandedInterviewQuestion(null);
@@ -1042,7 +1046,7 @@ export default function TestDashboard({ test }) {
       </div>
 
       {/* ── CANDIDATES TABLE & FILTERS (Styled like UI Reference 1) ── */}
-      <div className="bg-white rounded-3xl border border-gray-150 shadow-sm overflow-hidden flex-1">
+      <div className="bg-white rounded-3xl border border-gray-150 shadow-sm flex flex-col overflow-hidden max-h-[600px] min-h-[250px]">
         
         {/* Table Filters Top Bar */}
         <div className="p-6 pb-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1071,6 +1075,49 @@ export default function TestDashboard({ test }) {
                 </span>
               </button>
             ))}
+
+            {/* Leaderboard Dropdown Button */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  if (leaderboardModule) {
+                    setLeaderboardModule(null);
+                    setShowLeaderboardDropdown(false);
+                  } else {
+                    setShowLeaderboardDropdown(prev => !prev);
+                  }
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  leaderboardModule
+                    ? "bg-[#DAFF0C] text-[#144542] shadow-md"
+                    : "bg-[#EAF0F0]/50 border border-gray-200 text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <FiAward size={13} />
+                {leaderboardModule
+                  ? `Leaderboard: ${{ aptitude: 'Aptitude', coding: 'Coding', aiInterview: 'AI Interview', verbal: 'Verbal' }[leaderboardModule]}`
+                  : 'Leaderboard'}
+                <FiChevronDown size={13} className={`transition-transform ${showLeaderboardDropdown && !leaderboardModule ? 'rotate-180' : ''}`} />
+              </button>
+              {showLeaderboardDropdown && !leaderboardModule && (
+                <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden">
+                  {[
+                    { key: 'aiInterview', label: 'AI Interview', enabled: test.interviewModule },
+                    { key: 'aptitude',   label: 'Aptitude',     enabled: test.aptitudeModule },
+                    { key: 'verbal',     label: 'Verbal',        enabled: test.verbalModule },
+                    { key: 'coding',     label: 'Coding',       enabled: test.codingModule },
+                  ].filter(m => m.enabled).map(m => (
+                    <button
+                      key={m.key}
+                      onClick={() => { setLeaderboardModule(m.key); setShowLeaderboardDropdown(false); setStatusFilter('all'); }}
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 hover:bg-[#144542] hover:text-white transition-colors"
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Search Box */}
@@ -1086,16 +1133,128 @@ export default function TestDashboard({ test }) {
           </div>
         </div>
 
-        {/* Results List Table */}
-        <div className="overflow-x-auto">
+        {/* ── LEADERBOARD VIEW ─────────────────────────────────── */}
+        {leaderboardModule ? (() => {
+          const moduleLabels = { aptitude: 'Aptitude', coding: 'Coding', aiInterview: 'AI Interview', verbal: 'Verbal/Speech' };
+          const moduleColors = { aptitude: '#facc15', coding: '#db830f', aiInterview: '#00d1c1', verbal: '#a855f7' };
+          const moduleKey = leaderboardModule;
+          const color = moduleColors[moduleKey];
+          const label = moduleLabels[moduleKey];
+
+          const getModuleScore = (cand) => {
+            const m = cand[moduleKey];
+            if (!m) return null;
+            return { secured: m.moduleScoreSecured ?? 0, total: m.moduleTotalScore ?? 0 };
+          };
+
+          const sorted = [...results].sort((a, b) => {
+            const sa = getModuleScore(a);
+            const sb = getModuleScore(b);
+            if (!sa && !sb) return 0;
+            if (!sa) return 1;
+            if (!sb) return -1;
+            const pa = sa.total > 0 ? sa.secured / sa.total : 0;
+            const pb = sb.total > 0 ? sb.secured / sb.total : 0;
+            return pb - pa;
+          });
+
+          const rankMedal = (rank) => {
+            if (rank === 1) return { emoji: '🥇', bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700' };
+            if (rank === 2) return { emoji: '🥈', bg: 'bg-gray-50',   border: 'border-gray-200',   text: 'text-gray-600' };
+            if (rank === 3) return { emoji: '🥉', bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700' };
+            return null;
+          };
+
+          return (
+            <div className="p-6 flex-1 flex flex-col overflow-hidden">
+              {/* Leaderboard Header */}
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-lg" style={{ background: color }}>
+                  <FiAward />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-gray-900">{label} Leaderboard</h3>
+                  <p className="text-[11px] text-gray-400 font-semibold">{sorted.length} candidates • Ranked by {label} module score</p>
+                </div>
+              </div>
+
+              {/* Leaderboard Rows */}
+              <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1.5 custom-scrollbar">
+                {sorted.map((cand, idx) => {
+                  const rank = idx + 1;
+                  const medal = rankMedal(rank);
+                  const ms = getModuleScore(cand);
+                  const pct = ms && ms.total > 0 ? Math.round((ms.secured / ms.total) * 100) : null;
+                  const initials = (cand.studentName || 'S').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => { setSelectedCandidate(cand); setActiveScorecardTab('overview'); }}
+                      className={`flex items-center gap-4 p-4 rounded-2xl border cursor-pointer hover:shadow-md transition-all duration-200 ${
+                        medal ? `${medal.bg} ${medal.border}` : 'bg-white border-gray-100 hover:border-gray-200'
+                      } ${rank <= 3 ? 'shadow-sm' : ''}`}
+                    >
+                      {/* Rank */}
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-sm ${
+                        medal ? `${medal.bg} ${medal.text} border ${medal.border}` : 'bg-gray-50 text-gray-400 border border-gray-100'
+                      }`}>
+                        {medal ? medal.emoji : `#${rank}`}
+                      </div>
+
+                      {/* Avatar + Name */}
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-9 h-9 rounded-xl text-[#DAFF0C] font-black text-xs flex items-center justify-center shadow-sm shrink-0" style={{ background: '#144542' }}>
+                          {initials}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-gray-900 truncate">{cand.studentName}</p>
+                          <p className="text-[11px] font-semibold text-gray-400 truncate">{cand.studentEmail}</p>
+                        </div>
+                      </div>
+
+                      {/* Module Score + Bar */}
+                      <div className="flex flex-col gap-1.5 w-48 shrink-0">
+                        {ms ? (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-black text-gray-800">{ms.secured} <span className="text-gray-300 font-medium">/ {ms.total}</span></span>
+                              <span className="text-xs font-black" style={{ color }}>{pct}%</span>
+                            </div>
+                            <div className="w-full bg-gray-100 rounded-full h-2">
+                              <div className="h-2 rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-[11px] font-semibold text-gray-300 italic">No data submitted</span>
+                        )}
+                      </div>
+
+                      {/* Overall Score */}
+                      <div className="text-right shrink-0 w-24">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Overall</p>
+                        <p className="text-sm font-black text-gray-800">{cand.scoreSecured} <span className="text-gray-300 font-medium text-xs">/ {cand.totalScore}</span></p>
+                      </div>
+
+                      <FiChevronRight size={16} className="text-gray-300 shrink-0" />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })() : (
+
+        /* Results List Table */
+        <div className="overflow-x-auto flex-1 overflow-y-auto pr-1.5 custom-scrollbar">
           {filteredResults.length === 0 ? (
             <div className="p-16 text-center text-gray-400">
               <FiUser className="text-4xl mx-auto mb-3 opacity-30" />
               <p className="font-bold text-sm">No candidate submissions found matching the criteria.</p>
             </div>
           ) : (
-            <table className="w-full text-left">
-              <thead>
+            <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 bg-white z-10 shadow-sm">
                 <tr className="bg-[#144542]/[0.02] border-b border-gray-100">
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Candidate</th>
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Attempt Date</th>
@@ -1230,6 +1389,7 @@ export default function TestDashboard({ test }) {
             </table>
           )}
         </div>
+        )} {/* end leaderboard ternary */}
       </div>
 
       {/* ── CANDIDATE SCORECARD DETAILS DRAWER (Full Evaluation Report) ── */}

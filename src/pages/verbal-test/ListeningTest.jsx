@@ -51,7 +51,6 @@ const ListeningTest = () => {
   const [audioBlobs, setAudioBlobs] = useState({});
   const [isPlaying, setIsPlaying] = useState(false);
   const [playProgress, setPlayProgress] = useState(0);
-  const [recElapsed, setRecElapsed] = useState(0);
   const [submitError, setSubmitError] = useState(null);
   const [candidateInfo, setCandidateInfo] = useState({ name: 'Candidate', id: uniqueId || 'UNKNOWN' });
   const [micVolume, setMicVolume] = useState(0);
@@ -60,7 +59,6 @@ const ListeningTest = () => {
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
   const streamRef = useRef(null);
-  const recTimerRef = useRef(null);
 
   // Overall Listening session timer (15 minutes)
   const [listeningTimeLeft, setListeningTimeLeft] = useState(15 * 60);
@@ -243,8 +241,6 @@ const ListeningTest = () => {
   // ── Start recording ──────────────────────────────────────
   const startRecording = useCallback(async () => {
     setPhase('recording');
-    setRecElapsed(0);
-    recTimerRef.current = setInterval(() => setRecElapsed(p => p + 1), 1000);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const rec = new MediaRecorder(stream);
@@ -255,7 +251,7 @@ const ListeningTest = () => {
       rec.start();
     } catch (err) {
       console.error('Microphone error', err);
-      if (recTimerRef.current) clearInterval(recTimerRef.current);
+      setPhase('ready_to_prepare');
     }
   }, [handleRecordingStop]);
 
@@ -321,7 +317,6 @@ const ListeningTest = () => {
 
   // ── Stop recording manually ─────────────────────────────
   const stopRecording = () => {
-    if (recTimerRef.current) clearInterval(recTimerRef.current);
     if (recorderRef.current?.state !== 'inactive') {
       recorderRef.current.stop();
       recorderRef.current.stream.getTracks().forEach(t => t.stop());
@@ -372,12 +367,7 @@ const ListeningTest = () => {
     }
   };
 
-  // ── Helpers ─────────────────────────────────────────────
-  const fmtTime = s => {
-    const m = Math.floor(s / 60).toString().padStart(2, '0');
-    const ss = (s % 60).toString().padStart(2, '0');
-    return `${m}:${ss}`;
-  };
+
 
   // ── Loading state ───────────────────────────────────────
   if (phase === 'loading') {
@@ -617,8 +607,7 @@ const ListeningTest = () => {
                   <div className="absolute inset-0 rounded-full border-2 border-red-500 animate-ping opacity-20" />
                   <FiMic size={32} className="text-red-500" />
                 </div>
-                <div className="text-4xl font-bold text-[#144542] tabular-nums mb-2">{fmtTime(recElapsed)}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-red-500 mb-8 animate-pulse">Recording</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-red-500 mb-8 animate-pulse">Recording in progress...</div>
 
                 <button
                   onClick={stopRecording}

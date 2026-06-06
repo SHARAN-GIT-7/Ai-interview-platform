@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiClock, FiCheckCircle, FiAward, FiWifi, FiCpu, FiInfo, FiArrowLeft, FiZap, FiLoader } from 'react-icons/fi';
 import ProctorOverlay from '../../routes/ProctorOverlay';
-import ScreenProctor from '../../routes/ScreenProctor';
 
 export default function StartingTest() {
   const navigate = useNavigate();
@@ -40,8 +39,7 @@ export default function StartingTest() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#EAF0F0] flex items-center justify-center p-4 md:p-8 font-sans">
-      <ScreenProctor />
+    <div className="min-h-screen bg-[#EAF0F0] flex items-center justify-center p-4 md:p-8 font-sans overflow-y-auto">
       <ProctorOverlay uniqueId={uniqueId} paused={true} />
       {/* Background decorative elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
