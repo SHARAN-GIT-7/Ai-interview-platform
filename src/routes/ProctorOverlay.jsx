@@ -41,6 +41,10 @@ export default function ProctorOverlay({ uniqueId, onTerminate, paused = false }
   const monitorTimerRef = useRef(null);
   const lastWarnTime = useRef({});
   const prevMonitorVio = useRef(0);
+  const localVideoRef = useRef(null);
+  const localStreamRef = useRef(null);
+  const canvasRef = useRef(document.createElement('canvas'));
+  const uploadTimerRef = useRef(null);
 
   // ─── Toast (with cooldown per key) ────────────────────────────────────────
   const fireToast = useCallback((msg, key) => {
@@ -173,6 +177,76 @@ export default function ProctorOverlay({ uniqueId, onTerminate, paused = false }
     }
   }, [totalViolations, terminate]);
 
+  // ─── Local Webcam Capture & Frame Upload Effect ─────────────────────────────
+  useEffect(() => {
+    if (paused) {
+      if (uploadTimerRef.current) {
+        clearInterval(uploadTimerRef.current);
+        uploadTimerRef.current = null;
+      }
+      return;
+    }
+
+    let active = true;
+
+    const startWebcam = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 320, height: 240, facingMode: 'user' }
+        });
+        if (!active) {
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+        localStreamRef.current = stream;
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+
+        // Periodically capture and upload frame (5 FPS)
+        const canvas = canvasRef.current;
+        uploadTimerRef.current = setInterval(() => {
+          const video = localVideoRef.current;
+          if (!video || video.readyState < 2) return;
+
+          canvas.width = video.videoWidth || 320;
+          canvas.height = video.videoHeight || 240;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((blob) => {
+              if (blob && active) {
+                const formData = new FormData();
+                formData.append('file', blob, 'frame.jpg');
+                fetch(`${FACE_API}/upload_frame`, {
+                  method: 'POST',
+                  body: formData,
+                }).catch(() => {});
+              }
+            }, 'image/jpeg', 0.6);
+          }
+        }, 200);
+
+      } catch (err) {
+        console.error("Failed to start proctoring local camera:", err);
+      }
+    };
+
+    startWebcam();
+
+    return () => {
+      active = false;
+      if (uploadTimerRef.current) {
+        clearInterval(uploadTimerRef.current);
+        uploadTimerRef.current = null;
+      }
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(track => track.stop());
+        localStreamRef.current = null;
+      }
+    };
+  }, [paused]);
+
   // ─── Main lifecycle effect ────────────────────────────────────────────────
   useEffect(() => {
     if (paused) return;
@@ -254,6 +328,7 @@ export default function ProctorOverlay({ uniqueId, onTerminate, paused = false }
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <>
+      <video ref={localVideoRef} autoPlay playsInline muted className="hidden" />
       {/* ── Offline banners ─────────────────────────────────────────── */}
       {faceOnline === false && !paused && (
         <div className="fixed top-0 left-0 right-0 z-[9999] bg-[#92400e] text-white py-1.5 px-4 text-center font-bold text-xs tracking-wide">

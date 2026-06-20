@@ -7,12 +7,13 @@ const PYTHON_API = '/api/verification';
 const DOTNET_API = '/api/user';
 const DOTNET_PROFILE_API = '/api/user';
 
+
 const LiveVerification = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
 
   const { testId } = location.state || {};
-
 
   const [aadhaarDigits, setAadhaarDigits] = useState('');
   const [aadhaarZip, setAadhaarZip] = useState(null);
@@ -127,10 +128,14 @@ const LiveVerification = () => {
         throw new Error(`Database Error: ${dbError.detail || 'Could not create record.'}`);
       }
 
+      const createData = await createRes.json(); 
+      const dotnetUniqueId = createData.uniqueId;
+
       // Step 5: Navigate to face verification with all state
       navigate('/user/upload-details', {
         state: {
-          uniqueId: unique_id,
+          uniqueId: dotnetUniqueId,      // For the C# DB completion call
+          pythonUniqueId: unique_id,     // For the Python liveness API call
           aadhaarDetails: aadhaar_details,
           aadhaarLast4: aadhaarDigits,
           passportPhoto: passportPhoto,

@@ -87,9 +87,9 @@ const UploadDetails = () => {
       if (!blob) return;
 
       const formData = new FormData();
-      formData.append('unique_id', uniqueId);
       formData.append('step', livenessStep);
       formData.append('frame', blob, 'frame.jpg');
+      formData.append('unique_id', location.state.pythonUniqueId); // Call Python using the original Python ID
 
       try {
         const response = await fetch(`${PYTHON_API}/liveness/check`, {
