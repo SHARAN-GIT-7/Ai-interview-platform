@@ -42,12 +42,12 @@ const CompanyInfoOnboarding = () => {
     billingPhone: "",
     gstin: "",
     isGstRegistered: false,
-    line1: "",
-    line2: "",
-    city: "",
-    state: "",
-    postalCode: "",
-    country: "",
+    billingLine1: "",
+    billingLine2: "",
+    billingCity: "",
+    billingState: "",
+    billingPostalCode: "",
+    billingCountry: "",
     currency: "USD"
   });
 
@@ -107,7 +107,7 @@ const CompanyInfoOnboarding = () => {
         return false;
       }
     } else if (step === 2) {
-      const required = ['billingName', 'billingEmail', 'billingPhone', 'line1', 'city', 'state', 'country', 'postalCode'];
+      const required = ['billingName', 'billingEmail', 'billingPhone', 'billingLine1', 'billingCity', 'billingState', 'billingCountry', 'billingPostalCode'];
       const missing = required.filter(field => !formData[field] || String(formData[field]).trim() === "");
       if (missing.length > 0) {
         setMessage({ text: "Please fill all required billing details.", type: "error" });

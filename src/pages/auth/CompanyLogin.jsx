@@ -140,7 +140,6 @@ export default function CompanyLogin() {
             
             // Check if essential details are filled
             const isProfileFilled = info && 
-                                   info.website && 
                                    info.industry && 
                                    info.companySize && 
                                    info.description && 

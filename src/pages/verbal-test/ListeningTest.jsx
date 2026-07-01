@@ -359,7 +359,15 @@ const ListeningTest = () => {
         }
       }
 
-      navigate('/verbal/results', { state: { speakingResults: speakingAggregated, listeningResults: listeningAggregated, uniqueId } });
+      navigate('/verbal/results', {
+        state: {
+          speakingResults: speakingAggregated,
+          listeningResults: listeningAggregated,
+          speakingClips: speakingClipResults || [],
+          listeningClips: clip_results || [],
+          uniqueId
+        }
+      });
     } catch (err) {
       console.error('Submission failed', err);
       setSubmitError('Submission failed. Please try again.');

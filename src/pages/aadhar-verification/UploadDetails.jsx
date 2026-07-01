@@ -20,13 +20,16 @@ const UploadDetails = () => {
 
   // State passed from LiveVerification.jsx
   const { uniqueId, testId } = location.state || {};
-
+  const testInfo = loadTestInfo();
 
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const [livenessStep, setLivenessStep] = useState('IDLE'); // IDLE | BLINK | LEFT | RIGHT | CENTER | DONE
   const [stepMessage, setStepMessage] = useState('Ready to start liveness check');
+  const [sessionId, setSessionId] = useState(null);
+  const [snapshotIndex, setSnapshotIndex] = useState(0);
+
 
   useEffect(() => {
     if (!uniqueId) {
@@ -96,6 +99,37 @@ const UploadDetails = () => {
           method: 'POST',
           body: formData,
         });
+
+        // Also upload this frame to C# backend for permanent Supabase storage
+        if (sessionId && livenessStep === 'CENTER') {
+          try {
+            const token = localStorage.getItem('authToken');
+            const snapForm = new FormData();
+            snapForm.append('snapshot', blob, 'snapshot.jpg');
+
+            const queryParams = new URLSearchParams();
+            queryParams.append('sessionId', sessionId);
+            if (testInfo?.testId) {
+              queryParams.append('testId', testInfo.testId);
+            }
+            if (testInfo?.testCode) {
+              queryParams.append('testCode', testInfo.testCode);
+            }
+            const mailCode = testInfo?.individualMailCode || localStorage.getItem('individualMailCode');
+            if (mailCode && mailCode.length === 6) {
+              queryParams.append('individualMailCode', mailCode);
+            }
+
+            await fetch(`${DOTNET_API}/verification/snapshot/${snapshotIndex}?${queryParams.toString()}`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` },
+              body: snapForm,
+            });
+            setSnapshotIndex(prev => prev + 1);
+          } catch {
+            // snapshot upload failed silently — don't block liveness
+          }
+        }
 
         if (!response.ok) throw new Error('Failed to check liveness');
         const data = await response.json();
@@ -200,12 +234,37 @@ const UploadDetails = () => {
   };
 
 
-  const startLivenessFlow = () => {
+  const startLivenessFlow = async () => {
     setError('');
+    setSnapshotIndex(0);
+
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${DOTNET_API}/verification/snapshots/session`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          testId: testInfo?.testId || null,
+          testCode: testInfo?.testCode || null,
+          individualMailCode: testInfo?.individualMailCode || localStorage.getItem('individualMailCode') || null
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSessionId(data.sessionId);
+      }
+    } catch {
+      // session start failed — snapshots won't be stored, but liveness can still proceed
+    }
+
     setIsVerifying(true);
     setLivenessStep('BLINK');
     setStepMessage('Please blink your eyes multiple times');
   };
+
 
   const getStepIcon = () => {
     if (livenessStep === 'BLINK') return <FiEye className="animate-bounce" />;

@@ -58,20 +58,20 @@ const BillingInfoStep = ({ formData, handleInputChange }) => {
         
         // Auto populate fields
         handleInputChange({ target: { name: "billingName", value: data.lgnm || data.tradeNam || formData.billingName } });
-        handleInputChange({ target: { name: "state", value: address.stcd || formData.state } });
+        handleInputChange({ target: { name: "billingState", value: address.stcd || formData.billingState } });
         
         // Map address fields
         const line1 = `${address.bnm || ""} ${address.st || ""}`.trim() || fullAddressStr.split(',')[0];
         const city = address.dst || address.city || "";
         const postalCode = address.pncd || "";
         
-        handleInputChange({ target: { name: "line1", value: line1 } });
-        handleInputChange({ target: { name: "city", value: city } });
-        handleInputChange({ target: { name: "postalCode", value: postalCode } });
+        handleInputChange({ target: { name: "billingLine1", value: line1 } });
+        handleInputChange({ target: { name: "billingCity", value: city } });
+        handleInputChange({ target: { name: "billingPostalCode", value: postalCode } });
         
         // Optional: populate line2 with locality if available
         if (address.loc) {
-          handleInputChange({ target: { name: "line2", value: address.loc } });
+          handleInputChange({ target: { name: "billingLine2", value: address.loc } });
         }
       } else {
         setError(result.message || "Invalid GST Number");
@@ -201,7 +201,7 @@ const BillingInfoStep = ({ formData, handleInputChange }) => {
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray"><FaGlobe size={14}/></span>
                 <select 
-                  name="country" value={formData.country} onChange={handleInputChange}
+                  name="billingCountry" value={formData.billingCountry} onChange={handleInputChange}
                   className="w-full pl-10 pr-4 py-3 bg-white border border-brand-light rounded-xl focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm appearance-none"
                 >
                   <option value="">Select Country</option>
@@ -222,7 +222,7 @@ const BillingInfoStep = ({ formData, handleInputChange }) => {
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray"><FaMapMarkerAlt size={14}/></span>
               <input 
-                type="text" name="line1" value={formData.line1} onChange={handleInputChange}
+                type="text" name="billingLine1" value={formData.billingLine1} onChange={handleInputChange}
                 placeholder="Street address, Suite, etc."
                 className="w-full pl-10 pr-4 py-3 bg-white border border-brand-light rounded-xl focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm"
               />
@@ -234,7 +234,7 @@ const BillingInfoStep = ({ formData, handleInputChange }) => {
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray"><FaBuilding size={14}/></span>
               <input 
-                type="text" name="line2" value={formData.line2} onChange={handleInputChange}
+                type="text" name="billingLine2" value={formData.billingLine2} onChange={handleInputChange}
                 placeholder="Apartment, unit, floor, etc."
                 className="w-full pl-10 pr-4 py-3 bg-white border border-brand-light rounded-xl focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm"
               />
@@ -244,7 +244,7 @@ const BillingInfoStep = ({ formData, handleInputChange }) => {
           <div>
             <label className="block text-xs font-bold text-brand-dark mb-2 pl-1">City *</label>
             <input 
-              type="text" name="city" value={formData.city} onChange={handleInputChange}
+              type="text" name="billingCity" value={formData.billingCity} onChange={handleInputChange}
               placeholder="City"
               className="w-full px-4 py-3 bg-white border border-brand-light rounded-xl focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm"
             />
@@ -254,7 +254,7 @@ const BillingInfoStep = ({ formData, handleInputChange }) => {
             <div>
               <label className="block text-xs font-bold text-brand-dark mb-2 pl-1">State *</label>
               <input 
-                type="text" name="state" value={formData.state} onChange={handleInputChange}
+                type="text" name="billingState" value={formData.billingState} onChange={handleInputChange}
                 placeholder="State"
                 className="w-full px-4 py-3 bg-white border border-brand-light rounded-xl focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm"
               />
@@ -262,7 +262,7 @@ const BillingInfoStep = ({ formData, handleInputChange }) => {
             <div>
               <label className="block text-xs font-bold text-brand-dark mb-2 pl-1">Zip Code *</label>
               <input 
-                type="text" name="postalCode" value={formData.postalCode} onChange={handleInputChange}
+                type="text" name="billingPostalCode" value={formData.billingPostalCode} onChange={handleInputChange}
                 placeholder="ZIP"
                 className="w-full px-4 py-3 bg-white border border-brand-light rounded-xl focus:ring-2 focus:ring-brand-dark/5 transition-all text-sm"
               />
