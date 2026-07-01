@@ -85,3 +85,34 @@ public class VerificationStatusDto
     public string? UniqueId { get; set; }
     public string? PhotoUrl { get; set; }
 }
+
+// ─── Snapshot DTOs (AI Proctoring) ──────────────────────────
+
+public class StartSnapshotSessionDto
+{
+    public string? TestId { get; set; }
+    public string? TestCode { get; set; }
+    public string? IndividualMailCode { get; set; }
+}
+
+public class StartSnapshotSessionResponseDto
+{
+    public string SessionId { get; set; } = string.Empty;
+}
+
+public class SnapshotResponseDto
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public string? TestId { get; set; }
+    public string? TestCode { get; set; }
+    public string? IndividualMailCode { get; set; }
+    public string SessionId { get; set; } = string.Empty;
+    public int SnapshotIndex { get; set; }
+    public string SnapshotUrl { get; set; } = string.Empty;
+    public string StorageBucket { get; set; } = string.Empty;
+    public string StoragePath { get; set; } = string.Empty;
+    public long FileSizeBytes { get; set; }
+    public string ContentType { get; set; } = string.Empty;
+    public DateTime CapturedAt { get; set; }
+}

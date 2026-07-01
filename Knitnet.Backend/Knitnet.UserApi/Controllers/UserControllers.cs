@@ -91,7 +91,13 @@ public class ProfileController : ControllerBase
 public class VerificationController : ControllerBase
 {
     private readonly IVerificationService _verification;
-    public VerificationController(IVerificationService verification) { _verification = verification; }
+    private readonly ISnapshotService _snapshots;
+
+    public VerificationController(IVerificationService verification, ISnapshotService snapshots)
+    {
+        _verification = verification;
+        _snapshots = snapshots;
+    }
 
     private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
@@ -113,10 +119,32 @@ public class VerificationController : ControllerBase
         catch (ArgumentException ex) { return NotFound(new { error = ex.Message }); }
     }
 
+    /// <summary>
+    /// Saves a verification snapshot. Now also persists to Supabase Storage + DB
+    /// when a sessionId is provided. Backward-compatible: works without sessionId.
+    /// </summary>
     [HttpPost("snapshot/{index:int}")]
-    public async Task<IActionResult> SaveSnapshot(int index, IFormFile snapshot)
+    public async Task<IActionResult> SaveSnapshot(
+        int index,
+        IFormFile snapshot,
+        [FromQuery] string? sessionId = null,
+        [FromQuery] string? testId = null,
+        [FromQuery] string? testCode = null,
+        [FromQuery] string? individualMailCode = null)
     {
-        try { await _verification.SaveSnapshotAsync(UserId, index, snapshot); return Ok(new { saved = true }); }
+        try
+        {
+            // Existing behavior: save to temp storage
+            await _verification.SaveSnapshotAsync(UserId, index, snapshot);
+
+            // New behavior: if sessionId is provided, also persist permanently to Supabase
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                await _snapshots.SaveSnapshotAsync(UserId, sessionId, index, snapshot, testId, testCode, individualMailCode);
+            }
+
+            return Ok(new { saved = true });
+        }
         catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
@@ -141,4 +169,63 @@ public class StudentResultController : ControllerBase
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         return Ok(await _results.GetMyResultsAsync(userId));
     }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SNAPSHOT QUERY CONTROLLER — AI Proctoring Integration
+//
+// Provides REST endpoints for the AI face-authentication model
+// to retrieve snapshot metadata + signed download URLs.
+//
+// Session start: called by student frontend during exam.
+// Query endpoints: called by company/HR side (AI model uses company JWT).
+// ═══════════════════════════════════════════════════════════════
+
+[ApiController]
+[Route("api/user/verification/snapshots")]
+public class SnapshotQueryController : ControllerBase
+{
+    private readonly ISnapshotService _snapshots;
+    public SnapshotQueryController(ISnapshotService snapshots) { _snapshots = snapshots; }
+
+    /// <summary>
+    /// Starts a new snapshot session for the current exam sitting.
+    /// Called by the student frontend before uploading snapshots.
+    /// Returns a session UUID to pass with each snapshot upload.
+    /// </summary>
+    [Authorize(Roles = "student")]
+    [HttpPost("session")]
+    public async Task<IActionResult> StartSession(StartSnapshotSessionDto dto)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var result = await _snapshots.StartSessionAsync(userId, dto);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Returns all snapshots for a given user.
+    /// Authorized for company/HR — used by the AI model.
+    /// </summary>
+    [Authorize(Roles = "company,hr")]
+    [HttpGet("{userId:int}")]
+    public async Task<IActionResult> GetByUser(int userId)
+        => Ok(await _snapshots.GetByUserIdAsync(userId));
+
+    /// <summary>
+    /// Returns snapshots for a specific user + test combination.
+    /// Primary endpoint for the AI face-authentication model.
+    /// </summary>
+    [Authorize(Roles = "company,hr")]
+    [HttpGet("{userId:int}/{testId}")]
+    public async Task<IActionResult> GetByUserAndTest(int userId, string testId)
+        => Ok(await _snapshots.GetByUserAndTestAsync(userId, testId));
+
+    /// <summary>
+    /// Returns all snapshots from a specific exam session.
+    /// Useful for reviewing a single exam sitting in detail.
+    /// </summary>
+    [Authorize(Roles = "company,hr")]
+    [HttpGet("session/{sessionId}")]
+    public async Task<IActionResult> GetBySession(string sessionId)
+        => Ok(await _snapshots.GetBySessionAsync(sessionId));
 }

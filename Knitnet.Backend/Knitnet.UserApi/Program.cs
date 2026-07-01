@@ -35,6 +35,7 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<IStorageService, SupabaseStorageService>();
 builder.Services.AddScoped<IStudentResultService, StudentResultService>();
+builder.Services.AddScoped<ISnapshotService, SnapshotService>();
 // Shared services (FIX 1 & FIX 2)
 builder.Services.AddScoped<Knitnet.Shared.Services.ICompanyProvisionService, Knitnet.Shared.Services.CompanyProvisionService>();
 builder.Services.AddScoped<Knitnet.Shared.Services.IJwtTokenService, Knitnet.Shared.Services.JwtTokenService>();

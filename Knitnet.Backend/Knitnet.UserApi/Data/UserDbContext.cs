@@ -21,6 +21,12 @@ public class UserDbContext : DbContext
     // Read-only: lookup company during login
     public DbSet<Company> Companies => Set<Company>();
 
+    // Proctoring snapshots for AI face-authentication
+    public DbSet<VerificationSnapshot> VerificationSnapshots => Set<VerificationSnapshot>();
+
+    // Test information table shared from company module
+    public DbSet<TestInfo> TestInfos => Set<TestInfo>();
+
     protected override void OnModelCreating(ModelBuilder m)
     {
         // ───────────────────────────────────────────────────
@@ -44,9 +50,29 @@ public class UserDbContext : DbContext
             .HasForeignKey<Company>(c => c.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Users → VerificationSnapshots (1:many)
+        m.Entity<User>()
+            .HasMany(u => u.VerificationSnapshots)
+            .WithOne(s => s.User)
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // VerificationSnapshots → TestInfos (many:1)
+        m.Entity<VerificationSnapshot>()
+            .HasOne(s => s.TestInfo)
+            .WithMany()
+            .HasForeignKey(s => s.TestId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // ─── Indexes ─────────────────────────────────────
         m.Entity<User>().HasIndex(u => u.Email).IsUnique();
         m.Entity<UserProfile>().HasIndex(p => p.UserId).IsUnique();
+
+        // Snapshot indexes for AI model query patterns
+        m.Entity<VerificationSnapshot>()
+            .HasIndex(s => new { s.UserId, s.TestId });
+        m.Entity<VerificationSnapshot>()
+            .HasIndex(s => s.SessionId);
 
         // ─── Result jsonb columns (read-only) ────────────
         m.Entity<AptitudeResult>(e =>
@@ -76,3 +102,4 @@ public class UserDbContext : DbContext
         });
     }
 }
+
